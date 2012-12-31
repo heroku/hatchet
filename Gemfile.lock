@@ -1,0 +1,20 @@
+GEM
+  remote: http://rubygems.org/
+  specs:
+    activesupport (3.2.8)
+      i18n (~> 0.6)
+      multi_json (~> 1.0)
+    excon (0.16.10)
+    heroku-api (0.3.7)
+      excon (~> 0.16.10)
+    i18n (0.6.1)
+    multi_json (1.5.0)
+    rake (10.0.3)
+
+PLATFORMS
+  ruby
+
+DEPENDENCIES
+  activesupport
+  heroku-api
+  rake
