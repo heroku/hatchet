@@ -1,5 +1,7 @@
 # Hatchet
 
+![](http://f.cl.ly/items/2M2O2Q2I2x0e1M1P2936/Screen%20Shot%202013-01-06%20at%209.59.38%20PM.png)
+
 ## What
 
 The Hatchet is a an integration testing library for developing Heroku buildpacks.
