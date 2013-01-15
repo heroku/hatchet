@@ -7,9 +7,6 @@ class TriageTest < Test::Unit::TestCase
       assert app.deployed?
       app.run("bash") do |cmd|
         # cmd.run("cd public/assets")
-        puts cmd.run("ls")
-        puts cmd.run("pwd")
-        puts cmd.run("ls public/assets")
         assert cmd.run("ls public/assets").include?("application.css")
       end
     end
