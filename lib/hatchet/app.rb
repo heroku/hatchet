@@ -23,12 +23,11 @@ module Hatchet
 
     def setup!
       heroku.post_app(name: name)
-      heroku.put_config_vars(name, 'BUILDPACK_URL' => @buildpack)
       @app_is_setup = true
     end
 
     def push!
-      `git push #{git_repo} master`
+      raise NotImplementedError
     end
 
     def teardown!

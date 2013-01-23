@@ -1,8 +1,8 @@
 module Hatchet
   class AnvilApp < App
     def setup!
+      super
       heroku.post_app(name: name)
-      @app_is_setup = true
     end
 
     def push!
