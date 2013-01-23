@@ -22,4 +22,5 @@ Gem::Specification.new do |gem|
   gem.add_dependency "activesupport"
   gem.add_dependency "rake"
   gem.add_dependency "anvil-cli"
+  gem.add_dependency "excon"
 end
