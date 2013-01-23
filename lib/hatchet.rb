@@ -5,6 +5,7 @@ module Hatchet
   end
 end
 
+require 'hatchet/version'
 require 'hatchet/app'
 require 'hatchet/stream_exec'
 require 'hatchet/process_spawn'
