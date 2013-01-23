@@ -21,4 +21,5 @@ Gem::Specification.new do |gem|
   gem.add_dependency "heroku-api"
   gem.add_dependency "activesupport"
   gem.add_dependency "rake"
+  gem.add_dependency "anvil-cli"
 end

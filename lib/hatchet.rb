@@ -1,4 +1,5 @@
 require 'heroku/api'
+require 'anvil/engine'
 require 'active_support/core_ext/object/blank'
 
 module Hatchet
