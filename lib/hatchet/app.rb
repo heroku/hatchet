@@ -41,7 +41,7 @@ module Hatchet
         block.call(self)
       end
     ensure
-      self.teardown! if @app_is_setup
+      self.teardown! if @app_is_setup && !ENV['HATCHET_DEBUG']
     end
 
     private
