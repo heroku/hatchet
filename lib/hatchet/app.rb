@@ -18,7 +18,7 @@ module Hatchet
     end
 
     def deployed?
-      `heroku ps -a #{name}`.include?("web")
+      !heroku.get_ps(name).body.detect {|ps| ps["process"].include?("web") }.nil?
     end
 
     def setup!
