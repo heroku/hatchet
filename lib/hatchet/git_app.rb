@@ -6,7 +6,8 @@ module Hatchet
     end
 
     def push!
-      `git push #{git_repo} master`
+      output = `git push #{git_repo} master`
+      [$?.success, output]
     end
   end
 end

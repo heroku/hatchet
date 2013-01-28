@@ -37,8 +37,8 @@ module Hatchet
     def deploy(&block)
       Dir.chdir(directory) do
         self.setup!
-        self.push!
-        block.call(self)
+        result, output = self.push!
+        block.call(self, heroku, output)
       end
     ensure
       self.teardown! if @app_is_setup && !ENV['HATCHET_DEBUG']
