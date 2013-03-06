@@ -9,8 +9,9 @@ module Hatchet
       begin
         stderr_orig = $stderr
         stdout_orig = $stdout
-        $stderr = StringIO.new
-        slug_url = Anvil::Engine.build(".", :buildpack => @buildpack, :pipeline => true)
+        string_io   = StringIO.new
+        $stderr     = string_io
+        slug_url    = Anvil::Engine.build(".", :buildpack => @buildpack, :pipeline => true)
         puts "Releasing to http://#{@name}.herokuapp.com"
         response = release(@name, slug_url)
         while response.status == 202
@@ -24,9 +25,7 @@ module Hatchet
         $stdout = stdout_orig
       end
 
-      output = $stderr.dup
-
-      [true, output.string]
+      [true, string_io.string]
     end
 
     private
