@@ -18,17 +18,16 @@ module Hatchet
     end
 
     def deployed?
-      `heroku ps -a #{name}`.include?("web")
+      !heroku.get_ps(name).body.detect {|ps| ps["process"].include?("web") }.nil?
     end
 
     def setup!
       heroku.post_app(name: name)
-      heroku.put_config_vars(name, 'BUILDPACK_URL' => @buildpack)
       @app_is_setup = true
     end
 
     def push!
-      `git push #{git_repo} master`
+      raise NotImplementedError
     end
 
     def teardown!
@@ -38,16 +37,19 @@ module Hatchet
     def deploy(&block)
       Dir.chdir(directory) do
         self.setup!
-        self.push!
-        block.call(self)
+        result, output = self.push!
+        block.call(self, heroku, output)
       end
     ensure
-      self.teardown! if @app_is_setup
+      self.teardown! if @app_is_setup && !ENV['HATCHET_DEBUG']
     end
 
     private
+      def api_key
+        @api_key ||= ENV['HEROKU_API_KEY'] || `heroku auth:token`.chomp
+      end
+
       def heroku
-        api_key ||= ENV['HEROKU_API_KEY'] || `heroku auth:token`
         @heroku ||= Heroku::API.new(api_key: api_key)
       end
   end
