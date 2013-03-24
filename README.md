@@ -71,7 +71,11 @@ It behaves exactly as if you were in a remote shell. If you really wanted you co
 
     cmd.run("rake test")
 
-But since cmd.run doesn't return the exit status now, that wouldn't be so useful (also there is a default timeout to all commands).
+But since cmd.run doesn't return the exit status now, that wouldn't be
+so useful (also there is a default timeout to all commands). If you want
+you can configure the timeout by passing in a second parameter
+
+    cmd.run("rake test", 180.seconds)
 
 
 ## Testing A Different Buildpack

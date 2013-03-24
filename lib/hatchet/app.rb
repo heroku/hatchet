@@ -14,8 +14,8 @@ module Hatchet
 
     # runs a command on heroku similar to `$ heroku run #foo`
     # but programatically and with more control
-    def run(command, &block)
-      ProcessSpawn.new(command, self).run(&block)
+    def run(command, timeout = nil, &block)
+      ProcessSpawn.new(command, self, timeout).run(&block)
     end
 
     # set debug: true when creating app if you don't want it to be

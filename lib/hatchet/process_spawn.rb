@@ -3,13 +3,14 @@ module Hatchet
   # spawns a process on Heroku, and keeps it open for writing
   # like `heroku run bash`
   class ProcessSpawn
-    attr_reader :command, :app
+    attr_reader :command, :app, :timeout
 
     TIMEOUT = 20 # seconds to bring up a heroku command like `heroku run bash`
 
-    def initialize(command, app)
+    def initialize(command, app, timeout = nil)
       @command = command
       @app     = app
+      @timeout = timeout || TIMEOUT
     end
 
     def ready?
@@ -35,7 +36,7 @@ module Hatchet
       raise "need command" unless command.present?
       output, input, pid = PTY.spawn("heroku run #{command} -a #{app.name}")
       stream = StreamExec.new(input, output)
-      stream.timeout("waiting for spawn", TIMEOUT) do
+      stream.timeout("waiting for spawn", timeout) do
         wait_for_spawn!
       end
       raise "Could not run: #{command}" unless self.ready?
