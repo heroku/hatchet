@@ -1,20 +1,32 @@
 module Hatchet
   class App
-    BUILDPACK = nil
     attr_reader :name, :directory
 
     def initialize(directory, options = {})
       @directory = directory
-      @name      = options[:name]      || "test-app-#{Time.now.to_f}".gsub('.', '-')
-      @buildpack = options[:buildpack] || "https://github.com/heroku/heroku-buildpack-ruby.git"
+      @name      = options[:name] || "test-app-#{Time.now.to_f}".gsub('.', '-')
+      @debug     = options[:debug]
     end
 
     def git_repo
       "git@heroku.com:#{name}.git"
     end
 
+    # runs a command on heroku similar to `$ heroku run #foo`
+    # but programatically and with more control
     def run(command, &block)
       ProcessSpawn.new(command, self).run(&block)
+    end
+
+    # set debug: true when creating app if you don't want it to be
+    # automatically destroyed, useful for debugging...bad for app limits.
+    # turn on global debug by setting HATCHET_DEBUG=true in the env
+    def debug?
+      @debug || ENV['HATCHET_DEBUG'] || false
+    end
+
+    def not_debugging?
+      !debug?
     end
 
     def deployed?
@@ -41,7 +53,7 @@ module Hatchet
         block.call(self, heroku, output)
       end
     ensure
-      self.teardown! if @app_is_setup && !ENV['HATCHET_DEBUG']
+      self.teardown! if @app_is_setup && not_debugging?
     end
 
     private
