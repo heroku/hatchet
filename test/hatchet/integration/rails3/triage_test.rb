@@ -2,7 +2,7 @@ require 'test_helper'
 
 class TriageTest < Test::Unit::TestCase
   def test_foo
-    Hatchet::App.new("repos/rails3/codetriage").deploy do |app|
+    Hatchet::GitApp.new("codetriage").deploy do |app|
       assert true
       assert app.deployed?
       app.run("bash") do |cmd|
@@ -12,3 +12,4 @@ class TriageTest < Test::Unit::TestCase
     end
   end
 end
+

@@ -13,6 +13,10 @@ module Hatchet
       heroku.put_config_vars(name, 'BUILDPACK_URL' => @buildpack)
     end
 
+    def git_repo
+      "git@heroku.com:#{name}.git"
+    end
+
     def push!
       output = `git push #{git_repo} master`
       [$?.success?, output]

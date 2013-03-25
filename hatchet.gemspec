@@ -8,9 +8,9 @@ Gem::Specification.new do |gem|
   gem.version       = Hatchet::VERSION
   gem.authors       = ["Richard Schneeman"]
   gem.email         = ["schneems@gmail.com"]
-  gem.description   = %q{The Hatchet is a an integration testing library for developing Heroku buildpacks.}
-  gem.summary       = %q{The Hatchet is a an integration testing library for developing Heroku buildpacks.}
-  gem.homepage      = ""
+  gem.description   = %q{Hatchet is a an integration testing library for developing Heroku buildpacks.}
+  gem.summary       = %q{Hatchet is a an integration testing library for developing Heroku buildpacks.}
+  gem.homepage      = "https://github.com/heroku/hatchet"
   gem.license       = "MIT"
 
   gem.files         = `git ls-files`.split($/)
@@ -23,4 +23,5 @@ Gem::Specification.new do |gem|
   gem.add_dependency "rake"
   gem.add_dependency "anvil-cli"
   gem.add_dependency "excon"
+  gem.add_dependency "thor"
 end

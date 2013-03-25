@@ -1,0 +1,74 @@
+#!/usr/bin/env ruby
+
+unless File.respond_to? :realpath
+  class File #:nodoc:
+    def self.realpath path
+      return realpath(File.readlink(path)) if symlink?(path)
+      path
+    end
+  end
+end
+$: << File.expand_path(File.dirname(File.realpath(__FILE__)) + '/../lib')
+
+require 'hatchet'
+require 'thor'
+
+class HatchetCLI < Thor
+  desc "install", "installs repos defined in 'hatchet.json'"
+  def install
+    warn_dot_ignore!
+    puts "Installing repos for hatchet"
+    dirs.each do |directory, git_repo|
+      if Dir[directory].present?
+        puts "==  Detected #{git_repo} in #{directory}, pulling\n"
+        pull(directory, git_repo)
+      else
+        puts "==  Did not find #{git_repo} in #{directory}, cloning\n"
+        clone(directory, git_repo)
+      end
+    end
+  end
+
+  desc "list", "lists all repos and their destination listed in hatchet.json"
+  def list
+    repos.each do |repo, directory|
+      puts "#{repo}: #{directory}"
+    end
+  end
+
+  private
+
+  def warn_dot_ignore!
+    gitignore = File.open('.gitignore').read
+    return if gitignore.include?(config.repo_directory_path)
+    puts "WARNING: add #{File.join(config.repo_directory_path, '*')} to your .gitignore file \n\n"
+  end
+
+  def config
+    @config ||= Hatchet::Config.new
+  end
+
+  def repos
+    config.repos
+  end
+
+  def dirs
+    config.dirs
+  end
+
+  def pull(path, git_repo)
+    Dir.chdir(path) do
+      `git pull --rebase #{git_repo} master`
+    end
+  end
+
+  def clone(path, git_repo)
+    path = File.join(path, '..') # up one dir to prevent repos/codetriage/codetriage/#...
+    FileUtils.mkdir_p(path)      # create directory
+    Dir.chdir(path) do
+      `git clone #{git_repo}`
+    end
+  end
+end
+
+HatchetCLI.start(ARGV)

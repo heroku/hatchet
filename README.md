@@ -84,6 +84,80 @@ You can specify buildpack to deploy with like so:
 
     Hatchet::App.new("repos/rails3/codetriage", buildpack: "https://github.com/schneems/heroku-buildpack-ruby.git").deploy do |app|
 
+## Hatchet Config
+
+Hatchet is designed to test buildpacks, and requires full repositories
+to deploy to Heroku. Web application repos, especially Rails repos, aren't known for
+being small, if you're testing a custom buildpack and have
+`BUILDPACK_URL` set in your app config, it needs to be cloned each time
+you deploy your app. If you've `git add`-ed a bunch of repos then this
+clone would be pretty slow, we're not going to do this. Do not commit
+your repos to git.
+
+Instead we will keep a structured file called
+inventively `hatchet.json` at the root of your project. This file will
+describe the structure of your repos, have the name of the repo, and a
+git url. We will use it to sync remote git repos with your local
+project. It might look something like this
+
+    {
+      "hatchet": {},
+      "rails3": ["git@github.com:codetriage/codetriage.git"],
+      "rails2": ["git@github.com:heroku/rails2blog.git"]
+    }
+
+the 'hatchet' object accessor is reserved for hatchet settings.
+. To copy each repo in your `hatchet.json`
+run the command:
+
+    $ hatchet install
+
+The above `hatchet.json` will produce a directory structure like this:
+
+    repos/
+      rails3/
+        codetriage/
+          #...
+      rails2/
+        rails2blog/
+          # ...
+
+While you are running your tests if you reference a repo that isn't
+synced locally Hatchet will raise an error. Since you're using a
+standard file for your repos, you can now reference the name of the git
+repo, provided you don't have conflicting names:
+
+    Hatchet::App.new("codetriage").deploy do |app|
+
+If you do have conflicting names, use full paths.
+
+A word of warning on including rails/ruby repos inside of your test
+directory, if you're using a runner that looks for patterns such as
+`*_test.rb` to run your hatchet tests, it may incorrectly think you want
+to run the tests inside of the rails repositories. To get rid of this
+problem move your repos direcory out of `test/` or be more specific
+with your tests such as moving them to a `test/hatchet` directory and
+changing your pattern if you are using `Rake::TestTask` it might look like this:
+
+    t.pattern = 'test/hatchet/**/*_test.rb'
+
+A note on external repos: since you're basing tests on these repos, it
+is in your best interest to not change them or your tests may
+spontaneously fail. In the future we may create a hatchet.lockfile or
+something to declare the commit
+
+## Hatchet CLI
+
+Hatchet has a CLI for installing and maintaining external repos you're
+using to test against. If you have Hatchet installed as a gem run
+
+    $ hatchet --help
+
+For more info on commands. If you're using the source code you can run
+the command by going to the source code directory and running:
+
+    $ ./bin/hatchet --help
+
 
 
 ## The Future
