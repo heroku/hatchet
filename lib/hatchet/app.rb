@@ -2,14 +2,18 @@ module Hatchet
   class App
     attr_reader :name, :directory
 
-    def initialize(directory, options = {})
-      @directory = directory
-      @name      = options[:name] || "test-app-#{Time.now.to_f}".gsub('.', '-')
-      @debug     = options[:debug]
+    def initialize(repo_name, options = {})
+      @directory = config.path_for_name(repo_name)
+      @name      = options[:name]      || "test-app-#{Time.now.to_f}".gsub('.', '-')
     end
 
-    def git_repo
-      "git@heroku.com:#{name}.git"
+    # config is read only, should be threadsafe
+    def self.config
+      @config ||= Config.new
+    end
+
+    def config
+      self.class.config
     end
 
     # runs a command on heroku similar to `$ heroku run #foo`
@@ -33,6 +37,7 @@ module Hatchet
       !heroku.get_ps(name).body.detect {|ps| ps["process"].include?("web") }.nil?
     end
 
+    # creates a new heroku app via the API
     def setup!
       heroku.post_app(name: name)
       @app_is_setup = true
@@ -46,6 +51,9 @@ module Hatchet
       heroku.delete_app(name)
     end
 
+    # creates a new app on heroku, "pushes" via anvil or git
+    # then yields to self so you can call self.run or
+    # self.deployed?
     def deploy(&block)
       Dir.chdir(directory) do
         self.setup!
