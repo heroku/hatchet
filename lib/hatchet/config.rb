@@ -60,8 +60,9 @@ module Hatchet
   private
 
     def set_internal_config!(config)
-      @internal_config     = config.delete('hatchet')
+      @internal_config     = config.delete('hatchet') || {}
       @repo_directory_path = @internal_config['directory'] || REPOS_DIRECTORY_ROOT
+      config
     end
 
     # pulls out config and makes easy to use hashes

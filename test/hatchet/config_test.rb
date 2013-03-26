@@ -20,4 +20,10 @@ class ConfigTest < Test::Unit::TestCase
                        "rails2blog" => "test/fixtures/repos/rails2/rails2blog" }
     assert_equal expected_repos, @config.repos
   end
+
+  def test_no_internal_config_raises_no_errors
+    # assert no_raise
+    @config.send :set_internal_config!, {}
+    assert_equal './repos', @config.repo_directory_path
+  end
 end
