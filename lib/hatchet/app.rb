@@ -4,7 +4,8 @@ module Hatchet
 
     def initialize(repo_name, options = {})
       @directory = config.path_for_name(repo_name)
-      @name      = options[:name]      || "test-app-#{Time.now.to_f}".gsub('.', '-')
+      @name      = options[:name]  || "test-app-#{Time.now.to_f}".gsub('.', '-')
+      @debug     = options[:debug] || options[:debugging]
     end
 
     # config is read only, should be threadsafe
@@ -28,10 +29,12 @@ module Hatchet
     def debug?
       @debug || ENV['HATCHET_DEBUG'] || false
     end
+    alias :debugging? :debug?
 
     def not_debugging?
       !debug?
     end
+    alias :no_debug? :not_debugging?
 
     def deployed?
       !heroku.get_ps(name).body.detect {|ps| ps["process"].include?("web") }.nil?
@@ -48,6 +51,11 @@ module Hatchet
     end
 
     def teardown!
+      return false unless @app_is_setup
+      if debugging?
+        puts "Debugging App:#{name}"
+        return false
+      end
       heroku.delete_app(name)
     end
 
@@ -61,7 +69,7 @@ module Hatchet
         block.call(self, heroku, output)
       end
     ensure
-      self.teardown! if @app_is_setup && not_debugging?
+      self.teardown!
     end
 
     private
@@ -74,3 +82,4 @@ module Hatchet
       end
   end
 end
+
