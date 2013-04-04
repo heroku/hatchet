@@ -28,6 +28,11 @@ module Hatchet
       [true, string_io.string]
     end
 
+    def teardown!
+      super
+      FileUtils.rm_rf("#{directory}/.anvil")
+    end
+
     private
     def release(name, slug_url)
       headers         = {"Content-Type" => "application/json", accept: :json}
