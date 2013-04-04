@@ -3,6 +3,13 @@ require 'stringio'
 
 module Hatchet
   class AnvilApp < App
+
+    def initialize(directory, options = {})
+      @buildpack   = options[:buildpack]
+      @buildpack ||= File.expand_path('.')
+      super
+    end
+
     def push!
       slug_url = nil
 
@@ -19,6 +26,7 @@ module Hatchet
         end
       rescue Anvil::Builder::BuildError => e
         output = $stderr.dup
+        stdout_orig.puts output.string # print the errors to the test output
         return [false, output.string]
       ensure
         $stderr = stderr_orig
