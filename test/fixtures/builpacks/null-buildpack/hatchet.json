@@ -1,0 +1,5 @@
+{
+  "hatchet": {"directory": "../.."},
+  "rails3": ["git@github.com:codetriage/codetriage.git"],
+  "rails2": ["git@github.com:heroku/rails2blog.git"]
+}
