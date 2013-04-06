@@ -72,6 +72,7 @@ module Hatchet
       set_internal_config!(config)
       config.each do |(directory, git_repos)|
         git_repos.each do |git_repo|
+          git_repo         = git_repo.include?("github.com") ? git_repo : "git@github.com:#{git_repo}.git"
           repo_name        = name_from_git_repo(git_repo)
           repo_path        = File.join(repo_directory_path, directory, repo_name)
           if repos.key? repo_name

@@ -1,6 +1,7 @@
 require 'test_helper'
 
 class ConfigTest < Test::Unit::TestCase
+
   def setup
     @config = Hatchet::Config.new
   end
@@ -25,5 +26,10 @@ class ConfigTest < Test::Unit::TestCase
     # assert no_raise
     @config.send :set_internal_config!, {}
     assert_equal './repos', @config.repo_directory_path
+  end
+
+  def test_github_shortcuts
+    @config.send :init_config!, {"foo" => ["schneems/sextant"]}
+    assert_equal("git@github.com:schneems/sextant.git", @config.dirs["./repos/foo/sextant"])
   end
 end
