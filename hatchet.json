@@ -1,5 +1,5 @@
 {
   "hatchet": {"directory": "test/fixtures"},
-  "rails3": ["codetriage/codetriage"],
-  "rails2": ["heroku/rails2blog"]
+  "rails3": ["sharpstone/codetriage"],
+  "rails2": ["sharpstone/rails2blog"]
 }

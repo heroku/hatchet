@@ -11,8 +11,8 @@ class ConfigTest < Test::Unit::TestCase
   end
 
   def test_config_dirs
-    expected_dirs = { "test/fixtures/repos/rails3/codetriage" => "git@github.com:codetriage/codetriage.git",
-                      "test/fixtures/repos/rails2/rails2blog" => "git@github.com:heroku/rails2blog.git" }
+    expected_dirs = { "test/fixtures/repos/rails3/codetriage" => "git@github.com:sharpstone/codetriage.git",
+                      "test/fixtures/repos/rails2/rails2blog" => "git@github.com:sharpstone/rails2blog.git" }
     assert_equal expected_dirs, @config.dirs
   end
 
