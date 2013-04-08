@@ -4,10 +4,10 @@ $LOAD_PATH.unshift(lib) unless $LOAD_PATH.include?(lib)
 require 'hatchet/version'
 
 Gem::Specification.new do |gem|
-  gem.name          = "hatchet"
+  gem.name          = "heroku_hatchet"
   gem.version       = Hatchet::VERSION
   gem.authors       = ["Richard Schneeman"]
-  gem.email         = ["schneems@gmail.com"]
+  gem.email         = ["richard.schneeman+rubygems@gmail.com"]
   gem.description   = %q{Hatchet is a an integration testing library for developing Heroku buildpacks.}
   gem.summary       = %q{Hatchet is a an integration testing library for developing Heroku buildpacks.}
   gem.homepage      = "https://github.com/heroku/hatchet"
@@ -25,3 +25,4 @@ Gem::Specification.new do |gem|
   gem.add_dependency "excon"
   gem.add_dependency "thor"
 end
+
