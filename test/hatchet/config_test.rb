@@ -7,17 +7,17 @@ class ConfigTest < Test::Unit::TestCase
   end
 
   def test_config_path_for_name
-    assert_equal 'test/fixtures/repos/rails3/codetriage', @config.path_for_name('codetriage')
+    assert_equal 'test/fixtures/repos/rails3/rails3-hatchet-dev', @config.path_for_name('rails3-hatchet-dev')
   end
 
   def test_config_dirs
-    expected_dirs = { "test/fixtures/repos/rails3/codetriage" => "git@github.com:sharpstone/codetriage.git",
-                      "test/fixtures/repos/rails2/rails2blog" => "git@github.com:sharpstone/rails2blog.git" }
+    expected_dirs = { "test/fixtures/repos/rails3/rails3-hatchet-dev" => "git://github.com/sharpstone/rails3-hatchet-dev.git",
+                      "test/fixtures/repos/rails2/rails2blog" => "git://github.com/sharpstone/rails2blog.git" }
     assert_equal expected_dirs, @config.dirs
   end
 
   def test_config_repos
-    expected_repos = { "codetriage" => "test/fixtures/repos/rails3/codetriage",
+    expected_repos = { "rails3-hatchet-dev" => "test/fixtures/repos/rails3/rails3-hatchet-dev",
                        "rails2blog" => "test/fixtures/repos/rails2/rails2blog" }
     assert_equal expected_repos, @config.repos
   end
@@ -30,6 +30,6 @@ class ConfigTest < Test::Unit::TestCase
 
   def test_github_shortcuts
     @config.send :init_config!, {"foo" => ["schneems/sextant"]}
-    assert_equal("git@github.com:schneems/sextant.git", @config.dirs["./repos/foo/sextant"])
+    assert_equal("git://github.com/schneems/sextant.git", @config.dirs["./repos/foo/sextant"])
   end
 end
