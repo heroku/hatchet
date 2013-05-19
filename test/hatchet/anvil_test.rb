@@ -3,7 +3,7 @@ require 'test_helper'
 class AnvilTest < Test::Unit::TestCase
   def test_deploy
     Dir.chdir('test/fixtures/builpacks/null-buildpack') do
-      Hatchet::AnvilApp.new("codetriage",debug: true).deploy do |app|
+      Hatchet::AnvilApp.new("rails3-hatchet-dev").deploy do |app|
         assert true
         app.run("bash") do |cmd|
           # cmd.run("cd public/assets")

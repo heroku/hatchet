@@ -1,5 +1,5 @@
 {
   "hatchet": {"directory": "test/fixtures"},
-  "rails3": ["sharpstone/codetriage"],
+  "rails3": ["sharpstone/rails3-hatchet-dev"],
   "rails2": ["sharpstone/rails2blog"]
 }
