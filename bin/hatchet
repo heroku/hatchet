@@ -40,8 +40,9 @@ class HatchetCLI < Thor
 
   def warn_dot_ignore!
     gitignore = File.open('.gitignore').read
-    return if gitignore.include?(config.repo_directory_path)
-    puts "WARNING: add #{File.join(config.repo_directory_path, '*')} to your .gitignore file \n\n"
+    repo_path = config.repo_directory_path.gsub(/^\.\//, '') # remove ./ from front of dir
+    return if gitignore.include?(repo_path)
+    puts "WARNING: add #{File.join(repo_path, '*')} to your .gitignore file \n\n"
   end
 
   def config
