@@ -14,7 +14,7 @@ module Hatchet
     end
 
     def ready?
-      `heroku ps -a #{app.name}`.match(/^run.*up.*`#{command}`/).present?
+      @ready ||= `heroku ps -a #{app.name}`.match(/^run.*up.*#{command}/).present?
     end
 
     def not_ready?
