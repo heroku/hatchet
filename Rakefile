@@ -3,3 +3,5 @@ require 'bundler/gem_tasks'
 
 require 'hatchet/tasks'
 
+task :default => [:test]
+

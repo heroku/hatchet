@@ -34,12 +34,15 @@ module Hatchet
     def run(&block)
       raise "need app"     unless app.present?
       raise "need command" unless command.present?
-      output, input, pid = PTY.spawn("heroku run #{command} -a #{app.name}")
+      heroku_command     = "heroku run #{command} -a #{app.name}"
+      return `#{heroku_command}` if block.blank? # one off command, no block given
+
+      output, input, pid = PTY.spawn(heroku_command)
       stream = StreamExec.new(input, output)
       stream.timeout("waiting for spawn", timeout) do
         wait_for_spawn!
       end
-      raise "Could not run: #{command}" unless self.ready?
+      raise "Could not run: '#{command}', command took longer than #{timeout} seconds" unless self.ready?
       yield stream
     ensure
       stream.close                if stream.present?

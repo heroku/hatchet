@@ -19,6 +19,7 @@ class HatchetCLI < Thor
     warn_dot_ignore!
     puts "Installing repos for hatchet"
     dirs.each do |directory, git_repo|
+      directory = File.expand_path(directory)
       if Dir[directory].present?
         puts "== pulling '#{git_repo}' into '#{directory}'\n"
         pull(directory, git_repo)
@@ -39,6 +40,8 @@ class HatchetCLI < Thor
   private
 
   def warn_dot_ignore!
+    return false unless File.exist?('.gitignore')
+
     gitignore = File.open('.gitignore').read
     repo_path = config.repo_directory_path.gsub(/^\.\//, '') # remove ./ from front of dir
     return if gitignore.include?(repo_path)

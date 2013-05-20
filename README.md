@@ -78,6 +78,16 @@ you can configure the timeout by passing in a second parameter
     cmd.run("rake test", 180.seconds)
 
 
+## Running One off Commands
+
+If you only want to run one command you can call `app.run` without
+passing a block
+
+    Hatchet::AnvilApp.new("/codetriage").deploy do |app|
+      assert_match "1.9.3", app.run("ruby -v")
+    end
+
+
 ## Testing A Different Buildpack
 
 You can specify buildpack to deploy with like so:

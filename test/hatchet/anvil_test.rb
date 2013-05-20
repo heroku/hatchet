@@ -2,20 +2,20 @@ require 'test_helper'
 
 class AnvilTest < Test::Unit::TestCase
   def test_deploy
-    Dir.chdir('test/fixtures/builpacks/null-buildpack') do
-      Hatchet::AnvilApp.new("rails3-hatchet-dev").deploy do |app|
-        assert true
-        app.run("bash") do |cmd|
-          # cmd.run("cd public/assets")
+    ruby_buildpack_path = File.expand_path 'test/fixtures/buildpacks/heroku-buildpack-ruby'
 
-          assert cmd.run("cat Gemfile").include?("gem 'pg'")
+    Hatchet::AnvilApp.new("rails3_mri_193", buildpack: ruby_buildpack_path).deploy do |app, heroku, output|
+      assert true
 
-          # deploying with null buildpack, no assets should be compiled
-          refute cmd.run("ls public/assets").include?("application.css")
-        end
+      assert_match '1.9.3', app.run("ruby -v")
+      app.run("bash") do |cmd|
+
+        assert cmd.run("cat Gemfile").include?("gem 'pg'")
+
+        assert cmd.run("ls public/assets").include?("application.css")
       end
+
     end
   end
 end
-
 
