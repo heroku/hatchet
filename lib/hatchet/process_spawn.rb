@@ -5,7 +5,7 @@ module Hatchet
   class ProcessSpawn
     attr_reader :command, :app, :timeout
 
-    TIMEOUT = 20 # seconds to bring up a heroku command like `heroku run bash`
+    TIMEOUT = 60 # seconds to bring up a heroku command like `heroku run bash`
 
     def initialize(command, app, timeout = nil)
       @command = command
