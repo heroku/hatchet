@@ -20,10 +20,10 @@ class HatchetCLI < Thor
     puts "Installing repos for hatchet"
     dirs.each do |directory, git_repo|
       if Dir[directory].present?
-        puts "==  Detected #{git_repo} in #{directory}, pulling\n"
+        puts "== pulling '#{git_repo}' into '#{directory}'\n"
         pull(directory, git_repo)
       else
-        puts "==  Did not find #{git_repo} in #{directory}, cloning\n"
+        puts "== cloning '#{git_repo}' into '#{directory}'\n"
         clone(directory, git_repo)
       end
     end
