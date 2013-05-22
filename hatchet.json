@@ -1,5 +1,6 @@
 {
   "hatchet": {"directory": "test/fixtures"},
-  "rails3": ["sharpstone/rails3_mri_193"],
-  "rails2": ["sharpstone/rails2blog"]
+  "rails3":  ["sharpstone/rails3_mri_193"],
+  "rails2":  ["sharpstone/rails2blog"],
+  "bundler": ["sharpstone/no_lockfile"]
 }

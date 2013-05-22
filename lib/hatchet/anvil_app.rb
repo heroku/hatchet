@@ -5,38 +5,48 @@ module Hatchet
   class AnvilApp < App
 
     def initialize(directory, options = {})
-      @buildpack   = options[:buildpack]
+      @buildpack = options[:buildpack]
       @buildpack ||= File.expand_path('.')
       super
     end
 
     def push!
-      slug_url = nil
-
-      begin
-        stderr_orig = $stderr
-        stdout_orig = $stdout
-        string_io   = StringIO.new
-        $stderr     = string_io
-        slug_url    = Anvil::Engine.build(".", :buildpack => @buildpack, :pipeline => true)
+      out, err = wrap_stdout_and_rescue(Anvil::Builder::BuildError) do
+        slug_url  = Anvil::Engine.build(".", :buildpack => @buildpack, :pipeline => true)
         puts "Releasing to http://#{@name}.herokuapp.com"
         response = release(@name, slug_url)
         while response.status == 202
           response = Excon.get("#{release_host}#{response.headers["Location"]}")
         end
-      rescue Anvil::Builder::BuildError => e
-        output = $stderr.dup
-        stdout_orig.puts output.string # print the errors to the test output
-        return [false, output.string]
-      ensure
-        $stderr = stderr_orig
-        $stdout = stdout_orig
       end
 
-      [true, string_io.string]
+      err.string
     end
 
-    def teardown!
+    def wrap_stdout_and_rescue(error, &block)
+      wrap_stdout do |orig_out, orig_err|
+        begin
+          yield orig_out, orig_err
+        rescue error => e
+          return [$stdout.dup, $stderr.dup] if @allow_failure
+          orig_out.puts $stderr.dup.string # print the errors to the test output
+          raise e
+        end
+      end
+    end
+
+    def wrap_stdout(orig_out = $stdout, orig_err = $stderr, &block)
+      $stderr  = StringIO.new
+      $stdout  = StringIO.new
+      yield orig_out, orig_err
+      puts [$stdout.dup, $stderr.dup].inspect
+      return $stdout.dup, $stderr.dup
+    ensure
+      $stdout = orig_out
+      $stderr = orig_err
+    end
+
+   def teardown!
       super
       FileUtils.rm_rf("#{directory}/.anvil")
     end

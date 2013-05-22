@@ -2,10 +2,20 @@ module Hatchet
   class App
     attr_reader :name, :directory
 
+    class FailedDeploy < StandardError
+      def initialize(app, output)
+        msg = "could not deploy #{app.name} using #{app.class} if this was expected " <<
+              "add `allow_failure: true` to your deploy hash\n\n" <<
+              "output : #{output.inspect}"
+        super(msg)
+      end
+    end
+
     def initialize(repo_name, options = {})
-      @directory = config.path_for_name(repo_name)
-      @name      = options[:name]  || "test-app-#{Time.now.to_f}".gsub('.', '-')
-      @debug     = options[:debug] || options[:debugging]
+      @directory     = config.path_for_name(repo_name)
+      @name          = options[:name]  || "test-app-#{Time.now.to_f}".gsub('.', '-')
+      @debug         = options[:debug] || options[:debugging]
+      @allow_failure = options[:allow_failure] || false
     end
 
     # config is read only, should be threadsafe
@@ -65,11 +75,15 @@ module Hatchet
     def deploy(&block)
       Dir.chdir(directory) do
         self.setup!
-        result, output = self.push!
-        block.call(self, heroku, output)
+        @output = self.push!
+        block.call(self, heroku, output) if block.present?
       end
     ensure
       self.teardown!
+    end
+
+    def output
+      @output
     end
 
     private

@@ -18,8 +18,11 @@ module Hatchet
     end
 
     def push!
-      output = `git push #{git_repo} master`
-      [$?.success?, output]
+      output = `git push #{git_repo} master 2>&1`
+      if !$?.success?
+        raise FailedDeploy.new(self, output) unless @allow_failure
+      end
+      return output
     end
   end
 end

@@ -5,6 +5,8 @@ require 'active_support/core_ext/object/blank'
 require 'json'
 require 'stringio'
 require 'fileutils'
+require 'stringio'
+
 
 module Hatchet
   class App
