@@ -3,7 +3,7 @@ language: ruby
 rvm:
 - 2.0.0
 before_script: bundle exec rake hatchet:setup_travis
-script: parallel_test test/hatchet -n 6
+script: bundle exec parallel_test test/hatchet -n 6
 
 
 env:
