@@ -8,6 +8,7 @@ script: bundle exec parallel_test test/hatchet -n 6
 
 env:
   global:
+  - HATCHET_RETRIES=3
   - secure: |-
       SfUgPagZILPjm4rjkYlEck76PUE47dimpNZgUtUf7wTAbe6EE83QmnRl6uDT
       eSdxuY9uNFoTwNLC0J+mRiDAJtAQxBsst8wFoc3diK2o8Ojnor5yd3cxddBv
