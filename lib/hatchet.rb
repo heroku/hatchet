@@ -10,6 +10,8 @@ require 'stringio'
 
 
 module Hatchet
+  RETRIES = Integer(ENV['HATCHET_RETRIES'] || 1)
+
   class App
   end
 end
