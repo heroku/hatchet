@@ -1,6 +1,10 @@
+## 0.1.1
+
+- Allow auto retries of pushes by setting environment variable `HATCHET_RETRIES=3`
+
 ## 0.1.0
 
-- Failed deploys now raise an exception
+- Failed deploys now raise an exception, to ignore set `allow_failure: true` in the `Hatchet::App`
 
 ## 0.0.2
 

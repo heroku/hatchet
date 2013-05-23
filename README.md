@@ -169,6 +169,9 @@ the command by going to the source code directory and running:
     $ ./bin/hatchet --help
 
 
+## Retries
+
+Phantom errors happen. To auto retry deploy failures set the environment variable `HATCHET_RETRIES=3` which will auto retry deploys 3 times. By default deploys will not be retried. Once the number of retries has occurred the last exception will be raised.
 
 ## The Future
 
