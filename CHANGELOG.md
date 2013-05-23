@@ -1,3 +1,10 @@
+## HEAD
+
+- Add `rake hatchet:teardown_travis` task to put in `travis.yml`:
+
+    after_script: bundle exec rake hatchet:teardown_travis
+
+
 ## 0.1.1
 
 - Allow auto retries of pushes by setting environment variable `HATCHET_RETRIES=3`

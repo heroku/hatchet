@@ -17,4 +17,11 @@ namespace :hatchet do
     end
     puts "== Done =="
   end
+
+  task :teardown_travis do
+    ['heroku keys:remove ~/.ssh/id_rsa'].each do |command|
+      puts "== Running: #{command}"
+      `#{command}`
+    end
+  end
 end
