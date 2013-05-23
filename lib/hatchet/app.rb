@@ -1,4 +1,5 @@
 module Hatchet
+  RETRIES = Integer(ENV['HATCHET_RETRIES'] || 1)
   class App
     attr_reader :name, :directory
 
@@ -72,14 +73,34 @@ module Hatchet
     # creates a new app on heroku, "pushes" via anvil or git
     # then yields to self so you can call self.run or
     # self.deployed?
+    # Allow deploy failures on CI server by setting ENV['HATCHET_RETRIES']
     def deploy(&block)
       Dir.chdir(directory) do
         self.setup!
-        @output = self.push!
+        self.push_with_retry!
         block.call(self, heroku, output) if block.present?
       end
     ensure
       self.teardown!
+    end
+
+
+    def push_with_retry!
+      RETRIES.times.retry do |attempt|
+        begin
+          @output = self.push!
+        rescue StandardError => error
+          puts retry_error_message(error, attempt)
+          raise error
+        end
+      end
+    end
+
+    def retry_error_message(error, attempt)
+      attempt += 1
+      return "" if attempt == RETRIES
+      msg = "\nRetrying failed Attempt ##{attempt}/#{RETRIES} to push for '#{name}' due to error: \n"<<
+            "#{error.class} #{error.message}\n  #{error.backtrace.join("\n  ")}"
     end
 
     def output
