@@ -18,4 +18,15 @@ class AllowFailureAnvilTest < Test::Unit::TestCase
       Hatchet::AnvilApp.new("no_lockfile", buildpack: @buildpack_path).deploy
     end
   end
+
+  def test_retries
+    Hatchet::App.const_set(:RETRIES, 2)
+    assert_raise(Anvil::Builder::BuildError) do
+      app = Hatchet::AnvilApp.new("no_lockfile", buildpack: @buildpack_path)
+      app.expects(:push!).twice.raises(Anvil::Builder::BuildError)
+      app.deploy
+    end
+  ensure
+    Hatchet::App.const_set(:RETRIES, 1)
+  end
 end
