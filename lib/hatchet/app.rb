@@ -27,6 +27,15 @@ module Hatchet
       self.class.config
     end
 
+
+  def add_database(db_name = 'heroku-postgresql:dev', match_val = "HEROKU_POSTGRESQL_[A-Z]+_URL")
+    Hatchet::RETRIES.times.retry do
+      heroku.post_addon(name, db_name)
+      _, value = heroku.get_config_vars(name).body.detect {|k, v| k.match(/#{match_val}/) }
+      heroku.put_config_vars(name, 'DATABASE_URL' => value)
+    end
+  end
+
     # runs a command on heroku similar to `$ heroku run #foo`
     # but programatically and with more control
     def run(command, timeout = nil, &block)

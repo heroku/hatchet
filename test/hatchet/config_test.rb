@@ -20,7 +20,7 @@ class ConfigTest < Test::Unit::TestCase
   def test_config_repos
     expected_repos = { "rails3_mri_193" => "test/fixtures/repos/rails3/rails3_mri_193",
                        "rails2blog"     => "test/fixtures/repos/rails2/rails2blog",
-                       "no_lockfile"    =>"test/fixtures/repos/bundler/no_lockfile"}
+                       "no_lockfile"    => "test/fixtures/repos/bundler/no_lockfile"}
     assert_equal expected_repos, @config.repos
   end
 

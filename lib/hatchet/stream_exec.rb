@@ -1,19 +1,26 @@
 require 'timeout'
+
 module Hatchet
   # runs arbitrary commands within a Heroku process
   class StreamExec
-    attr_reader :input, :output
+    attr_reader :input, :output, :pid
     TIMEOUT = 1 # seconds to run an arbitrary command on a heroku process like `$ls`
 
-    def initialize(input, output)
+    def initialize(input, output, pid)
       @input  = input
       @output = output
+      @pid    = pid
     end
 
-    def run(cmd)
-      raise "command expected" if cmd.blank?
-      input.write("#{cmd}\n")
-      return read(cmd)
+    def write(cmd)
+      input.write(cmd)
+    rescue Errno::EIO => e
+      raise e, "#{e.message} | trying to write '#{cmd}'"
+    end
+
+    def run(cmd, timeout = TIMEOUT)
+      write(cmd)
+      return read(timeout)
     end
 
     def close
@@ -21,6 +28,8 @@ module Hatchet
         input.close
         output.close
       end
+    ensure
+      Process.kill('TERM', pid)   if pid.present?
     end
 
     # There be dragons - (You're playing with process deadlock)
@@ -29,22 +38,19 @@ module Hatchet
     # First pull all contents from stdout (except we don't know how many there are)
     # So we have to go until our process deadlocks, then we timeout and return the string
     #
-    # Example
-    #   result = ""
-    #   input.write("ls\n")
-    #   Timeout::timeout(1) {output.each {|x| result << x}}
-    #      Timeout::Error: execution expired
-    #   puts result
-    #     # => "ls\r\r\napp\tconfig.ru  Gemfile\t LICENSE.txt  public\t script  vendor\r\r\nbin\tdb\t   Gemfile.lock  log\t      Rakefile\t test\r\r\nconfig\tdoc\t   lib\t\t Procfile     README.md  tmp\r\r\n"
-    #
-    # Now we want to remove the original command ("ls\r\r\n") and return the remainder
-    def read(cmd, str = "")
-      timeout do
-        # this is guaranteed to timeout; output.each will not return
-        output.each { |line| str << line }
+    def read(timeout = TIMEOUT)
+      str = ""
+      while true
+        Timeout::timeout(timeout) do
+          str << output.readline
+        end
       end
-      str.split("#{cmd}\r\r\n").last
+
+      return str
+    rescue Timeout::Error, EOFError
+      return str
     end
+    alias :clear :read
 
     def timeout(msg = nil, val = TIMEOUT, &block)
       Timeout::timeout(val) do
@@ -55,4 +61,3 @@ module Hatchet
     end
   end
 end
-
