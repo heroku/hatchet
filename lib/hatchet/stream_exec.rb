@@ -50,7 +50,6 @@ module Hatchet
     rescue Timeout::Error, EOFError
       return str
     end
-    alias :clear :read
 
     def timeout(msg = nil, val = TIMEOUT, &block)
       Timeout::timeout(val) do

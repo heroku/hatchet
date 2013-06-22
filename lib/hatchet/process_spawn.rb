@@ -52,7 +52,7 @@ module Hatchet
       raise "Could not run: '#{command}', command took longer than #{timeout} seconds" unless self.ready?
 
       repl_magic(repl)
-      repl.clear # important to get rid of startup info i.e. "booting rails console ..."
+      repl.wait_for_boot(5) # important to get rid of startup info i.e. "booting rails console ..."
       return repl
     end
 

@@ -28,8 +28,8 @@ module Hatchet
       read(cmd, timeout, retries)
     end
 
-    def clear
-      repl.clear
+    def wait_for_boot(timeout = 5)
+      repl.read(timeout)
     end
 
     def close
