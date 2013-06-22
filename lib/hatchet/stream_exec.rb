@@ -6,7 +6,7 @@ module Hatchet
     attr_reader :input, :output, :pid
     TIMEOUT = 1 # seconds to run an arbitrary command on a heroku process like `$ls`
 
-    def initialize(input, output, pid)
+    def initialize(output, input, pid)
       @input  = input
       @output = output
       @pid    = pid

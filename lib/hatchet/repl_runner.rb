@@ -40,7 +40,7 @@ module Hatchet
     # of the repl (StreamExec)
     # Example
     #  output, input, pid = PTY.spawn('sh')
-    #  stream             = StreamExec.new(input, output)
+    #  stream             = StreamExec.new(output, input, pid)
     #  repl_runner = ReplRunner.new(stream)
     #  repl_runner.write("ls\n")
     #  repl_runner.read

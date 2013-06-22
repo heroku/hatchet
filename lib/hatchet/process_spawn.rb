@@ -42,10 +42,9 @@ module Hatchet
 
     # Open up PTY (pseudo terminal) to command like `heroku run bash`
     # Wait for the dyno to deploy, then allow user to run arbitrary commands
-    #
     def spawn_repl
       output, input, pid = PTY.spawn(command)
-      stream = StreamExec.new(input, output, pid)
+      stream = StreamExec.new(output, input, pid)
       repl   = ReplRunner.new(stream)
       stream.timeout("waiting for spawn", timeout) do
         wait_for_spawn!

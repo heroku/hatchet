@@ -7,7 +7,7 @@ class ReplRunnerTest < Test::Unit::TestCase
     command            = "irb"
     input              = StringIO.new("bar")
     bogus_output       = StringIO.new("foo")
-    stream             = Hatchet::StreamExec.new(input, bogus_output, 1)
+    stream             = Hatchet::StreamExec.new(bogus_output, input, 1)
     repl               = Hatchet::ReplRunner.new(stream)
     repl.write("1+1")
     assert_equal bogus_output.string, repl.read("1+1")
