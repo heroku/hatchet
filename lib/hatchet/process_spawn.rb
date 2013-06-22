@@ -3,18 +3,20 @@ module Hatchet
   # spawns a process on Heroku, and keeps it open for writing
   # like `heroku run bash`
   class ProcessSpawn
-    attr_reader :command, :app, :timeout
-
+    attr_reader :command, :app, :timeout, :pid
     TIMEOUT = 60 # seconds to bring up a heroku command like `heroku run bash`
 
     def initialize(command, app, timeout = nil)
-      @command = command
-      @app     = app
-      @timeout = timeout || TIMEOUT
+      raise "need command" unless command.present?
+      raise "need app"     unless app.present?
+      @command        = "heroku run #{command} -a #{app.name}"
+      @ready_regex    = "^run.*up.*#{command}"
+      @app            = app
+      @timeout        = timeout || TIMEOUT
     end
 
     def ready?
-      @ready ||= `heroku ps -a #{app.name}`.match(/^run.*up.*#{command}/).present?
+      @ready ||= `heroku ps -a #{app.name}`.match(/#{@ready_regex}/).present?
     end
 
     def not_ready?
@@ -28,25 +30,38 @@ module Hatchet
       return true
     end
 
+    # some REPL's don't sync standard out by default
+    # try to do it auto-magically
+    def repl_magic(repl)
+      case command
+      when /rails\s*console/, /\sirb\s/
+        # puts "magic for: '#{command}'"
+        repl.run("STDOUT.sync = true")
+      end
+    end
+
     # Open up PTY (pseudo terminal) to command like `heroku run bash`
     # Wait for the dyno to deploy, then allow user to run arbitrary commands
-    #
-    def run(&block)
-      raise "need app"     unless app.present?
-      raise "need command" unless command.present?
-      heroku_command     = "heroku run #{command} -a #{app.name}"
-      return `#{heroku_command}` if block.blank? # one off command, no block given
-
-      output, input, pid = PTY.spawn(heroku_command)
-      stream = StreamExec.new(input, output)
+    def spawn_repl
+      output, input, pid = PTY.spawn(command)
+      stream = StreamExec.new(output, input, pid)
+      repl   = ReplRunner.new(stream)
       stream.timeout("waiting for spawn", timeout) do
         wait_for_spawn!
       end
       raise "Could not run: '#{command}', command took longer than #{timeout} seconds" unless self.ready?
-      yield stream
+
+      repl_magic(repl)
+      repl.wait_for_boot(5) # important to get rid of startup info i.e. "booting rails console ..."
+      return repl
+    end
+
+    def run(&block)
+      return `#{command}` if block.blank? # one off command, no block given
+
+      yield repl = spawn_repl
     ensure
-      stream.close                if stream.present?
-      Process.kill('TERM', pid)   if pid.present?
+      repl.close if repl.present?
     end
   end
 end
