@@ -1,5 +1,12 @@
 ## HEAD
 
+
+## 0.2.0
+
+- Add database method App#add_database
+
+- Drastically improved reliability of `app.run` outputs.
+
 - Add `rake hatchet:teardown_travis` task to put in `travis.yml`:
 
     after_script: bundle exec rake hatchet:teardown_travis
