@@ -1,5 +1,9 @@
 ## HEAD
 
+## 1.0.0
+
+- Move remote console running code to https://github.com/schneems/repl_runner
+  This changes the API for running interactive code. README has been updated
 
 ## 0.2.0
 

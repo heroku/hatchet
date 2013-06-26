@@ -39,7 +39,10 @@ module Hatchet
     # runs a command on heroku similar to `$ heroku run #foo`
     # but programatically and with more control
     def run(command, timeout = nil, &block)
-      ProcessSpawn.new(command, self, timeout).run(&block)
+      heroku_command = "heroku run #{command} -a #{name}"
+      return `#{heroku_command}` if block.blank?
+
+      ReplRunner.new(command, heroku_command, startup_timeout: timeout).run(&block)
     end
 
     # set debug: true when creating app if you don't want it to be
@@ -115,14 +118,13 @@ module Hatchet
       @output
     end
 
-    private
-      def api_key
-        @api_key ||= ENV['HEROKU_API_KEY'] || `heroku auth:token`.chomp
-      end
+    def api_key
+      @api_key ||= ENV['HEROKU_API_KEY'] || `heroku auth:token`.chomp
+    end
 
-      def heroku
-        @heroku ||= Heroku::API.new(api_key: api_key)
-      end
+    def heroku
+      @heroku ||= Heroku::API.new(api_key: api_key)
+    end
   end
 end
 

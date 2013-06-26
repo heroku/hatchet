@@ -24,6 +24,8 @@ Gem::Specification.new do |gem|
   gem.add_dependency "anvil-cli"
   gem.add_dependency "excon"
   gem.add_dependency "thor"
+  gem.add_dependency 'repl_runner'
+
 
   gem.add_development_dependency "rake"
   gem.add_development_dependency "mocha"
