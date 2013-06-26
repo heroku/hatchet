@@ -11,18 +11,26 @@ class MultiCmdRunnerTest < Test::Unit::TestCase
     Hatchet::AnvilApp.new("rails3_mri_193", buildpack: @buildpack_path).deploy do |app|
       app.add_database
 
-      rand(3..7).times do
-        app.run("bash") do |bash|
-          assert_match /Gemfile/, bash.run("ls")
+      assert_raise ReplRunner::UnregisteredCommand do
+        app.run("ls", 2) do |ls| # will return right away, should raise error
+          ls.run("cat")
         end
       end
 
       rand(3..7).times do
         app.run("rails console") do |console|
-          assert_match /foofoofoofoofoo/, console.run("'foo' * 5")
-          assert_match /hello world/,     console.run("'hello ' + 'world'")
+          console.run("`ls`")
+          console.run("'foo' * 5")          {|r| assert_match "foofoofoofoofoo", r }
+          console.run("'hello ' + 'world'") {|r| assert_match "hello world", r }
         end
       end
+
+      rand(3..7).times do
+        app.run("bash") do |bash|
+          bash.run("ls") { |r| assert_match "Gemfile", r }
+        end
+      end
+
     end
   end
 end

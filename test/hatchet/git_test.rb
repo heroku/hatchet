@@ -8,7 +8,7 @@ class GitAppTest < Test::Unit::TestCase
 
       app.run("bash") do |cmd|
         # cmd.run("cd public/assets")
-        assert cmd.run("ls public/assets").include?("application.css")
+        cmd.run("ls public/assets") {|r| assert_match "application.css", r}
       end
     end
   end

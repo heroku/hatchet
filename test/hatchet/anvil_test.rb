@@ -11,8 +11,8 @@ class AnvilTest < Test::Unit::TestCase
 
       assert_match '1.9.3', app.run("ruby -v")
       app.run("bash") do |cmd|
-        assert cmd.run("cat Gemfile").include?("gem 'pg'")
-        assert cmd.run("ls public/assets").include?("application.css")
+        cmd.run("cat Gemfile")      {|r| assert_match "gem 'pg'", r}
+        cmd.run("ls public/assets") {|r| assert_match "application.css", r}
       end
     end
   end
