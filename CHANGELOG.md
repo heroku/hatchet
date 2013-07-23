@@ -1,5 +1,9 @@
 ## HEAD
 
+## 1.1.0
+
+- Added `Hatchet::Runner` which can dynamically swap the backend (anvil/git) depending on the value of ENV['HATCHET_DEPLOY_STRATEGY'] you can use 'anvil' or 'git'.
+
 ## 1.0.0
 
 - Move remote console running code to https://github.com/schneems/repl_runner
