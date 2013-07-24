@@ -1,5 +1,9 @@
 ## HEAD
 
+## 1.1.3
+
+- Bugfix: use clean bundler env when setting up travis.
+
 ## 1.1.2
 
 - Bugfix: test setup on travis now works correctly
