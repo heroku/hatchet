@@ -1,5 +1,9 @@
 ## HEAD
 
+## 1.1.1
+
+- Ensure external commands run inside of `bundle_exec` block are run with propper environment variables set.
+
 ## 1.1.0
 
 - Added `Hatchet::Runner` which can dynamically swap the backend (anvil/git) depending on the value of ENV['HATCHET_DEPLOY_STRATEGY'] you can use 'anvil' or 'git'.
