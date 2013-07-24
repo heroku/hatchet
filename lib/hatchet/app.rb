@@ -40,9 +40,13 @@ module Hatchet
     # but programatically and with more control
     def run(command, timeout = nil, &block)
       heroku_command = "heroku run #{command} -a #{name}"
-      return `#{heroku_command}` if block.blank?
+      bundle_exec do
+        return `#{heroku_command}` if block.blank?
+      end
 
-      ReplRunner.new(command, heroku_command, startup_timeout: timeout).run(&block)
+      bundle_exec do
+        ReplRunner.new(command, heroku_command, startup_timeout: timeout).run(&block)
+      end
     end
 
     # set debug: true when creating app if you don't want it to be
@@ -119,11 +123,23 @@ module Hatchet
     end
 
     def api_key
-      @api_key ||= ENV['HEROKU_API_KEY'] || `heroku auth:token`.chomp
+      @api_key ||= ENV['HEROKU_API_KEY'] || bundle_exec {`heroku auth:token`.chomp }
     end
 
     def heroku
       @heroku ||= Heroku::API.new(api_key: api_key)
+    end
+
+    private
+    # if someone uses bundle exec
+    def bundle_exec
+      if defined?(Bundler)
+        Bundler.with_clean_env do
+          yield
+        end
+      else
+        yield
+      end
     end
   end
 end
