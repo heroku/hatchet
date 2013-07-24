@@ -1,5 +1,9 @@
 ## HEAD
 
+## 1.1.2
+
+- Bugfix: test setup on travis now works correctly
+
 ## 1.1.1
 
 - Ensure external commands run inside of `bundle_exec` block are run with propper environment variables set.
