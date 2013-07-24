@@ -1,6 +1,3 @@
-require 'rake'
-require 'rake/testtask'
-
 config_ssh = <<-RUBY
 Host heroku.com
     StrictHostKeyChecking no
@@ -20,7 +17,9 @@ namespace :hatchet do
      'yes | heroku keys:add'
     ].each do |command|
       puts "== Running: #{command}"
-      `#{command}`
+      Bundler.with_clean_env do
+        `#{command}`
+      end
     end
     puts "== Done =="
   end
