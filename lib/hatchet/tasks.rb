@@ -13,7 +13,6 @@ namespace :hatchet do
     ['bundle exec hatchet install',
      "echo '#{config_ssh}' >> ~/.ssh/config",
      'wget -qO- https://toolbelt.heroku.com/install-ubuntu.sh | sh',
-     'heroku keys:clear',
      'yes | heroku keys:add'
     ].each do |command|
       puts "== Running: #{command}"
@@ -25,7 +24,7 @@ namespace :hatchet do
   end
 
   task :teardown_travis do
-    ['heroku keys:remove ~/.ssh/id_rsa'].each do |command|
+    ['heroku keys:remove'].each do |command|
       puts "== Running: #{command}"
       `#{command}`
     end
