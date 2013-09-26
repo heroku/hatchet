@@ -85,12 +85,18 @@ module Hatchet
       heroku.delete_app(name)
     end
 
+    def in_directory(directory = self.directory)
+      Dir.chdir(directory) do
+        yield directory
+      end
+    end
+
     # creates a new app on heroku, "pushes" via anvil or git
     # then yields to self so you can call self.run or
     # self.deployed?
     # Allow deploy failures on CI server by setting ENV['HATCHET_RETRIES']
     def deploy(&block)
-      Dir.chdir(directory) do
+      in_directory do
         self.setup!
         self.push_with_retry!
         block.call(self, heroku, output) if block.present?
