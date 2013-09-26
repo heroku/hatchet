@@ -1,5 +1,11 @@
 ## HEAD
 
+## 1.1.5
+- Add `App#in_directory` to public API
+
+## 1.1.4
+- Bugfix: Eliminate race condition around running multiple travis builds at the same time
+
 ## 1.1.3
 
 - Bugfix: use clean bundler env when setting up travis.
