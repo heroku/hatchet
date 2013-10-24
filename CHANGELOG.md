@@ -1,5 +1,10 @@
 ## HEAD
 
+## 1.1.6
+- `App#setup!` is now idempotent
+- Added `App#get_config`
+- Added `App#set_config`
+
 ## 1.1.5
 - Add `App#in_directory` to public API
 
