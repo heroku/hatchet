@@ -27,14 +27,23 @@ module Hatchet
       self.class.config
     end
 
-
-  def add_database(db_name = 'heroku-postgresql:dev', match_val = "HEROKU_POSTGRESQL_[A-Z]+_URL")
-    Hatchet::RETRIES.times.retry do
-      heroku.post_addon(name, db_name)
-      _, value = heroku.get_config_vars(name).body.detect {|k, v| k.match(/#{match_val}/) }
-      heroku.put_config_vars(name, 'DATABASE_URL' => value)
+    def set_config(options = {})
+      options.each do |key, value|
+        heroku.put_config_vars(name, key => value)
+      end
     end
-  end
+
+    def get_config
+      heroku.get_config_vars(name).body
+    end
+
+    def add_database(db_name = 'heroku-postgresql:dev', match_val = "HEROKU_POSTGRESQL_[A-Z]+_URL")
+      Hatchet::RETRIES.times.retry do
+        heroku.post_addon(name, db_name)
+        _, value = get_config.detect {|k, v| k.match(/#{match_val}/) }
+        set_config('DATABASE_URL' => value)
+      end
+    end
 
     # runs a command on heroku similar to `$ heroku run #foo`
     # but programatically and with more control
@@ -68,8 +77,10 @@ module Hatchet
 
     # creates a new heroku app via the API
     def setup!
+      return self if @app_is_setup
       heroku.post_app(name: name)
       @app_is_setup = true
+      self
     end
 
     def push!
