@@ -6,7 +6,7 @@ module Hatchet
       def initialize(app, output)
         msg = "could not deploy #{app.name} using #{app.class} if this was expected " <<
               "add `allow_failure: true` to your deploy hash\n\n" <<
-              "output : #{output.inspect}"
+              "output: #{output}"
         super(msg)
       end
     end
