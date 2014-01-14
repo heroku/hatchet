@@ -22,7 +22,7 @@ module Hatchet
     def push!
       output = `git push #{git_repo} master 2>&1`
       if !$?.success?
-        raise FailedDeploy.new(self, "Buildpack: #{@buildpack.inspect}\n#{output}") unless @allow_failure
+        raise FailedDeploy.new(self, "Buildpack: #{@buildpack.inspect}\nRepo: #{git_repo}\n#{output}") unless @allow_failure
       end
       return output
     end

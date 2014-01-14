@@ -17,7 +17,9 @@ module Hatchet
   end
 
   def self.git_branch
-    `git describe --contains --all HEAD`.strip
+    out = `git describe --contains --all HEAD`.strip
+    raise "Cannot describe git: #{out}" unless $?.success?
+    out
   end
 
   def self.set_deploy_strategy!
