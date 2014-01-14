@@ -1,4 +1,5 @@
 config_ssh = <<-RUBY
+
 Host heroku.com
     StrictHostKeyChecking no
     CheckHostIP no
@@ -10,14 +11,16 @@ RUBY
 namespace :hatchet do
   task :setup_travis do
     puts "== Setting Up Travis =="
-    ['bundle exec hatchet install',
+    [
+     "bundle exec hatchet install",
      "echo '#{config_ssh}' >> ~/.ssh/config",
-     'wget -qO- https://toolbelt.heroku.com/install-ubuntu.sh | sh',
-     'yes | heroku keys:add'
+     "curl --fail --retry 3 --retry-delay 1 --connect-timeout 3 --max-time 30 https://toolbelt.heroku.com/install-ubuntu.sh | sh",
+     "yes | heroku keys:add"
     ].each do |command|
       puts "== Running: #{command}"
       Bundler.with_clean_env do
         `#{command}`
+        raise "Command failed: #{command.inspect}" unless $?.success?
       end
     end
     puts "== Done =="
