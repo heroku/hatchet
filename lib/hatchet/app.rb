@@ -17,7 +17,7 @@ module Hatchet
       @name          = options[:name]          || "test-app-#{Time.now.to_f}".gsub('.', '-')
       @debug         = options[:debug]         || options[:debugging]
       @allow_failure = options[:allow_failure] || false
-      @labs          = ([] << options[:labs]).flatten
+      @labs          = ([] << options[:labs]).flatten.compact
     end
 
     # config is read only, should be threadsafe
