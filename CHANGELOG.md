@@ -1,5 +1,9 @@
 ## HEAD
 
+## 1.1.7
+
+- Add labs methods `App#set_labs!` and `App.new(labs: "websockets")`
+
 ## 1.1.6
 - `App#setup!` is now idempotent
 - Added `App#get_config`
