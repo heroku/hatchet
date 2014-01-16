@@ -4,8 +4,8 @@ module Hatchet
 
     class FailedDeploy < StandardError
       def initialize(app, output)
-        msg = "could not deploy #{app.name} using #{app.class} if this was expected " <<
-              "add `allow_failure: true` to your deploy hash.\n" <<
+        msg = "Could not deploy '#{app.name}' using '#{app.class}' at path: '#{app.directory}'\n" <<
+              " if this was expected add `allow_failure: true` to your deploy hash.\n" <<
               "output:\n" <<
               "#{output}"
         super(msg)
@@ -14,9 +14,10 @@ module Hatchet
 
     def initialize(repo_name, options = {})
       @directory     = config.path_for_name(repo_name)
-      @name          = options[:name]  || "test-app-#{Time.now.to_f}".gsub('.', '-')
-      @debug         = options[:debug] || options[:debugging]
+      @name          = options[:name]          || "test-app-#{Time.now.to_f}".gsub('.', '-')
+      @debug         = options[:debug]         || options[:debugging]
       @allow_failure = options[:allow_failure] || false
+      @labs          = ([] << options[:labs]).flatten.compact
     end
 
     # config is read only, should be threadsafe
@@ -36,6 +37,22 @@ module Hatchet
 
     def get_config
       heroku.get_config_vars(name).body
+    end
+
+    def lab_is_installed?(lab)
+      get_labs.any? {|hash| hash["name"] == lab }
+    end
+
+    def get_labs
+      heroku.get_features(name).body
+    end
+
+    def set_labs!
+      @labs.each {|lab| set_lab(lab) }
+    end
+
+    def set_lab(lab)
+      heroku.post_feature(lab, name)
     end
 
     def add_database(db_name = 'heroku-postgresql:dev', match_val = "HEROKU_POSTGRESQL_[A-Z]+_URL")
@@ -80,6 +97,7 @@ module Hatchet
     def setup!
       return self if @app_is_setup
       heroku.post_app(name: name)
+      set_labs!
       @app_is_setup = true
       self
     end

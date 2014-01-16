@@ -10,6 +10,6 @@ class HerokuApiTest < Test::Unit::TestCase
     expected = {"foo" => "bar"}
     assert_equal expected, runner.get_config
   ensure
-    runner.teardown!
+    runner.teardown! if runner
   end
 end
