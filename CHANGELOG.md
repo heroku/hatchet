@@ -1,5 +1,9 @@
 ## HEAD
 
+## 1.1.8
+
+- Do not check git branch unless using GitApp
+
 ## 1.1.7
 
 - Add labs methods `App#set_labs!` and `App.new(labs: "websockets")`
