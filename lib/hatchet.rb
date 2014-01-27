@@ -18,7 +18,7 @@ module Hatchet
 
   def self.git_branch
     out = `git describe --contains --all HEAD`.strip
-    raise "Cannot describe git: #{out}" unless $?.success?
+    raise "Attempting to find current branch name. Error: Cannot describe git: #{out}" unless $?.success?
     out
   end
 
