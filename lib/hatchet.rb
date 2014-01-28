@@ -17,6 +17,7 @@ module Hatchet
   end
 
   def self.git_branch
+    return ENV['TRAVIS_BRANCH'] if ENV['TRAVIS_BRANCH']
     out = `git describe --contains --all HEAD`.strip
     raise "Attempting to find current branch name. Error: Cannot describe git: #{out}" unless $?.success?
     out
