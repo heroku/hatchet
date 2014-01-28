@@ -1,5 +1,9 @@
 ## HEAD
 
+## 1.1.9
+
+- Use TRAVIS_BRANCH if present
+
 ## 1.1.8
 
 - Do not check git branch unless using GitApp
