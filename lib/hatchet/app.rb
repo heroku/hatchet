@@ -1,10 +1,10 @@
 module Hatchet
   class App
-    attr_reader :name, :directory
+    attr_reader :name, :directory, :repo_name
 
     class FailedDeploy < StandardError
       def initialize(app, output)
-        msg = "Could not deploy '#{app.name}' using '#{app.class}' at path: '#{app.directory}'\n" <<
+        msg = "Could not deploy '#{app.name}' (#{app.repo_name}) using '#{app.class}' at path: '#{app.directory}'\n" <<
               " if this was expected add `allow_failure: true` to your deploy hash.\n" <<
               "output:\n" <<
               "#{output}"
@@ -13,7 +13,8 @@ module Hatchet
     end
 
     def initialize(repo_name, options = {})
-      @directory     = config.path_for_name(repo_name)
+      @repo_name     = repo_name
+      @directory     = config.path_for_name(@repo_name)
       @name          = options[:name]          || "test-app-#{Time.now.to_f}".gsub('.', '-')
       @debug         = options[:debug]         || options[:debugging]
       @allow_failure = options[:allow_failure] || false
@@ -102,7 +103,7 @@ module Hatchet
       self
     end
 
-    def push!
+    def push_without_retry!
       raise NotImplementedError
     end
 
@@ -116,8 +117,11 @@ module Hatchet
     end
 
     def in_directory(directory = self.directory)
-      Dir.chdir(directory) do
-        yield directory
+      Dir.mktmpdir do |tmpdir|
+        FileUtils.cp_r("#{directory}/.", "#{tmpdir}/.")
+        Dir.chdir(tmpdir) do
+          yield directory
+        end
       end
     end
 
@@ -136,21 +140,26 @@ module Hatchet
     end
 
 
-    def push_with_retry!
-      RETRIES.times.retry do |attempt|
+    def push
+      max_retries = @allow_failure ? 1 : RETRIES
+      max_retries.times.retry do |attempt|
         begin
-          @output = self.push!
+          @output = self.push_without_retry!
         rescue StandardError => error
-          puts retry_error_message(error, attempt)
+          puts retry_error_message(error, attempt, max_retries)
           raise error
         end
       end
     end
+    alias :push! :push
+    alias :push_with_retry  :push
+    alias :push_with_retry! :push_with_retry
 
-    def retry_error_message(error, attempt)
+
+    def retry_error_message(error, attempt, max_retries)
       attempt += 1
-      return "" if attempt == RETRIES
-      msg = "\nRetrying failed Attempt ##{attempt}/#{RETRIES} to push for '#{name}' due to error: \n"<<
+      return "" if attempt == max_retries
+      msg = "\nRetrying failed Attempt ##{attempt}/#{max_retries} to push for '#{name}' due to error: \n"<<
             "#{error.class} #{error.message}\n  #{error.backtrace.join("\n  ")}"
     end
 

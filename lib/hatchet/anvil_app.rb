@@ -10,7 +10,7 @@ module Hatchet
       super
     end
 
-    def push!
+    def push_without_retry!
       out, err = wrap_stdout_and_rescue(Anvil::Builder::BuildError) do
         slug_url  = Anvil::Engine.build(".", :buildpack => @buildpack, :pipeline => true)
         puts "Releasing to http://#{@name}.herokuapp.com"

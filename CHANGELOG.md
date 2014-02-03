@@ -1,5 +1,11 @@
 ## HEAD
 
+## 1.2.0
+
+- Change `App#push` default behavior to be `App#push_with_retry!`
+- `App#in_directory` now copies source repo to tmpdir so it can be modified if needed
+- Repo name now shows up in error outputs.
+
 ## 1.1.9
 
 - Use TRAVIS_BRANCH if present

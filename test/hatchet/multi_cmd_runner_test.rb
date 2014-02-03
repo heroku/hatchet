@@ -30,7 +30,6 @@ class MultiCmdRunnerTest < Test::Unit::TestCase
           bash.run("ls") { |r| assert_match "Gemfile", r }
         end
       end
-
     end
   end
 end
