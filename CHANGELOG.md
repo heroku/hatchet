@@ -1,5 +1,9 @@
 ## HEAD
 
+## 1.2.1
+
+- Remove debug puts
+
 ## 1.2.0
 
 - Change `App#push` default behavior to be `App#push_with_retry!`

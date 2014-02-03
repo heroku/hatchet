@@ -20,8 +20,6 @@ module Hatchet
     end
 
     def push_without_retry!
-      puts `pwd`
-      puts `ls`
       output = `git push #{git_repo} master 2>&1`
       if !$?.success?
         raise FailedDeploy.new(self, "Buildpack: #{@buildpack.inspect}\nRepo: #{git_repo}\n#{output}") unless @allow_failure
