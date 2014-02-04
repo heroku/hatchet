@@ -1,5 +1,10 @@
 ## HEAD
 
+## 1.3.0
+
+- `hatchet install` now clones and pulls in parallel threads
+- `rake travis:setup` now ensures a git email and name is set
+
 ## 1.2.1
 
 - Remove debug puts

@@ -5,8 +5,10 @@ class EditRepoTest < Test::Unit::TestCase
     Hatchet::GitApp.new("rails3_mri_193").in_directory do |app|
       msg = `touch foo`
       assert $?.success?, msg
+
       msg = `git add .; git commit -m foo`
       assert $?.success?, msg
+
       assert_match "foo", `ls`
     end
 
