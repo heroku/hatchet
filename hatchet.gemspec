@@ -18,17 +18,18 @@ Gem::Specification.new do |gem|
   gem.test_files    = gem.files.grep(%r{^(test|spec|features)/})
   gem.require_paths = ["lib"]
 
-  gem.add_dependency "heroku-api"
-  gem.add_dependency "activesupport"
-  gem.add_dependency "rrrretry"
-  gem.add_dependency "anvil-cli"
-  gem.add_dependency "excon"
-  gem.add_dependency "thor"
-  gem.add_dependency 'repl_runner'
+  gem.add_dependency "heroku-api",    "~> 0"
+  gem.add_dependency "activesupport", "~> 1"
+  gem.add_dependency "rrrretry",      "~> 0"
+  gem.add_dependency "anvil-cli",     "~> 0"
+  gem.add_dependency "excon",         "~> 0"
+  gem.add_dependency "thor",          "~> 0"
+  gem.add_dependency "repl_runner",   "~> 0"
+  gem.add_dependency "threaded",      "~> 0"
 
 
-  gem.add_development_dependency "rake"
-  gem.add_development_dependency "mocha"
-  gem.add_development_dependency "parallel_tests"
+  gem.add_development_dependency "rake",           "~> 0"
+  gem.add_development_dependency "mocha",          "~> 0"
+  gem.add_development_dependency "parallel_tests", "~> 0"
 end
 
