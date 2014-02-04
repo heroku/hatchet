@@ -1,5 +1,9 @@
 ## HEAD
 
+## 1.3.1
+
+- Fix dependencies
+
 ## 1.3.0
 
 - `hatchet install` now clones and pulls in parallel threads

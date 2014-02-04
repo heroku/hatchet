@@ -19,8 +19,8 @@ Gem::Specification.new do |gem|
   gem.require_paths = ["lib"]
 
   gem.add_dependency "heroku-api",    "~> 0"
-  gem.add_dependency "activesupport", "~> 3"
-  gem.add_dependency "rrrretry",      "~> 0"
+  gem.add_dependency "activesupport", "~> 4"
+  gem.add_dependency "rrrretry",      "~> 1"
   gem.add_dependency "anvil-cli",     "~> 0"
   gem.add_dependency "excon",         "~> 0"
   gem.add_dependency "thor",          "~> 0"
@@ -28,8 +28,8 @@ Gem::Specification.new do |gem|
   gem.add_dependency "threaded",      "~> 0"
 
 
-  gem.add_development_dependency "rake",           "~> 0"
-  gem.add_development_dependency "mocha",          "~> 0"
+  gem.add_development_dependency "rake",           "~> 10"
+  gem.add_development_dependency "mocha",          "~> 1"
   gem.add_development_dependency "parallel_tests", "~> 0"
 end
 
