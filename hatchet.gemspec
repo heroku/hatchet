@@ -19,7 +19,7 @@ Gem::Specification.new do |gem|
   gem.require_paths = ["lib"]
 
   gem.add_dependency "heroku-api",    "~> 0"
-  gem.add_dependency "activesupport", "~> 1"
+  gem.add_dependency "activesupport", "~> 3"
   gem.add_dependency "rrrretry",      "~> 0"
   gem.add_dependency "anvil-cli",     "~> 0"
   gem.add_dependency "excon",         "~> 0"
