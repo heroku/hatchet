@@ -64,13 +64,13 @@ class HatchetCLI < Thor
   end
 
   def pull(path, git_repo)
-    `cd #{path} && git pull --rebase #{git_repo} master`
+    puts `cd #{path} && git pull --rebase #{git_repo} master --quiet`
   end
 
   def clone(path, git_repo)
     path = File.join(path, '..') # up one dir to prevent repos/codetriage/codetriage/#...
     FileUtils.mkdir_p(path)
-    `cd #{path} && git clone #{git_repo}`
+    puts `cd #{path} && git clone #{git_repo} --quiet`
   end
 end
 
