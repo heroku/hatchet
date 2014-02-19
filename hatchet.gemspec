@@ -24,7 +24,7 @@ Gem::Specification.new do |gem|
   gem.add_dependency "anvil-cli",     "~> 0"
   gem.add_dependency "excon",         "~> 0"
   gem.add_dependency "thor",          "~> 0"
-  gem.add_dependency "repl_runner",   "~> 0"
+  gem.add_dependency "repl_runner",   "~> 0.0.3"
   gem.add_dependency "threaded",      "~> 0"
 
 

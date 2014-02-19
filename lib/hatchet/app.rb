@@ -66,14 +66,15 @@ module Hatchet
 
     # runs a command on heroku similar to `$ heroku run #foo`
     # but programatically and with more control
-    def run(command, timeout = nil, &block)
+    def run(cmd_type, command = nil, options = {}, &block)
+      command        = cmd_type.to_s if command.nil?
       heroku_command = "heroku run #{command} -a #{name}"
       bundle_exec do
-        return `#{heroku_command}` if block.blank?
-      end
-
-      bundle_exec do
-        ReplRunner.new(command, heroku_command, startup_timeout: timeout).run(&block)
+        if block_given?
+          ReplRunner.new(command, heroku_command, options).run(&block)
+        else
+          `#{heroku_command}`
+        end
       end
     end
 
@@ -133,7 +134,7 @@ module Hatchet
       in_directory do
         self.setup!
         self.push_with_retry!
-        block.call(self, heroku, output) if block.present?
+        block.call(self, heroku, output) if block_given?
       end
     ensure
       self.teardown!
