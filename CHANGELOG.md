@@ -1,5 +1,9 @@
 ## HEAD
 
+## 1.3.2 (02-18-2014)
+
+- App#run interface now matches ReplRunner
+
 ## 1.3.1
 
 - Fix dependencies
