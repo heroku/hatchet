@@ -71,7 +71,7 @@ module Hatchet
       heroku_command = "heroku run #{command} -a #{name}"
       bundle_exec do
         if block_given?
-          ReplRunner.new(command, heroku_command, options).run(&block)
+          ReplRunner.new(cmd_type, heroku_command, options).run(&block)
         else
           `#{heroku_command}`
         end
