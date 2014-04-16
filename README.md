@@ -4,7 +4,7 @@
 
 Hatchet is a an integration testing library for developing Heroku buildpacks.
 
-[![Build Status](https://travis-ci.org/heroku/hatchet.png?branch=master)](https://travis-ci.org/heroku/hatchet)
+[![Build Status](https://travis-ci.org/heroku/hatchet.svg?branch=master)](https://travis-ci.org/heroku/hatchet)
 
 ## Install
 
