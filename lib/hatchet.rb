@@ -11,7 +11,7 @@ require 'stringio'
 
 
 module Hatchet
-  RETRIES = Integer(ENV['HATCHET_RETRIES'] || 1)
+  RETRIES   = Integer(ENV['HATCHET_RETRIES']   || 1)
 
   class App
   end
@@ -37,6 +37,7 @@ module Hatchet
 end
 
 require 'hatchet/version'
+require 'hatchet/reaper'
 require 'hatchet/app'
 require 'hatchet/anvil_app'
 require 'hatchet/git_app'
