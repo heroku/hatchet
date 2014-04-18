@@ -15,10 +15,11 @@ module Hatchet
     def initialize(repo_name, options = {})
       @repo_name     = repo_name
       @directory     = config.path_for_name(@repo_name)
-      @name          = options[:name]          || "test-app-#{Time.now.to_f}".gsub('.', '-')
+      @name          = options[:name]          || "hatchet-t-#{SecureRandom.hex(10)}"
       @debug         = options[:debug]         || options[:debugging]
       @allow_failure = options[:allow_failure] || false
       @labs          = ([] << options[:labs]).flatten.compact
+      @reaper        = Reaper.new(heroku)
     end
 
     # config is read only, should be threadsafe
@@ -95,9 +96,21 @@ module Hatchet
       !heroku.get_ps(name).body.detect {|ps| ps["process"].include?("web") }.nil?
     end
 
+    def create_app
+      3.times.retry do
+        begin
+          heroku.post_app(name: name)
+        rescue Heroku::API::Errors::RequestFailed => e
+          @reaper.cycle if e.message.match(/app limit/)
+          raise e
+        end
+      end
+    end
+
     # creates a new heroku app via the API
     def setup!
       return self if @app_is_setup
+      puts "Hatchet setup: #{name.inspect} for #{repo_name.inspect}"
       heroku.post_app(name: name)
       set_labs!
       @app_is_setup = true
@@ -114,7 +127,7 @@ module Hatchet
         puts "Debugging App:#{name}"
         return false
       end
-      heroku.delete_app(name)
+      @reaper.cycle
     end
 
     def in_directory(directory = self.directory)
