@@ -1,5 +1,14 @@
 ## HEAD
 
+## 1.3.4
+
+- Ignore when we try to delete an app that does not exist
+
+## 1.3.3
+
+- Apps are lazily reaped for easier debugging
+- Verbose output by default for easier debugging
+
 ## 1.3.2 (02-18-2014)
 
 - App#run interface now matches ReplRunner
