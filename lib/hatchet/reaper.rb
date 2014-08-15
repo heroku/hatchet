@@ -34,10 +34,21 @@ module Hatchet
 
     def destroy_oldest
       oldest_name = @hatchet_apps.pop["name"]
-      puts "Destroying #{oldest_name.inspect}. Hatchet app limit: #{HATCHET_APP_LIMT}"
-      @heroku.delete_app(oldest_name)
+      destroy_by_name(oldest_name, "Hatchet app limit: #{HATCHET_APP_LIMT}")
     rescue Heroku::API::Errors::NotFound
       # app already deleted, cycle will catch if there's still too many
+    end
+
+    def destroy_all
+      get_apps
+      @hatchet_apps.each do |app|
+        destroy_by_name(app["name"])
+      end
+    end
+
+    def destroy_by_name(name, details="")
+      puts "Destroying #{name.inspect}. #{details}"
+      @heroku.delete_app(name)
     end
 
     private
@@ -47,4 +58,3 @@ module Hatchet
     end
   end
 end
-

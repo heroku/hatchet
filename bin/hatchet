@@ -13,6 +13,7 @@ $: << File.expand_path(File.dirname(File.realpath(__FILE__)) + '/../lib')
 require 'hatchet'
 require 'thor'
 require 'threaded'
+require 'date'
 
 class HatchetCLI < Thor
   desc "install", "installs repos defined in 'hatchet.json'"
@@ -37,6 +38,22 @@ class HatchetCLI < Thor
   def list
     repos.each do |repo, directory|
       puts "#{repo}: #{directory}"
+    end
+  end
+
+  desc "destroy [NAME]", "Deletes applications"
+  option :all, :type => :boolean
+  def destroy(name=nil)
+    api_key = ENV['HEROKU_API_KEY'] || bundle_exec {`heroku auth:token`.chomp }
+    heroku = Heroku::API.new(api_key: api_key)
+    reaper = Hatchet::Reaper.new(heroku)
+
+    if options[:all]
+      reaper.destroy_all
+    elsif !name.nil?
+      reaper.destroy_by_name(name)
+    else
+      raise "Must provide an app name or --all"
     end
   end
 
@@ -71,6 +88,16 @@ class HatchetCLI < Thor
     path = File.join(path, '..') # up one dir to prevent repos/codetriage/codetriage/#...
     FileUtils.mkdir_p(path)
     puts `cd #{path} && git clone #{git_repo} --quiet`
+  end
+
+  def bundle_exec
+    if defined?(Bundler)
+      Bundler.with_clean_env do
+        yield
+      end
+    else
+      yield
+    end
   end
 end
 
