@@ -65,6 +65,10 @@ module Hatchet
       end
     end
 
+    def logs
+      `heroku logs -a #{name}`
+    end
+
     # runs a command on heroku similar to `$ heroku run #foo`
     # but programatically and with more control
     def run(cmd_type, command = nil, options = {}, &block)
@@ -202,4 +206,3 @@ module Hatchet
     end
   end
 end
-
