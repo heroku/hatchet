@@ -17,6 +17,7 @@ namespace :hatchet do
      "if [ `git config --get user.name` ];  then echo 'already set'; else `git config --global user.name  'BuildpackTester'`      ; fi",
      "echo '#{config_ssh}' >> ~/.ssh/config",
      "curl --fail --retry 3 --retry-delay 1 --connect-timeout 3 --max-time 30 https://toolbelt.heroku.com/install-ubuntu.sh | sh",
+     "ssh-keygen -f ~/.ssh/id_rsa -t rsa -N ''",
      "yes | heroku keys:add"
     ].each do |command|
       puts "== Running: #{command}"

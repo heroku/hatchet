@@ -1,16 +1,11 @@
----
 language: ruby
 rvm:
 - 2.0.0
 before_script: bundle exec rake hatchet:setup_travis
 script: bundle exec parallel_test test/hatchet -n 9
 after_script: bundle exec rake hatchet:teardown_travis
-
 env:
   global:
   - HATCHET_RETRIES=3
   - HATCHET_BUILDPACK_BRANCH=master
-  - secure: |-
-      SfUgPagZILPjm4rjkYlEck76PUE47dimpNZgUtUf7wTAbe6EE83QmnRl6uDT
-      eSdxuY9uNFoTwNLC0J+mRiDAJtAQxBsst8wFoc3diK2o8Ojnor5yd3cxddBv
-      uvJK6optVPzDveg7rjC7zsELzWYvzWW9enZ6gr8BY/cIPIWTXMw=
+  - secure: QP6PJWH/0loXYyeecwpg47ydV3cWFM/7+kQ3qnB37YB8d1VeADbi5+38Lv3PUVayKT52j1CELRfVPSjexlvGElqk4tvZm/wjN2utvUp6U2WuKuP2UloHXBtK/7DsFe2ZEdG8UWmFx+bEUElwpOY2pVcWZOc83rXWI/G1mJNvbK0=
