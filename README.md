@@ -257,8 +257,13 @@ For reference see the `.travis.yml` from [hatchet](https://github.com/heroku/hat
 before_script: bundle exec rake hatchet:setup_travis
 ```
 
-I recommend signing up for a new heroku account for running your tests on travis, otherwise you will quickly excede your API limit. Once you have the new api token you can use this technique to [securely send travis the data](http://about.travis-ci.org/docs/user/build-configuration/#Secure-environment-variables).
+I recommend signing up for a new heroku account for running your tests on travis, otherwise you will quickly excede your API limit. Once you have the new api token you can use this technique to [securely send travis the data](http://docs.travis-ci.com/user/environment-variables/#Secure-Variables).
 
+
+```
+$ export HEROKU_API_KEY=`heroku auth:token`
+$ travis encrypt HEROKU_API_KEY=$HEROKU_API_KEY --add
+```
 
 ## Extra App Commands
 
