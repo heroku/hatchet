@@ -13,6 +13,7 @@ module Hatchet
     def setup!
       super
       heroku.put_config_vars(name, 'BUILDPACK_URL' => @buildpack)
+      self
     end
 
     def git_repo

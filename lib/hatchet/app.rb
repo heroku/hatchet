@@ -116,6 +116,7 @@ module Hatchet
       @app_is_setup = true
       self
     end
+    alias :setup :setup!
 
     def push_without_retry!
       raise NotImplementedError
