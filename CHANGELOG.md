@@ -1,5 +1,9 @@
 ## HEAD
 
+## 1.3.5
+
+- Ensure travis box has an SSH key
+
 ## 1.3.4
 
 - Ignore when we try to delete an app that does not exist
