@@ -1,5 +1,9 @@
 ## HEAD
 
+## 1.3.7
+
+- Return self from setup!
+
 ## 1.3.6
 
 - Re-push of 1.3.5 with actual commits.
