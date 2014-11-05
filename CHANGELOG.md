@@ -1,5 +1,9 @@
 ## HEAD
 
+## 1.3.6
+
+- Re-push of 1.3.5 with actual commits.
+
 ## 1.3.5
 
 - Ensure travis box has an SSH key
