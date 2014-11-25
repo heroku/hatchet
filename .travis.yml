@@ -7,5 +7,5 @@ after_script: bundle exec rake hatchet:teardown_travis
 env:
   global:
   - HATCHET_RETRIES=3
-  - HATCHET_BUILDPACK_BRANCH=master
-  - secure: QP6PJWH/0loXYyeecwpg47ydV3cWFM/7+kQ3qnB37YB8d1VeADbi5+38Lv3PUVayKT52j1CELRfVPSjexlvGElqk4tvZm/wjN2utvUp6U2WuKuP2UloHXBtK/7DsFe2ZEdG8UWmFx+bEUElwpOY2pVcWZOc83rXWI/G1mJNvbK0=
+  - HATCHET_APP_LIMIT=80
+  - secure: IuwT8MLmcdWIZvuD+XgHE9jh/49NcZ5Q6Wh7M2ROIQPsNjQ9jPHFpTTdL6p0/63eq948WUKrrPqDFRm/jh/JKyJPmQfDgWq4ScoPdurhgLlGg1CH81gi22t9VwO5QeoYLufMyueqazGbQCAl+xsa+hsKcs6nb836yDHsmBud6z0=
