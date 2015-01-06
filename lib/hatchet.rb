@@ -24,7 +24,7 @@ module Hatchet
   end
 
   def self.set_deploy_strategy!
-    deploy_strat = (ENV['HATCHET_DEPLOY_STRATEGY'] || :anvil).to_sym
+    deploy_strat = (ENV['HATCHET_DEPLOY_STRATEGY'] || :git).to_sym
     case Hatchet::const_set("DEPLOY_STRATEGY", deploy_strat)
     when :anvil
       Hatchet.const_set("Runner", Hatchet::AnvilApp)
