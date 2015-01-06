@@ -1,6 +1,6 @@
 module Hatchet
   class App
-    attr_reader :name, :directory, :repo_name
+    attr_reader :name, :stack, :directory, :repo_name
 
     class FailedDeploy < StandardError
       def initialize(app, output)
@@ -16,6 +16,7 @@ module Hatchet
       @repo_name     = repo_name
       @directory     = config.path_for_name(@repo_name)
       @name          = options[:name]          || "hatchet-t-#{SecureRandom.hex(10)}"
+      @stack         = options[:stack]
       @debug         = options[:debug]         || options[:debugging]
       @allow_failure = options[:allow_failure] || false
       @labs          = ([] << options[:labs]).flatten.compact
@@ -99,7 +100,7 @@ module Hatchet
     def create_app
       3.times.retry do
         begin
-          heroku.post_app(name: name)
+          heroku.post_app({ name: name, stack: stack }.delete_if {|k,v| v.nil? })
         rescue Heroku::API::Errors::RequestFailed => e
           @reaper.cycle if e.message.match(/app limit/)
           raise e
