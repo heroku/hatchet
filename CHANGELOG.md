@@ -1,5 +1,10 @@
 ## HEAD
 
+## 1.4.0
+
+- The App#setup! method now automatically tries to reap unused apps if the request fails.
+- Default app deploy type is now :git
+
 ## 1.3.7
 
 - Return self from setup!
