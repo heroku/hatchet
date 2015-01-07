@@ -1,3 +1,5 @@
+require 'shellwords'
+
 module Hatchet
   class App
     attr_reader :name, :stack, :directory, :repo_name
@@ -70,7 +72,8 @@ module Hatchet
     # but programatically and with more control
     def run(cmd_type, command = nil, options = {}, &block)
       command        = cmd_type.to_s if command.nil?
-      heroku_command = "heroku run #{command} -a #{name}"
+      heroku_options = (options.delete(:heroku) || {}).map {|k,v| "--#{k.to_s.shellescape}=#{v.to_s.shellescape}"}.join(" ")
+      heroku_command = "heroku run #{command.to_s.shellescape} -a #{name} #{ heroku_options }"
       bundle_exec do
         if block_given?
           ReplRunner.new(cmd_type, heroku_command, options).run(&block)

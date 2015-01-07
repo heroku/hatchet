@@ -1,5 +1,9 @@
 ## HEAD
 
+## 1.4.1
+
+- Shell commands now escaped automatically
+
 ## 1.4.0
 
 - The App#setup! method now automatically tries to reap unused apps if the request fails.
