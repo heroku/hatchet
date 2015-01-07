@@ -112,7 +112,7 @@ module Hatchet
     def setup!
       return self if @app_is_setup
       puts "Hatchet setup: #{name.inspect} for #{repo_name.inspect}"
-      heroku.post_app(name: name)
+      create_app
       set_labs!
       @app_is_setup = true
       self

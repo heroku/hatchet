@@ -11,16 +11,19 @@ class ConfigTest < Test::Unit::TestCase
   end
 
   def test_config_dirs
-    expected_dirs = { "test/fixtures/repos/rails3/rails3_mri_193" => "git://github.com/sharpstone/rails3_mri_193.git",
-                      "test/fixtures/repos/rails2/rails2blog"     => "git://github.com/sharpstone/rails2blog.git",
-                      "test/fixtures/repos/bundler/no_lockfile"   => "git://github.com/sharpstone/no_lockfile.git" }
+    expected_dirs = {"test/fixtures/repos/bundler/no_lockfile"   => "git://github.com/sharpstone/no_lockfile.git",
+                      "test/fixtures/repos/default/default_ruby" => "git://github.com/sharpstone/default_ruby.git",
+                     "test/fixtures/repos/default/default_ruby"  => "git://github.com/sharpstone/default_ruby.git",
+                     "test/fixtures/repos/rails2/rails2blog"     => "git://github.com/sharpstone/rails2blog.git",
+                     "test/fixtures/repos/rails3/rails3_mri_193" => "git://github.com/sharpstone/rails3_mri_193.git"}
     assert_equal expected_dirs, @config.dirs
   end
 
   def test_config_repos
-    expected_repos = { "rails3_mri_193" => "test/fixtures/repos/rails3/rails3_mri_193",
-                       "rails2blog"     => "test/fixtures/repos/rails2/rails2blog",
-                       "no_lockfile"    => "test/fixtures/repos/bundler/no_lockfile"}
+    expected_repos = {"default_ruby"   => "test/fixtures/repos/default/default_ruby",
+                      "no_lockfile"    => "test/fixtures/repos/bundler/no_lockfile",
+                      "rails2blog"     => "test/fixtures/repos/rails2/rails2blog",
+                      "rails3_mri_193" => "test/fixtures/repos/rails3/rails3_mri_193"}
     assert_equal expected_repos, @config.repos
   end
 

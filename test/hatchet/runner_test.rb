@@ -13,8 +13,8 @@ class HatchetRunnerTest < Test::Unit::TestCase
 
   def test_defaults
     assert_equal nil, ENV['HATCHET_DEPLOY_STRATEGY']
-    assert_equal :anvil, Hatchet::DEPLOY_STRATEGY
-    assert_equal Hatchet::AnvilApp, Hatchet::Runner
+    assert_equal :git, Hatchet::DEPLOY_STRATEGY
+    assert_equal Hatchet::GitApp, Hatchet::Runner
   end
 
   def test_change_deploy_strat
