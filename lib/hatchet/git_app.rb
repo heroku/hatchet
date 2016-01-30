@@ -17,9 +17,7 @@ module Hatchet
     end
 
     def git_repo
-      'http' == ENV['HATCHET_GIT_PROTOCOL'] ?
-        "https://git.heroku.com/#{name}.git" :
-        "git@heroku.com:#{name}.git"
+      "https://git.heroku.com/#{name}.git"
     end
 
     def push_without_retry!
