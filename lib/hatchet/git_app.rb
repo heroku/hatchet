@@ -17,7 +17,7 @@ module Hatchet
     end
 
     def git_repo
-      "git@heroku.com:#{name}.git"
+      "https://git.heroku.com/#{name}.git"
     end
 
     def push_without_retry!
