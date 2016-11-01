@@ -25,7 +25,7 @@ module Hatchet
 
     def cycle(apps = get_apps)
       if over_limit?
-        if @hatchet_apps.count > 0
+        if @hatchet_apps.count > 1
           destroy_oldest
           cycle
         else
