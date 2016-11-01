@@ -11,6 +11,16 @@ RUBY
 namespace :hatchet do
   task :setup_travis do
     puts "== Setting Up Travis =="
+    netrc = "#{ENV['HOME']}/.netrc2"
+    unless File.exists?(netrc)
+      File.open(netrc, 'w') do |file|
+        file.write <<EOF
+machine git.heroku.com
+  login buildpack@example.com
+  password #{ENV['HEROKU_API_KEY']}
+EOF
+      end
+    end
     [
      "bundle exec hatchet install",
      "if [ `git config --get user.email` ]; then echo 'already set'; else `git config --global user.email 'buildpack@example.com'`; fi",
