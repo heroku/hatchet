@@ -25,21 +25,20 @@ module Hatchet
 
     def cycle(apps = get_apps)
       if over_limit?
-        destroy_oldest
-        cycle
+        if @hatchet_apps.count > 0
+          destroy_oldest
+          cycle
+        else
+          puts "Warning: Reached Heroku app limit of #{HEROKU_APP_LIMIT}."
+        end
       else
         # do nothing
       end
     end
 
     def destroy_oldest
-      oldest_app = @hatchet_apps.pop
-      if @oldest_app
-        oldest_name = @oldest_app["name"]
-        destroy_by_name(oldest_name, "Hatchet app limit: #{HATCHET_APP_LIMT}")
-      else
-        # Probably hit HEROKU_APP_LIMIT. but maybe that's ok
-      end
+      oldest_name = @hatchet_apps.pop["name"]
+      destroy_by_name(oldest_name, "Hatchet app limit: #{HATCHET_APP_LIMT}")
     rescue Heroku::API::Errors::NotFound
       # app already deleted, cycle will catch if there's still too many
     end
