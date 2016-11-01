@@ -11,7 +11,7 @@ RUBY
 namespace :hatchet do
   task :setup_travis do
     puts "== Setting Up Travis =="
-    netrc = "#{ENV['HOME']}/.netrc2"
+    netrc = "#{ENV['HOME']}/.netrc"
     unless File.exists?(netrc)
       File.open(netrc, 'w') do |file|
         file.write <<EOF
@@ -46,4 +46,3 @@ EOF
     end
   end
 end
-
