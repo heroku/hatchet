@@ -1,5 +1,10 @@
 ## HEAD
 
+## 2.0.0
+
+- Support for Heroku CI added
+- Removed support for Anvil
+
 ## 1.4.1
 
 - Shell commands now escaped automatically

@@ -38,13 +38,25 @@ To prevent regressions and to make pushing out new features faster and easier.
 
 ## What can Hatchet Test?
 
-Hatchet can easily test deployment of buildpacks, getting the build output, and running arbitrary interactive processes such as `heroku run bash`.
+Hatchet can easily test deployment of buildpacks, getting the build output, and running arbitrary interactive processes such as `heroku run bash`. It can also test running CI against an app.
+
+## Writing Tests
+
+Hatchet is test framework agnostic. [This project](https://github.com/heroku/hatchet) uses `Test::Unit` to run it's own tests. While the [heroku-ruby-buildpack](https://github.com/heroku/heroku-buildpack-ruby) uses rspec.
+
+Rspec has a number of advantages, the ability to run `focused: true` to only run the exact test you want as well as the ability to tag tests. Rspec also has a number of useful plugins, one especialy useful one is `gem 'rspec-retry'` which will re-run any failed tests a given number of times (I recommend setting this to at least 2) this decrease the number of false negatives your tests will have.
+
+Whatever testing framework you chose, we recommend using a parallel test runner when running the full suite [parallel_tests](https://github.com/grosser/parallel_tests) works with rspec and test::unit and is amazing.
+
+If you're unfamiliar with the ruby testing eco-system or want some help, looking at existing projects is a good place to get started.
+
+There is a section below on getting Hatchet to work on Travis.
 
 ## Testing a Buildpack
 
 Hatchet was built for testing the Ruby buildpack, but you can use it to test any buildpack you desire provided you don't mind writing your tests written in Ruby.
 
-You will need copies of applications that can be deployed by your buildpack. You can see the ones for the Hatchet unit tests (and the Ruby buildpack) https://github.com/sharpstone. Hatchet does not require that you keep these apps checked into your git repo which would make fetching your buildpack slow instead declare them in a `hatchet.json` file (see below).
+You will need copies of applications that can be deployed by your buildpack. You can see the ones for the Hatchet unit tests (and the Ruby buildpack) https://github.com/sharpstone. Hatchet does not require that you keep these apps checked into your git repo which would make fetching your buildpack slow, instead declare them in a `hatchet.json` file (see below).
 
 Hatchet will automate retrieving these files `$ hatchet install`, as well as deploying them using your local copy of the buildpack, retrieving the build output and running commands against deploying applications.
 
@@ -100,38 +112,19 @@ spontaneously fail. In the future we may create a hatchet.lockfile or
 something to declare the commit
 
 
-## Deployments: Anvil vs. Git
-
-Before you start testing a buildpack, understand that there are two different ways to deploy to Heroku. The first you are likely familiar with Git, requires a `git push heroku master`. You can configure the buildpack of an app being deployed in this way through the `BUILDPACK_URL` environment variable of the app. The buildpack url must be publicaly available.
-
-The second method is by [Anvil](https://github.com/ddollar/anvil-cli) . In this method the build is performed as a service. This service takes an app to be built as well as a buildpack. When using Anvil, you do not need to put your buildpack anywhere publicly available.
-
-When developing local features you will likely wish to use Anvil since it does not require a publicly available URL and you can iterate faster. When testing for regression you will almost always want to use Git, since it is the closest approximation to real world deployment. For this reason Hatchet provides a globally configurable way to toggle between the two deployment modes `Hatchet::Runner`
-
-
 ## Deploying apps
 
-Now that you've got your apps locally you can have hatchet deploy them for you. Hatchet can deploy using one of two ways Anvil and Git. To specify one or the other set your `HATCHET_DEPLOY_STRATEGY` environment variable to `anvil` or `git`. The default is `anvil`. In production, you should always test against `git`
 
-
-A `Hatchet::GitApp` will deploy using the standard `git push heroku master` and is not configurable, if you use this option you need to have a publicly accessible copy of your buildpack. Using Git to test your buildpack may be slow and require you to frequently push your buildpack to a public git repo. For this reason we recommend using Anvil to run your tests locally:
-
-```ruby
-Hatchet::Runner.new("rails3_mri_193").deploy do |app|
-
-end
-```
-
-If you are using GIT, you can specify the location of your public buildpack url in an environment variable:
+You can specify the location of your public buildpack url in an environment variable:
 
 ```sh
 HATCHET_BUILDPACK_BASE=https://github.com/heroku/heroku-buildpack-ruby.git
 HATCHET_BUILDPACK_BRANCH=master
 ```
 
-If you do not specify `HATCHET_BUILDPACK_URL` the default Ruby buildpack will be used. If you do not specify a `HATCHET_BUILDPACK_BRANCH` the current branch you are on will be used.
+If you do not specify `HATCHET_BUILDPACK_URL` the default Ruby buildpack will be used. If you do not specify a `HATCHET_BUILDPACK_BRANCH` the current branch you are on will be used. This is how the Ruby buildpack runs tests on branches on travis (by leaving `HATCHET_BUILDPACK_BRANCH` blank).
 
-Deploys are expected to work, if the `ENV['HATCHET_RETRIES']` is set, then deploys will be automatically retried that number of times. Due to testing using a network and random Anvil failures, setting this value to `3` retries seems to work well. If an app cannot be deployed within its allotted number of retries an error will be raised.
+Deploys are expected to work, if the `ENV['HATCHET_RETRIES']` is set, then deploys will be automatically retried that number of times. Due to testing using a network and random failures, setting this value to `3` retries seems to work well. If an app cannot be deployed within its allotted number of retries an error will be raised.
 
 If you are testing an app that is supposed to fail deployment you can set the `allow_failure: true` flag when creating the app:
 
@@ -139,7 +132,7 @@ If you are testing an app that is supposed to fail deployment you can set the `a
 Hatchet::Runner.new("no_lockfile", allow_failure: true).deploy do |app|
 ```
 
-After the block finishes your app will be removed from heroku. If you are investigating a deploy, you can add the `debug: true` flag to your app:
+After the block finishes your app will be queued to be removed from heroku. If you are investigating a deploy, you can add the `debug: true` flag to your app:
 
 ```ruby
 Hatchet::Runner.new("rails3_mri_193", debug: true).deploy do |app|
@@ -155,20 +148,14 @@ app = Hatchet::Runner.new("rails3_mri_193", name: "testapp")
 
 Deploying the app takes a few minutes, so you may want to skip that part to make debugging a problem easier since you're iterating much faster.
 
-
-If you need to deploy using a buildpack that is not in the root of your directory you can specify a path in the `buildpack` option:
-
+If you need to deploy using a different buildpack you can specify one manually:
 
 ```ruby
-buildpack_path = File.expand_path 'test/fixtures/buildpacks/heroku-buildpack-ruby'
 
 def test_deploy
-  Hatchet::GitApp.new("rails3_mri_193", buildpack: buildpack_path).deploy do |app|
+  Hatchet::Runner.new("rails3_mri_193", buildpack: "https://github.com/heroku/heroku-buildpack-ruby.git").deploy do |app|
   # ...
 ```
-
-If you are using a `Hatchet::GitApp` this is where you specify the publicly avaialble location of your buildpack, such as `https://github.com/heroku/heroku-buildpack-ruby.git#mybranch`
-
 
 ## Getting Deploy Output
 
@@ -201,6 +188,15 @@ Hatchet::Runner.new("rails3_mri_193").deploy do |app|
 
 This is useful for checking the existence of generated files such as assets. If you need to run an interactive session such as `heroku run bash` or `heroku run rails console` you can use the run command and pass a block:
 
+```
+Hatchet::Runner.new("rails3_mri_193").deploy do |app|
+  app.run("cat Procfile")
+end
+```
+
+This is the prefered way to run commands against the app. You can also string together commands in a session, however due to difficulties in driving a REPL programatically via [repl_runner](http://github.com/schneems/repl_runner) it's less deterministic.
+
+
 ```ruby
 Hatchet::Runner.new("rails3_mri_193").deploy do |app|
   app.run("bash") do |bash|
@@ -210,38 +206,56 @@ Hatchet::Runner.new("rails3_mri_193").deploy do |app|
 end
 ```
 
-or
+Please read the docs on [repl_runner](http://github.com/schneems/repl_runner) for more info. The only interactive commands that are supported out of the box are `rails console`, `bash`, and `irb` it is fairly easy to add your own though:
+
+## Heroku CI
+
+Hatchet supports testing Heroku CI.
 
 ```ruby
-Hatchet::Runner.new("rails3_mri_193").deploy do |app|
-  app.run("rails console") do |console|
-    console.run("a = 1 + 2")  {|result| assert_match "3", result }
-    console.run("'foo' * a")  {|result| assert_match "foofoofoo", result }
-  end
+Hatchet::Runner.new("rails5_ruby_schema_format").run_ci do |test_run|
+  assert_match "Ruby buildpack tests completed successfully", test_run.output
 end
 ```
 
-This functionality is provided by [repl_runner](http://github.com/schneems/repl_runner). Please read the docs on that readme for more info. The only interactive commands that are supported out of the box are `rails console`, `bash`, and `irb` it is fairly easy to add your own though:
+Call the `run_ci` method on the hatchet `Runner`. The object passed to the block is a `Hatchet::TestRun` object. You can call:
+
+- `test_run.output` this will have the setup and test output of your tests.
+- `test_run.app` this has a reference to the "app" you're testing against, however currently no `heroku create` is run (as it's not needed to run tests, only a pipeline and a blob of code).
+
+An exception will be raised if either the test times out or a status of `:errored` or `:failed` is returned. If you expect your test to fail, you can pass in `allow_failure: true` when creating your hatchet runner. If you do that, you'll also get access to different statuses:
+
+- `test_run.status` this will return a symbol of the status of your test. Statuses include, but are not limited to `:pending`, `:building`, `:errored`, `:creating`, `:succeeded`, and `:failed`
+
+You can pass in a different timeout to the `run_ci` method `run_ci(timeout: 300)`.
+
+You will likely need an `app.json` in the root directory of the app you're deploying. For example:
+
+```json
+{
+  "environments": {
+    "test": {
+      "addons":[
+         "heroku-postgresql"
+      ]
+    }
+  }
+}
+```
+
+This is on [a Rails5 test app](https://github.com/sharpstone/rails5_ruby_schema_format/blob/master/app.json) that needs the database to run.
+
+Do **NOT** specify a `buildpacks` key in the `app.json` as Hatchet will do this for you automatically. If you need to set buildpacks you can pass them into the `buildpacks:` keword argument:
 
 ```
-ReplRunner.register_commands(:python)  do |config|
-  config.terminate_command "exit()"        # the command you use to end the 'python' console
-  config.startup_timeout 60                # seconds to boot
-  config.return_char "\n"                  # the character that submits the command
+buildpacks = []
+buildpacks << "https://github.com/heroku/heroku-buildpack-pgbouncer.git"
+buildpacks << [HATCHET_BUILDPACK_BASE, HATCHET_BUILDPACK_BRANCH.call].join("#")
+
+Hatchet::Runner.new("rails5_ruby_schema_format", buildpacks: buildpacks).run_ci do |test_run|
+  # ...
 end
 ```
-
-If you have questions on setting running other interactive commands message [@schneems](http://twitter.com/schneems)
-
-## Writing Tests
-
-Hatchet is test framework agnostic. [This project](https://github.com/heroku/hatchet) uses `Test::Unit` to run it's own tests. While the [heroku-ruby-buildpack](https://github.com/heroku/heroku-buildpack-ruby) uses rspec.
-
-Rspec has a number of advantages, the ability to run `focused: true` to only run the exact test you want as well as the ability to tag tests. Rspec also has a number of useful plugins, one especialy useful one is `gem 'rspec-retry'` which will re-run any failed tests a given number of times (I recommend setting this to at least 2) this decrease the number of false negatives your tests will have.
-
-Whatever testing framework you chose, we recommend using a parallel test runner when running the full suite [parallel_tests](https://github.com/grosser/parallel_tests) works with rspec and test::unit and is amazing.
-
-If you're unfamiliar with the ruby testing eco-system or want some help with boilerplate and work for Heroku: [@schneems](http://twitter.com/schneems) can help you get started. Looking at existing projects is a good place to get started
 
 ## Testing on Travis
 

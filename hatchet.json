@@ -3,5 +3,9 @@
   "rails3":  ["sharpstone/rails3_mri_193"],
   "rails2":  ["sharpstone/rails2blog"],
   "bundler": ["sharpstone/no_lockfile"],
-  "default": ["sharpstone/default_ruby"]
+  "default": ["sharpstone/default_ruby"],
+  "ci":      [
+              "sharpstone/rails5_ruby_schema_format",
+              "sharpstone/rails5_ci_fails_no_database"
+              ]
 }

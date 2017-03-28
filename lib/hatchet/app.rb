@@ -1,7 +1,12 @@
 require 'shellwords'
+require 'platform-api'
 
 module Hatchet
   class App
+    HATCHET_BUILDPACK_BASE   = (ENV['HATCHET_BUILDPACK_BASE'] || "https://github.com/heroku/heroku-buildpack-ruby.git")
+    HATCHET_BUILDPACK_BRANCH = -> { ENV['HATCHET_BUILDPACK_BRANCH'] || Hatchet.git_branch }
+    BUILDPACK_URL = "https://github.com/heroku/heroku-buildpack-ruby.git"
+
     attr_reader :name, :stack, :directory, :repo_name
 
     class FailedDeploy < StandardError
@@ -22,7 +27,12 @@ module Hatchet
       @debug         = options[:debug]         || options[:debugging]
       @allow_failure = options[:allow_failure] || false
       @labs          = ([] << options[:labs]).flatten.compact
+      @buildpack     = options[:buildpack] || options[:buildpack_url] || [HATCHET_BUILDPACK_BASE, HATCHET_BUILDPACK_BRANCH.call].join("#")
       @reaper        = Reaper.new(heroku)
+    end
+
+    def allow_failure?
+      @allow_failure
     end
 
     # config is read only, should be threadsafe
@@ -192,6 +202,58 @@ module Hatchet
 
     def heroku
       @heroku ||= Heroku::API.new(api_key: api_key)
+    end
+
+    def run_ci(timeout: 300, &block)
+      Hatchet::RETRIES.times.retry do
+        result       = create_pipeline
+        @pipeline_id = result["id"]
+      end
+
+      # create_app
+      # platform_api.pipeline_coupling.create(app: name, pipeline: @pipeline_id, stage: "development")
+      test_run = TestRun.new(token:      api_key,
+                             buildpacks: @buildpack,
+                             timeout:    timeout,
+                             app:        self,
+                             pipeline:   @pipeline_id)
+
+      Hatchet::RETRIES.times.retry do
+        test_run.create_test_run
+      end
+      test_run.wait!(&block)
+    ensure
+      delete_pipeline(@pipeline_id) if @pipeline_id
+    end
+
+    def pipeline_id
+      @pipeline_id
+    end
+
+    def create_pipeline
+      platform_api.pipeline.create(name: @name)
+    end
+
+    def source_get_url
+      create_source
+      @source_get_url
+    end
+
+    def create_source
+      @create_source ||= begin
+        result = platform_api.source.create
+        @source_get_url = result["source_blob"]["get_url"]
+        @source_put_url = result["source_blob"]["put_url"]
+        @source_put_url
+      end
+    end
+
+    def delete_pipeline(pipeline_id)
+      platform_api.pipeline.delete(pipeline_id)
+    end
+
+    def platform_api
+      @platform_api ||= PlatformAPI.connect_oauth(api_key)
     end
 
     private

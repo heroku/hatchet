@@ -9,12 +9,22 @@ require 'stringio'
 require 'fileutils'
 require 'stringio'
 
+module Hatchet
+end
+
+
+
+require 'hatchet/version'
+require 'hatchet/reaper'
+require 'hatchet/test_run'
+require 'hatchet/app'
+require 'hatchet/anvil_app'
+require 'hatchet/git_app'
+require 'hatchet/config'
 
 module Hatchet
-  RETRIES   = Integer(ENV['HATCHET_RETRIES']   || 1)
-
-  class App
-  end
+  RETRIES = Integer(ENV['HATCHET_RETRIES']   || 1)
+  Runner  = Hatchet::GitApp
 
   def self.git_branch
     return ENV['TRAVIS_BRANCH'] if ENV['TRAVIS_BRANCH']
@@ -22,26 +32,4 @@ module Hatchet
     raise "Attempting to find current branch name. Error: Cannot describe git: #{out}" unless $?.success?
     out
   end
-
-  def self.set_deploy_strategy!
-    deploy_strat = (ENV['HATCHET_DEPLOY_STRATEGY'] || :git).to_sym
-    case Hatchet::const_set("DEPLOY_STRATEGY", deploy_strat)
-    when :anvil
-      Hatchet.const_set("Runner", Hatchet::AnvilApp)
-    when :git
-      Hatchet.const_set("Runner", Hatchet::GitApp)
-    else
-      raise "unknown deploy strategy #{Hatchet::DEPLOY_STRATEGY}, expected 'anvil', 'git'"
-    end
-  end
 end
-
-require 'hatchet/version'
-require 'hatchet/reaper'
-require 'hatchet/app'
-require 'hatchet/anvil_app'
-require 'hatchet/git_app'
-require 'hatchet/config'
-
-
-Hatchet.set_deploy_strategy!
