@@ -1,5 +1,9 @@
 ## HEAD
 
+## 2.0.1
+
+- Use actual email address instead of example
+
 ## 2.0.0
 
 - Support for Heroku CI added
