@@ -1,12 +1,6 @@
 module Hatchet
   # used for deploying a test app to heroku via git
   class GitApp < App
-    def setup!
-      super
-      heroku.put_config_vars(name, 'BUILDPACK_URL' => @buildpack)
-      self
-    end
-
     def git_repo
       "https://git.heroku.com/#{name}.git"
     end

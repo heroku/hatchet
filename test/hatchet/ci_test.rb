@@ -1,7 +1,7 @@
 require 'test_helper'
 
 
-class CITest < Test::Unit::TestCase
+class CITest < Minitest::Test
 
   def test_ci_create_app_with_stack
     Hatchet::GitApp.new("rails5_ruby_schema_format").run_ci do |test_run|

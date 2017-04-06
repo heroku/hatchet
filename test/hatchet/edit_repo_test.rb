@@ -1,6 +1,6 @@
 require 'test_helper'
 
-class EditRepoTest < Test::Unit::TestCase
+class EditRepoTest < Minitest::Test
   def test_can_deploy_git_app
     Hatchet::GitApp.new("default_ruby").in_directory do |app|
       msg = `touch foo`

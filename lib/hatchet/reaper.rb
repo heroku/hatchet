@@ -11,19 +11,20 @@ module Hatchet
     attr_accessor :apps
 
 
-    def initialize(heroku, regex = DEFAULT_REGEX)
-      @heroku = heroku
-      @regex  = regex
+    def initialize(platform_api:, regex: DEFAULT_REGEX)
+      @platform_api = platform_api
+      @regex        = regex
     end
 
     # Ascending order, oldest is last
     def get_apps
-      @apps         = @heroku.get_apps.body.sort_by {|app| DateTime.parse(app["created_at"]) }.reverse
-      @hatchet_apps = @apps.select {|app| app["name"].match(@regex) }
-      @apps
+      apps          = @platform_api.app.list.sort_by { |app| DateTime.parse(app["created_at"]) }.reverse
+      @app_count    = apps.count
+      @hatchet_apps = apps.select {|app| app["name"].match(@regex) }
     end
 
-    def cycle(apps = get_apps)
+    def cycle
+      get_apps
       if over_limit?
         if @hatchet_apps.count > 1
           destroy_oldest
@@ -37,28 +38,31 @@ module Hatchet
     end
 
     def destroy_oldest
-      oldest_name = @hatchet_apps.pop["name"]
-      destroy_by_name(oldest_name, "Hatchet app limit: #{HATCHET_APP_LIMT}")
-    rescue Heroku::API::Errors::NotFound
+      oldest = @hatchet_apps.pop
+      destroy_by_id(name: oldest["name"], id: oldest["id"], details: "Hatchet app limit: #{HATCHET_APP_LIMT}")
+    rescue Heroku::API::Errors::NotFound, Excon::Error::NotFound => e
+      puts "Error while destroying an app, maybe it's already deleted?"
+      puts oldest.inspect
+      puts e.inspect
       # app already deleted, cycle will catch if there's still too many
     end
 
     def destroy_all
       get_apps
       @hatchet_apps.each do |app|
-        destroy_by_name(app["name"])
+        destroy_by_id(name: app["name"], id: app["id"])
       end
     end
 
-    def destroy_by_name(name, details="")
-      puts "Destroying #{name.inspect}. #{details}"
-      @heroku.delete_app(name)
+    def destroy_by_id(name:, id:, details: "")
+      puts "Destroying #{name.inspect}: #{id}. #{details}"
+      @platform_api.app.delete(id)
     end
 
     private
 
     def over_limit?
-      @apps.count > HEROKU_APP_LIMIT || @hatchet_apps.count > HATCHET_APP_LIMT
+      @app_count > HEROKU_APP_LIMIT || @hatchet_apps.count > HATCHET_APP_LIMT
     end
   end
 end

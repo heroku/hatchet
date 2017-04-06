@@ -1,9 +1,10 @@
 require 'test_helper'
 
-class AppTest < Test::Unit::TestCase
+class AppTest < Minitest::Test
   def test_create_app_with_stack
-    app = Hatchet::App.new("rails3_mri_193", stack: "cedar-14")
+    stack = "heroku-16"
+    app = Hatchet::App.new("default_ruby", stack: stack)
     app.create_app
-    assert_equal 'cedar-14', app.heroku.get_app(app.name).body["stack"]
+    assert_equal stack, app.platform_api.app.info(app.name)["build_stack"]["name"]
   end
 end

@@ -1,7 +1,6 @@
 require 'test_helper'
 
-class AllowFailureGitTest < Test::Unit::TestCase
-
+class AllowFailureGitTest < Minitest::Test
   def test_allowed_failure
     Hatchet::GitApp.new("no_lockfile", allow_failure: true).deploy do |app|
       refute app.deployed?
