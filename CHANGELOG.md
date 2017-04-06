@@ -1,5 +1,9 @@
 ## HEAD
 
+## 2.0.2
+
+- Do not require super user access
+
 ## 2.0.1
 
 - Use actual email address instead of example

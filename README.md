@@ -288,8 +288,18 @@ I recommend signing up for a new heroku account for running your tests on travis
 
 
 ```
-$ export HEROKU_API_KEY=`heroku auth:token`
-$ travis encrypt HEROKU_API_KEY=$HEROKU_API_KEY --add
+$ travis encrypt HEROKU_API_KEY=<token> --add
+```
+
+You'll also need these specified in your travis.yml:
+
+```
+addons:
+  apt:
+    sources:
+    - heroku
+    packages:
+    - heroku-toolbelt
 ```
 
 ## Extra App Commands
