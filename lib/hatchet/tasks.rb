@@ -16,14 +16,14 @@ namespace :hatchet do
       File.open(netrc, 'w') do |file|
         file.write <<EOF
 machine git.heroku.com
-  login buildpack@example.com
+  login #{ENV['HEROKU_API_USER']}
   password #{ENV['HEROKU_API_KEY']}
 EOF
       end
     end
     [
      "bundle exec hatchet install",
-     "if [ `git config --get user.email` ]; then echo 'already set'; else `git config --global user.email 'buildpack@example.com'`; fi",
+     "if [ `git config --get user.email` ]; then echo 'already set'; else `git config --global user.email '#{ENV['HEROKU_API_USER']}'`; fi",
      "if [ `git config --get user.name` ];  then echo 'already set'; else `git config --global user.name  'BuildpackTester'`      ; fi",
      "echo '#{config_ssh}' >> ~/.ssh/config",
      "curl --fail --retry 3 --retry-delay 1 --connect-timeout 3 --max-time 30 https://toolbelt.heroku.com/install-ubuntu.sh | sh",
