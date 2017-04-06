@@ -10,3 +10,10 @@ env:
   - HATCHET_RETRIES=3
   - HATCHET_APP_LIMIT=80
   - secure: TvpZ0CrIe0FqjyTUOAtVqjHHrtF1esMroa00bYYRBas050/y7ygVpAn9utFZZChgt1PUbM48I01UaQglGxtmXVl3ahQXtPpXlzlwJOlDS09dlZFfLenkv530/pxIlpRtqk4q18gCoLBblXX7RZu3TGt0qds+o8dQrBzL6QifAHs=
+sudo: false
+addons:
+  apt:
+    sources:
+    - heroku
+    packages:
+    - heroku-toolbelt
