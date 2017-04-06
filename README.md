@@ -33,6 +33,12 @@ You'll set the `<token>` value to the `HEROKU_API_KEY` env var. For example on T
 $ travis encrypt HEROKU_API_KEY=<token> --add
 ```
 
+You'll also need an email address that goes with your token:
+
+```sh
+$ travis encrypt HEROKU_API_USER=<example@example.com> --add
+```
+
 If you're running locally, your system credentials will be pulled from `heroku auth:token`
 
 ## Run the Tests
