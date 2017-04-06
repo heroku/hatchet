@@ -12,21 +12,28 @@ First run:
 
     $ bundle install
 
-This library uses the heroku-api gem, you will need to make your API key
-available to the system.
+This library uses the heroku CLI and API, you will need to make your API key
+available to the system. If you're running on a CI platform you'll need to generate an OAuth token and make it available on the system you're running on.
 
-You can get your token by running:
+To get a token, first install the https://github.com/heroku/heroku-cli-oauth#creating plugin, then you can get your token by running:
 
-    $ heroku auth:token
-    alskdfju108f09uvngu172019
+```sh
+$ heroku authorizations:create --description "For Travis"
+Creating OAuth Authorization... done
+Client:      <none>
+ID:          <id value>
+Description: For Travis
+Scope:       global
+Token:      <token>
+```
 
+You'll set the `<token>` value to the `HEROKU_API_KEY` env var. For example on Travis you could add it like this:
 
-We need to export this token into our environment open up your `.bashrc`
+```sh
+$ travis encrypt HEROKU_API_KEY=<token> --add
+```
 
-    export HEROKU_API_KEY="alskdfju108f09uvngu172019"
-
-Then source the file. If you don't want to set your api key system wide,
-it will be pulled automatically via shelling out, but this is slower.
+If you're running locally, your system credentials will be pulled from `heroku auth:token`
 
 ## Run the Tests
 
