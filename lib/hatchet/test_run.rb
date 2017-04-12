@@ -80,9 +80,6 @@ module Hatchet
         expects: [201, 200]
       )
 
-      @setup_stream_url  = response["setup_stream_url"]
-      @output_stream_url = response["output_stream_url"]
-
       @status = response["status"].to_sym
     end
 
@@ -91,8 +88,24 @@ module Hatchet
     end
 
     def output
-      get_contents_or_whatever(@setup_stream_url) +
-      get_contents_or_whatever(@output_stream_url)
+      test_nodes = excon_request(
+        method:  :get,
+        path:    "/test-runs/#{@test_run_id}/test-nodes",
+        version: "3.ci",
+        expects: [200]
+      )
+
+      node_output_urls  = []
+      test_nodes.each do |test_node|
+        node_output_urls << test_node.fetch("setup_stream_url")
+        node_output_urls << test_node.fetch("output_stream_url")
+      end
+
+      output = String.new
+      node_output_urls.each do |url|
+        output << get_contents_or_whatever(url)
+      end
+      output
     end
 
     def wait!
