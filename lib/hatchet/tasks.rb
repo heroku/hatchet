@@ -27,7 +27,7 @@ EOF
      "if [ `git config --get user.name` ];  then echo 'already set'; else `git config --global user.name  'BuildpackTester'`      ; fi",
      "echo '#{config_ssh}' >> ~/.ssh/config",
      "ssh-keygen -f ~/.ssh/id_rsa -t rsa -N ''",
-     "yes | heroku keys:add"
+     "yes | heroku keys:add -y"
     ].each do |command|
       puts "== Running: #{command}"
       Bundler.with_clean_env do
