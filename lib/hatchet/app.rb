@@ -137,7 +137,7 @@ module Hatchet
 
     def update_stack(stack_name)
       @stack = stack_name
-      platform_api.app.update(build_stack: @stack)
+      platform_api.app.update(name, build_stack: @stack)
     end
 
     # creates a new heroku app via the API
