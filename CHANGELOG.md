@@ -1,5 +1,9 @@
 ## HEAD
 
+## 3.0.0
+
+- Use v3 of the Heroku API because Heroku is deprecating v2
+
 ## 2.0.3
 
 - Fix CI support to include multi nodes of output.
