@@ -16,18 +16,18 @@ namespace :hatchet do
       File.open(netrc, 'w') do |file|
         file.write <<EOF
 machine git.heroku.com
-  login #{ENV['HEROKU_API_USER']}
-  password #{ENV['HEROKU_API_KEY']}
+  login #{ENV.fetch('HEROKU_API_USER')}
+  password #{ENV.fetch('HEROKU_API_KEY')}
 EOF
       end
     end
     [
      "bundle exec hatchet install",
-     "if [ `git config --get user.email` ]; then echo 'already set'; else `git config --global user.email '#{ENV['HEROKU_API_USER']}'`; fi",
+     "if [ `git config --get user.email` ]; then echo 'already set'; else `git config --global user.email '#{ENV.fetch('HEROKU_API_USER')}'`; fi",
      "if [ `git config --get user.name` ];  then echo 'already set'; else `git config --global user.name  'BuildpackTester'`      ; fi",
      "echo '#{config_ssh}' >> ~/.ssh/config",
      "ssh-keygen -f ~/.ssh/id_rsa -t rsa -N ''",
-     "yes | heroku keys:add"
+     "yes | heroku keys:add -y"
     ].each do |command|
       puts "== Running: #{command}"
       Bundler.with_clean_env do

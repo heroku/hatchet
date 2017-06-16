@@ -1,6 +1,6 @@
 require 'test_helper'
 
-class ConfigTest < Test::Unit::TestCase
+class ConfigTest < Minitest::Test
 
   def setup
     @config = Hatchet::Config.new

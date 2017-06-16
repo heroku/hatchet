@@ -1,6 +1,6 @@
 require 'test_helper'
 
-class HerokuApiTest < Test::Unit::TestCase
+class HerokuApiTest < Minitest::Test
 
   def test_config_vars
     runner = Hatchet::Runner.new("no_lockfile").setup!

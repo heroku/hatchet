@@ -29,8 +29,7 @@ Gem::Specification.new do |gem|
   gem.add_dependency "threaded",      "~> 0"
 
 
-  gem.add_development_dependency "test-unit",      "~> 3.0"
-  gem.add_development_dependency "minitest",       "~> 4.0"
+  gem.add_development_dependency "minitest",       "~> 4.2"
   gem.add_development_dependency "rake",           "~> 10"
   gem.add_development_dependency "mocha",          "~> 1"
   gem.add_development_dependency "parallel_tests", "~> 0"

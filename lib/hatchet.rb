@@ -12,8 +12,6 @@ require 'stringio'
 module Hatchet
 end
 
-
-
 require 'hatchet/version'
 require 'hatchet/reaper'
 require 'hatchet/test_run'

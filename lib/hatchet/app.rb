@@ -28,7 +28,7 @@ module Hatchet
       @allow_failure = options[:allow_failure] || false
       @labs          = ([] << options[:labs]).flatten.compact
       @buildpack     = options[:buildpack] || options[:buildpack_url] || [HATCHET_BUILDPACK_BASE, HATCHET_BUILDPACK_BRANCH.call].join("#")
-      @reaper        = Reaper.new(heroku)
+      @reaper        = Reaper.new(platform_api: platform_api)
     end
 
     def allow_failure?
@@ -46,12 +46,14 @@ module Hatchet
 
     def set_config(options = {})
       options.each do |key, value|
-        heroku.put_config_vars(name, key => value)
+        # heroku.put_config_vars(name, key => value)
+        platform_api.config_var.update(name, key => value)
       end
     end
 
     def get_config
-      heroku.get_config_vars(name).body
+      # heroku.get_config_vars(name).body
+      platform_api.config_var.info_for_app(name)
     end
 
     def lab_is_installed?(lab)
@@ -59,7 +61,8 @@ module Hatchet
     end
 
     def get_labs
-      heroku.get_features(name).body
+      # heroku.get_features(name).body
+      platform_api.app_feature.list(name)
     end
 
     def set_labs!
@@ -67,12 +70,14 @@ module Hatchet
     end
 
     def set_lab(lab)
-      heroku.post_feature(lab, name)
+      # heroku.post_feature(lab, name)
+      platform_api.app_feature.update(name, lab, enabled: true)
     end
 
-    def add_database(db_name = 'heroku-postgresql:dev', match_val = "HEROKU_POSTGRESQL_[A-Z]+_URL")
+    def add_database(plan_name = 'heroku-postgresql:dev', match_val = "HEROKU_POSTGRESQL_[A-Z]+_URL")
       Hatchet::RETRIES.times.retry do
-        heroku.post_addon(name, db_name)
+        # heroku.post_addon(name, plan_name)
+        platform_api.addon.create(name, plan: plan_name )
         _, value = get_config.detect {|k, v| k.match(/#{match_val}/) }
         set_config('DATABASE_URL' => value)
       end
@@ -107,13 +112,17 @@ module Hatchet
     alias :no_debug? :not_debugging?
 
     def deployed?
-      !heroku.get_ps(name).body.detect {|ps| ps["process"].include?("web") }.nil?
+      # !heroku.get_ps(name).body.detect {|ps| ps["process"].include?("web") }.nil?
+      platform_api.formation.list(name).detect {|ps| ps["type"] == "web"}
     end
 
     def create_app
       3.times.retry do
         begin
-          heroku.post_app({ name: name, stack: stack }.delete_if {|k,v| v.nil? })
+          # heroku.post_app({ name: name, stack: stack }.delete_if {|k,v| v.nil? })
+          hash = { name: name, stack: stack }
+          hash.delete_if { |k,v| v.nil? }
+          platform_api.app.create(hash)
         rescue Heroku::API::Errors::RequestFailed => e
           @reaper.cycle if e.message.match(/app limit/)
           raise e
@@ -127,6 +136,8 @@ module Hatchet
       puts "Hatchet setup: #{name.inspect} for #{repo_name.inspect}"
       create_app
       set_labs!
+      # heroku.put_config_vars(name, 'BUILDPACK_URL' => @buildpack)
+      platform_api.buildpack_installation.update(name, updates: [{buildpack: @buildpack}])
       @app_is_setup = true
       self
     end
@@ -162,7 +173,7 @@ module Hatchet
       in_directory do
         self.setup!
         self.push_with_retry!
-        block.call(self, heroku, output) if block_given?
+        block.call(self, platform_api, output) if block_given?
       end
     ensure
       self.teardown!
@@ -201,6 +212,7 @@ module Hatchet
     end
 
     def heroku
+      raise "Not supported, use `platform_api` instead."
       @heroku ||= Heroku::API.new(api_key: api_key)
     end
 
@@ -253,7 +265,8 @@ module Hatchet
     end
 
     def platform_api
-      @platform_api ||= PlatformAPI.connect_oauth(api_key)
+      # We have to not use a cache due to https://github.com/heroku/platform-api/issues/73
+      @platform_api ||= PlatformAPI.connect_oauth(api_key, cache: Moneta.new(:Null))
     end
 
     private

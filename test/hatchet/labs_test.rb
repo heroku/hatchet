@@ -1,6 +1,6 @@
 require 'test_helper'
 
-class LabsTest < Test::Unit::TestCase
+class LabsTest < Minitest::Test
   def setup
     @buildpack_path = File.expand_path 'test/fixtures/buildpacks/heroku-buildpack-ruby'
   end
