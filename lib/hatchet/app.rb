@@ -27,16 +27,14 @@ module Hatchet
       @debug         = options[:debug]         || options[:debugging]
       @allow_failure = options[:allow_failure] || false
       @labs          = ([] << options[:labs]).flatten.compact
-      @buildpack     = options[:buildpack] || options[:buildpacks] || options[:buildpack_url] || self.class.default_buildpack
-      @buildpack     = Array(@buildpack)
+      @buildpacks    = options[:buildpack] || options[:buildpacks] || options[:buildpack_url] || self.class.default_buildpack
+      @buildpacks    = Array(@buildpacks)
       @reaper        = Reaper.new(platform_api: platform_api)
     end
 
     def self.default_buildpack
       [HATCHET_BUILDPACK_BASE, HATCHET_BUILDPACK_BRANCH.call].join("#")
     end
-
-    alias :buildpacks :buildpack
 
     def allow_failure?
       @allow_failure
@@ -138,8 +136,8 @@ module Hatchet
     end
 
     def update_stack(stack_name)
-      self.stack = stack_name
-      platform_api.app.update(build_stack: self.stack)
+      @stack = stack_name
+      platform_api.app.update(build_stack: @stack)
     end
 
     # creates a new heroku app via the API
@@ -149,7 +147,7 @@ module Hatchet
       create_app
       set_labs!
       # heroku.put_config_vars(name, 'BUILDPACK_URL' => @buildpack)
-      buildpack_list = buildpacks.map {|pack| { buildpack: pack }}
+      buildpack_list = @buildpacks.map {|pack| { buildpack: pack }}
       platform_api.buildpack_installation.update(name, updates: buildpack_list)
       @app_is_setup = true
       self
@@ -238,7 +236,7 @@ module Hatchet
       # create_app
       # platform_api.pipeline_coupling.create(app: name, pipeline: @pipeline_id, stage: "development")
       test_run = TestRun.new(token:      api_key,
-                             buildpacks: @buildpack,
+                             buildpacks: @buildpacks,
                              timeout:    timeout,
                              app:        self,
                              pipeline:   @pipeline_id)
