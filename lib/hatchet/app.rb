@@ -27,9 +27,16 @@ module Hatchet
       @debug         = options[:debug]         || options[:debugging]
       @allow_failure = options[:allow_failure] || false
       @labs          = ([] << options[:labs]).flatten.compact
-      @buildpack     = options[:buildpack] || options[:buildpack_url] || [HATCHET_BUILDPACK_BASE, HATCHET_BUILDPACK_BRANCH.call].join("#")
+      @buildpack     = options[:buildpack] || options[:buildpacks] || options[:buildpack_url] || self.class.default_buildpack
+      @buildpack     = Array(@buildpack)
       @reaper        = Reaper.new(platform_api: platform_api)
     end
+
+    def self.default_buildpack
+      [HATCHET_BUILDPACK_BASE, HATCHET_BUILDPACK_BRANCH.call].join("#")
+    end
+
+    alias :buildpacks :buildpack
 
     def allow_failure?
       @allow_failure
@@ -137,7 +144,8 @@ module Hatchet
       create_app
       set_labs!
       # heroku.put_config_vars(name, 'BUILDPACK_URL' => @buildpack)
-      platform_api.buildpack_installation.update(name, updates: [{buildpack: @buildpack}])
+      buildpack_list = buildpacks.map {|pack| { buildpack: pack }}
+      platform_api.buildpack_installation.update(name, updates: buildpack_list)
       @app_is_setup = true
       self
     end
