@@ -1,5 +1,12 @@
 ## HEAD
 
+## 3.0.1
+
+- Can pass in multiple buildpacks to constructor
+- app#update_stack() added
+- Can pass stack into constructor
+- Added `Hatchet::App.default_buildpack`
+
 ## 3.0.0
 
 - Use v3 of the Heroku API because Heroku is deprecating v2

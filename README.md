@@ -170,6 +170,20 @@ def test_deploy
   # ...
 ```
 
+You can specify multiple buildpacks by passing in an Array.
+
+You can use `Hatchet::App.default_buildpack` to get the buildpack URL and branch specified by environment variables:
+
+```
+Hatchet::Runner.new("default_ruby", buildpacks: [Hatchet::App.default_buildpack, "https://github.com/pgbouncer/pgbouncer"])
+```
+
+You can also specify a stack:
+
+```
+Hatchet::Runner.new("rails3_mri_193", stack: "cedar-14").deploy do |app|
+```
+
 ## Getting Deploy Output
 
 After Hatchet deploys your app you can get the output by using `app.output`
