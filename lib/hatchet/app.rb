@@ -1,3 +1,4 @@
+require 'securerandom'
 require 'shellwords'
 require 'platform-api'
 
