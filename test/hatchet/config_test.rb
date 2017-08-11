@@ -12,11 +12,11 @@ class ConfigTest < Minitest::Test
 
   def test_config_dirs
     {
-      "test/fixtures/repos/bundler/no_lockfile"   => "git://github.com/sharpstone/no_lockfile.git",
-      "test/fixtures/repos/default/default_ruby"  => "git://github.com/sharpstone/default_ruby.git",
-      "test/fixtures/repos/default/default_ruby"  => "git://github.com/sharpstone/default_ruby.git",
-      "test/fixtures/repos/rails2/rails2blog"     => "git://github.com/sharpstone/rails2blog.git",
-      "test/fixtures/repos/rails3/rails3_mri_193" => "git://github.com/sharpstone/rails3_mri_193.git"
+      "test/fixtures/repos/bundler/no_lockfile"   => "https://github.com/sharpstone/no_lockfile.git",
+      "test/fixtures/repos/default/default_ruby"  => "https://github.com/sharpstone/default_ruby.git",
+      "test/fixtures/repos/default/default_ruby"  => "https://github.com/sharpstone/default_ruby.git",
+      "test/fixtures/repos/rails2/rails2blog"     => "https://github.com/sharpstone/rails2blog.git",
+      "test/fixtures/repos/rails3/rails3_mri_193" => "https://github.com/sharpstone/rails3_mri_193.git"
      }.each do |key, value|
        assert_include(key, value, @config.dirs)
      end
@@ -41,7 +41,7 @@ class ConfigTest < Minitest::Test
 
   def test_github_shortcuts
     @config.send :init_config!, {"foo" => ["schneems/sextant"]}
-    assert_equal("git://github.com/schneems/sextant.git", @config.dirs["./repos/foo/sextant"])
+    assert_equal("https://github.com/schneems/sextant.git", @config.dirs["./repos/foo/sextant"])
   end
   private
 
