@@ -1,4 +1,3 @@
-require 'anvil/engine'
 require 'active_support/core_ext/object/blank'
 require 'rrrretry'
 require 'repl_runner'

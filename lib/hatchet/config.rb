@@ -48,7 +48,7 @@ module Hatchet
       path = possible_paths.detect do |path|
         Dir[path].present?
       end
-      raise BadRepoName.new(name, possible_paths) if path.blank?
+      raise BadRepoName.new(name, possible_paths) if path.nil? || path.empty?
       path
     end
 
