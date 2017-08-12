@@ -19,17 +19,16 @@ Gem::Specification.new do |gem|
   gem.require_paths = ["lib"]
 
   gem.add_dependency "platform-api",  "~> 2"
-  gem.add_dependency "heroku-api",    "~> 0"
-  gem.add_dependency "activesupport", "~> 4"
+  gem.add_dependency "activesupport", "~> 5"
   gem.add_dependency "rrrretry",      "~> 1"
   gem.add_dependency "anvil-cli",     "~> 0"
   gem.add_dependency "excon",         "~> 0"
   gem.add_dependency "thor",          "~> 0"
   gem.add_dependency "repl_runner",   "~> 0.0.3"
   gem.add_dependency "threaded",      "~> 0"
+  gem.add_dependency 'minitest-retry', '~> 0.1.9'
 
-
-  gem.add_development_dependency "minitest",       "~> 4.2"
+  gem.add_development_dependency "minitest",       "~> 5.1"
   gem.add_development_dependency "rake",           "~> 10"
   gem.add_development_dependency "mocha",          "~> 1"
   gem.add_development_dependency "parallel_tests", "~> 0"

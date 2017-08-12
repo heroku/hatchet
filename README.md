@@ -295,7 +295,7 @@ To run on travis you will need to configure your `.travis.yml` to run the approp
 For reference see the `.travis.yml` from [hatchet](https://github.com/heroku/hatchet/blob/master/.travis.yml) and the [heroku-ruby-buildpack](https://github.com/heroku/heroku-buildpack-ruby/blob/master/.travis.yml). To make running on travis easier there is a rake task in Hatchet that can be run before your tests are executed
 
 ```
-before_script: bundle exec rake hatchet:setup_travis
+before_script: bundle exec rake hatchet:setup_ci
 ```
 
 I recommend signing up for a new heroku account for running your tests on travis, otherwise you will quickly excede your API limit. Once you have the new api token you can use this technique to [securely send travis the data](http://docs.travis-ci.com/user/environment-variables/#Secure-Variables).

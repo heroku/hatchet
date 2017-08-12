@@ -9,6 +9,9 @@ Bundler.require
 require 'minitest/autorun'
 require "mocha/setup"
 
+require 'minitest/retry'
+Minitest::Retry.use!
+
 # Not needed if you're using the most recent version
 if defined?(MiniTest::Unit::TestCase)
   Minitest::Test = MiniTest::Unit::TestCase
