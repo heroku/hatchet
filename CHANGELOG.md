@@ -1,5 +1,9 @@
 ## HEAD
 
+## 3.0.2
+
+- Use https for git clones
+
 ## 3.0.1
 
 - Can pass in multiple buildpacks to constructor
