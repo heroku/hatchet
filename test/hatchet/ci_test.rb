@@ -1,6 +1,5 @@
 require 'test_helper'
 
-
 class CITest < Minitest::Test
 
   def test_ci_create_app_with_stack
