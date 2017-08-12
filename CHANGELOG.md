@@ -2,6 +2,11 @@
 
 ## 3.0.2
 
+- SSH no longer needed for travis setup
+- Remove Heroku.rb dependency
+
+## 3.0.2
+
 - Use https for git clones
 
 ## 3.0.1
