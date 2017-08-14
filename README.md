@@ -41,6 +41,33 @@ $ travis encrypt HEROKU_API_USER=<example@example.com> --add
 
 If you're running locally, your system credentials will be pulled from `heroku auth:token`
 
+You'll also need to trigger a "setup" step for CI tasks. There is a setup task you can use first you need to require it, likely in your Rakefile:
+
+```ruby
+require 'hatchet/tasks'
+```
+
+Then execute the script `hatchet:setup_ci`. You can do it on Travis CI like this:
+
+```
+# .travis.yml
+before_script: bundle exec rake hatchet:setup_ci
+```
+
+and on Heroku CI like this:
+
+```json
+{
+  "environments": {
+    "test": {
+      "scripts": {
+        "test-setup": "bundle exec rake hatchet:setup_ci",
+      }
+    }
+  }
+}
+```
+
 ## Run the Tests
 
     $ bundle exec rake test
