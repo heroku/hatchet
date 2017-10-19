@@ -1,5 +1,9 @@
 ## HEAD
 
+## 3.0.4
+
+- Remove Heroku constants
+
 ## 3.0.2
 
 - SSH no longer needed for travis setup
