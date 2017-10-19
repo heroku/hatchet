@@ -40,11 +40,6 @@ module Hatchet
     def destroy_oldest
       oldest = @hatchet_apps.pop
       destroy_by_id(name: oldest["name"], id: oldest["id"], details: "Hatchet app limit: #{HATCHET_APP_LIMT}")
-    rescue Heroku::API::Errors::NotFound, Excon::Error::NotFound => e
-      puts "Error while destroying an app, maybe it's already deleted?"
-      puts oldest.inspect
-      puts e.inspect
-      # app already deleted, cycle will catch if there's still too many
     end
 
     def destroy_all
