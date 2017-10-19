@@ -129,8 +129,8 @@ module Hatchet
           hash = { name: name, stack: stack }
           hash.delete_if { |k,v| v.nil? }
           platform_api.app.create(hash)
-        rescue Heroku::API::Errors::RequestFailed => e
-          @reaper.cycle if e.message.match(/app limit/)
+        rescue
+          @reaper.cycle
           raise e
         end
       end
@@ -225,7 +225,6 @@ module Hatchet
 
     def heroku
       raise "Not supported, use `platform_api` instead."
-      @heroku ||= Heroku::API.new(api_key: api_key)
     end
 
     def run_ci(timeout: 300, &block)
