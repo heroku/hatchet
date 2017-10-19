@@ -44,9 +44,9 @@ class HatchetCLI < Thor
   desc "destroy [NAME]", "Deletes applications"
   option :all, :type => :boolean
   def destroy(name=nil)
-    api_key = ENV['HEROKU_API_KEY'] || bundle_exec {`heroku auth:token`.chomp }
-    heroku = Heroku::API.new(api_key: api_key)
-    reaper = Hatchet::Reaper.new(heroku)
+    api_key      = ENV['HEROKU_API_KEY'] || bundle_exec {`heroku auth:token`.chomp }
+    platform_api = PlatformAPI.connect_oauth(api_key, cache: Moneta.new(:Null))
+    reaper       = Reaper.new(platform_api: platform_api)
 
     if options[:all]
       reaper.destroy_all
