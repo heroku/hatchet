@@ -1,5 +1,9 @@
 ## HEAD
 
+## 3.0.5
+
+- Require `mktmpdir` in the right place.
+
 ## 3.0.4
 
 - Remove Heroku constants
