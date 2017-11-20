@@ -1,6 +1,7 @@
 require 'securerandom'
 require 'shellwords'
 require 'platform-api'
+require 'tmpdir'
 
 module Hatchet
   class App
