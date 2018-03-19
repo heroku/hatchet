@@ -1,5 +1,9 @@
 ## HEAD
 
+## 3.0.6
+
+- Fix double delete error #41
+
 ## 3.0.5
 
 - Require `mktmpdir` in the right place.
