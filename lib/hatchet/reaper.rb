@@ -35,6 +35,17 @@ module Hatchet
       else
         # do nothing
       end
+
+    # If the app is already deleted an exception
+    # will be raised, if the app cannot be found
+    # assume it is already deleted and try again
+    rescue Excon::Error::NotFound => e
+      body = e.response.body
+      if body =~ /Couldn\'t find that app./
+        puts "#{@message}, but looks like it was already deleted"
+        retry
+      end
+      raise e
     end
 
     def destroy_oldest
@@ -50,7 +61,8 @@ module Hatchet
     end
 
     def destroy_by_id(name:, id:, details: "")
-      puts "Destroying #{name.inspect}: #{id}. #{details}"
+      @message = "Destroying #{name.inspect}: #{id}. #{details}"
+      puts @message
       @platform_api.app.delete(id)
     end
 
