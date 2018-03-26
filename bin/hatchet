@@ -14,14 +14,17 @@ require 'hatchet'
 require 'thor'
 require 'threaded'
 require 'date'
+require 'yaml'
 
 class HatchetCLI < Thor
   desc "install", "installs repos defined in 'hatchet.json'"
   def install
     warn_dot_ignore!
+    lock_hash = YAML.safe_load(File.read('hatchet.lock')).to_h
     puts "Installing repos for hatchet"
     dirs.map do |directory, git_repo|
       Threaded.later do
+        commit = lock_hash.fetch(directory) { raise "expected #{directory} to be locked but it is not, please run `hatchet lock` and commit the results"}
         directory = File.expand_path(directory)
         if Dir[directory].present?
           puts "== pulling '#{git_repo}' into '#{directory}'\n"
@@ -30,8 +33,31 @@ class HatchetCLI < Thor
           puts "== cloning '#{git_repo}' into '#{directory}'\n"
           clone(directory, git_repo)
         end
+        checkout_commit(directory, commit)
       end
     end.map(&:join)
+  end
+
+  desc "locks to specific git commits", "updates hatchet.lock"
+  def lock
+    lock_hash = {}
+    dirs.map do |directory, git_repo|
+      Threaded.later do
+        puts "== locking #{directory}"
+        unless Dir.exist?(directory)
+          raise "Bad git repo #{git_repo.inspect}" if bad_repo?(git_repo)
+          clone(directory, git_repo, quiet: false)
+        end
+
+        commit = commit_at_directory(directory)
+        lock_hash[directory] = commit
+      end
+    end.map(&:join)
+
+    lock_hash = lock_hash.sort
+    File.open('hatchet.lock', 'w') {|f| f << lock_hash.to_yaml }
+
+    puts "Done!"
   end
 
   desc "list", "lists all repos and their destination listed in hatchet.json"
@@ -59,6 +85,11 @@ class HatchetCLI < Thor
 
   private
 
+  def bad_repo?(url)
+    `git ls-remote --exit-code -h "#{url}"`
+    $? != 0
+  end
+
   def warn_dot_ignore!
     return false unless File.exist?('.gitignore')
 
@@ -80,14 +111,22 @@ class HatchetCLI < Thor
     config.dirs
   end
 
-  def pull(path, git_repo)
-    puts `cd #{path} && git pull --rebase #{git_repo} master --quiet`
+  def checkout_commit(directory, commit)
+    cmd("cd #{directory} && git reset --hard #{commit}")
   end
 
-  def clone(path, git_repo)
+  def commit_at_directory(directory)
+    cmd("cd #{directory} && git log -n1  --pretty=format:%H").strip
+  end
+
+  def pull(path, git_repo, commit: false)
+    cmd("cd #{path} && git pull --rebase #{git_repo} master --quiet")
+  end
+
+  def clone(path, git_repo, quiet: true)
     path = File.join(path, '..') # up one dir to prevent repos/codetriage/codetriage/#...
     FileUtils.mkdir_p(path)
-    puts `cd #{path} && git clone #{git_repo} --quiet`
+    cmd("cd #{path} && git clone #{git_repo} --quiet", quiet: quiet)
   end
 
   def bundle_exec
@@ -98,6 +137,15 @@ class HatchetCLI < Thor
     else
       yield
     end
+  end
+
+  def cmd(command, let_fail: false, stdin: nil, quiet: true)
+    command = "printf '#{stdin}' | #{command}" if stdin
+    puts "Running: #{command}" unless quiet
+    result = `#{command}`
+    return result if let_fail
+    raise "Command #{command} failed:\n#{result}" unless $?.success?
+    return result
   end
 end
 
