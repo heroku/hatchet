@@ -9,5 +9,6 @@
   "ci":      [
               "sharpstone/rails5_ruby_schema_format",
               "sharpstone/rails5_ci_fails_no_database"
- ]
+ ],
+ "lock": ["sharpstone/lock_fail"]
 }

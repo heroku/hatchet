@@ -7,8 +7,8 @@
   - 3e63c3e13f435cf4ab11265e9abd161cc28cc552
 - - test/fixtures/repos/default/default_ruby
   - da748a59340be8b950e7bbbfb32077eb67d70c3c
-- - test/fixtures/repos/foo/codetriage
-  - 256a144a9b31c4aa9577956c5230f397ffdc9988
+- - test/fixtures/repos/lock/lock_fail
+  - da748a59340be8b950e7bbbfb32077eb67d70c3c
 - - test/fixtures/repos/rails2/rails2blog
   - b37357a498ae5e8429f5601c5ab9524021dc2aaa
 - - test/fixtures/repos/rails3/rails3_mri_193
