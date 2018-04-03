@@ -1,5 +1,9 @@
 ## HEAD
 
+## 3.1.0
+
+- Introduce a lockfile #42
+
 ## 3.0.6
 
 - Fix double delete error #41
