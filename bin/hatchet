@@ -20,7 +20,7 @@ class HatchetCLI < Thor
   desc "install", "installs repos defined in 'hatchet.json'"
   def install
     warn_dot_ignore!
-    lock_hash = YAML.safe_load(File.read('hatchet.lock')).to_h
+    lock_hash = load_lockfile
     puts "Installing repos for hatchet"
     dirs.map do |directory, git_repo|
       Threaded.later do
@@ -36,6 +36,12 @@ class HatchetCLI < Thor
         checkout_commit(directory, commit)
       end
     end.map(&:join)
+  end
+
+  def load_lockfile
+    return YAML.safe_load(File.read('hatchet.lock')).to_h
+  rescue Errno::ENOENT => e
+    raise "No such file found `hatchet.lock` please run `$ bundle exec hatchet lock`"
   end
 
   desc "locks to specific git commits", "updates hatchet.lock"
