@@ -1,5 +1,9 @@
 ## HEAD
 
+## 3.1.1
+
+- Better errors when no lockfile is found #43
+
 ## 3.1.0
 
 - Introduce a lockfile #42
