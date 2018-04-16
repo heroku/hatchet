@@ -22,9 +22,11 @@ class HatchetCLI < Thor
     warn_dot_ignore!
     lock_hash = load_lockfile
     puts "Installing repos for hatchet"
+
+    missing_commit = false
     dirs.map do |directory, git_repo|
       Threaded.later do
-        commit = lock_hash.fetch(directory) { raise "expected #{directory} to be locked but it is not, please run `hatchet lock` and commit the results"}
+        commit = lock_hash[directory]
         directory = File.expand_path(directory)
         if Dir[directory].present?
           puts "== pulling '#{git_repo}' into '#{directory}'\n"
@@ -33,9 +35,15 @@ class HatchetCLI < Thor
           puts "== cloning '#{git_repo}' into '#{directory}'\n"
           clone(directory, git_repo)
         end
-        checkout_commit(directory, commit)
+        if commit
+          checkout_commit(directory, commit)
+        else
+          missing_commit = true
+        end
       end
     end.map(&:join)
+
+    self.lock if missing_commit
   end
 
   def load_lockfile
