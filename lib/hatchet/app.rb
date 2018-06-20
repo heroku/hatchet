@@ -31,7 +31,7 @@ module Hatchet
       @labs          = ([] << options[:labs]).flatten.compact
       @buildpacks    = options[:buildpack] || options[:buildpacks] || options[:buildpack_url] || self.class.default_buildpack
       @buildpacks    = Array(@buildpacks)
-      @reaper        = Reaper.new(platform_api: platform_api)
+      @reaper        = Reaper.new(api_rate_limit: api_rate_limit)
     end
 
     def self.default_buildpack
@@ -54,13 +54,13 @@ module Hatchet
     def set_config(options = {})
       options.each do |key, value|
         # heroku.put_config_vars(name, key => value)
-        platform_api.config_var.update(name, key => value)
+        api_rate_limit.call.config_var.update(name, key => value)
       end
     end
 
     def get_config
       # heroku.get_config_vars(name).body
-      platform_api.config_var.info_for_app(name)
+      api_rate_limit.call.config_var.info_for_app(name)
     end
 
     def lab_is_installed?(lab)
@@ -69,7 +69,7 @@ module Hatchet
 
     def get_labs
       # heroku.get_features(name).body
-      platform_api.app_feature.list(name)
+      api_rate_limit.call.app_feature.list(name)
     end
 
     def set_labs!
@@ -78,13 +78,13 @@ module Hatchet
 
     def set_lab(lab)
       # heroku.post_feature(lab, name)
-      platform_api.app_feature.update(name, lab, enabled: true)
+      api_rate_limit.call.app_feature.update(name, lab, enabled: true)
     end
 
     def add_database(plan_name = 'heroku-postgresql:dev', match_val = "HEROKU_POSTGRESQL_[A-Z]+_URL")
       Hatchet::RETRIES.times.retry do
         # heroku.post_addon(name, plan_name)
-        platform_api.addon.create(name, plan: plan_name )
+        api_rate_limit.call.addon.create(name, plan: plan_name )
         _, value = get_config.detect {|k, v| k.match(/#{match_val}/) }
         set_config('DATABASE_URL' => value)
       end
@@ -120,7 +120,7 @@ module Hatchet
 
     def deployed?
       # !heroku.get_ps(name).body.detect {|ps| ps["process"].include?("web") }.nil?
-      platform_api.formation.list(name).detect {|ps| ps["type"] == "web"}
+      api_rate_limit.call.formation.list(name).detect {|ps| ps["type"] == "web"}
     end
 
     def create_app
@@ -129,7 +129,7 @@ module Hatchet
           # heroku.post_app({ name: name, stack: stack }.delete_if {|k,v| v.nil? })
           hash = { name: name, stack: stack }
           hash.delete_if { |k,v| v.nil? }
-          platform_api.app.create(hash)
+          api_rate_limit.call.app.create(hash)
         rescue
           @reaper.cycle
           raise e
@@ -139,7 +139,7 @@ module Hatchet
 
     def update_stack(stack_name)
       @stack = stack_name
-      platform_api.app.update(name, build_stack: @stack)
+      api_rate_limit.call.app.update(name, build_stack: @stack)
     end
 
     # creates a new heroku app via the API
@@ -150,7 +150,7 @@ module Hatchet
       set_labs!
       # heroku.put_config_vars(name, 'BUILDPACK_URL' => @buildpack)
       buildpack_list = @buildpacks.map {|pack| { buildpack: pack }}
-      platform_api.buildpack_installation.update(name, updates: buildpack_list)
+      api_rate_limit.call.buildpack_installation.update(name, updates: buildpack_list)
       @app_is_setup = true
       self
     end
@@ -186,7 +186,7 @@ module Hatchet
       in_directory do
         self.setup!
         self.push_with_retry!
-        block.call(self, platform_api, output) if block_given?
+        block.call(self, api_rate_limit.call, output) if block_given?
       end
     ensure
       self.teardown!
@@ -255,7 +255,7 @@ module Hatchet
     end
 
     def create_pipeline
-      platform_api.pipeline.create(name: @name)
+      api_rate_limit.call.pipeline.create(name: @name)
     end
 
     def source_get_url
@@ -265,7 +265,7 @@ module Hatchet
 
     def create_source
       @create_source ||= begin
-        result = platform_api.source.create
+        result = api_rate_limit.call.source.create
         @source_get_url = result["source_blob"]["get_url"]
         @source_put_url = result["source_blob"]["put_url"]
         @source_put_url
@@ -273,12 +273,18 @@ module Hatchet
     end
 
     def delete_pipeline(pipeline_id)
-      platform_api.pipeline.delete(pipeline_id)
+      api_rate_limit.call.pipeline.delete(pipeline_id)
     end
 
     def platform_api
-      # We have to not use a cache due to https://github.com/heroku/platform-api/issues/73
-      @platform_api ||= PlatformAPI.connect_oauth(api_key, cache: Moneta.new(:Null))
+      puts "Deprecated: use `api_rate_limit.call` instead of platform_api"
+      api_rate_limit
+      return @platform_api
+    end
+
+    def api_rate_limit
+      @platform_api   ||= PlatformAPI.connect_oauth(api_key, cache: Moneta.new(:Null))
+      @api_rate_limit ||= ApiRateLimit.new(@platform_api)
     end
 
     private
