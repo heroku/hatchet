@@ -1,5 +1,10 @@
 ## HEAD
 
+## 4.0.0
+
+- Introduce API rate limiting (#46)
+- Deprecate App#platform_api method (#46)
+
 ## 3.1.1
 
 - Better errors when no lockfile is found #43
