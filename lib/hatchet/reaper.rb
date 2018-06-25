@@ -11,14 +11,14 @@ module Hatchet
     attr_accessor :apps
 
 
-    def initialize(platform_api:, regex: DEFAULT_REGEX)
-      @platform_api = platform_api
+    def initialize(api_rate_limit: , regex: DEFAULT_REGEX)
+      @api_rate_limit = api_rate_limit
       @regex        = regex
     end
 
     # Ascending order, oldest is last
     def get_apps
-      apps          = @platform_api.app.list.sort_by { |app| DateTime.parse(app["created_at"]) }.reverse
+      apps          = @api_rate_limit.call.app.list.sort_by { |app| DateTime.parse(app["created_at"]) }.reverse
       @app_count    = apps.count
       @hatchet_apps = apps.select {|app| app["name"].match(@regex) }
     end
@@ -63,7 +63,7 @@ module Hatchet
     def destroy_by_id(name:, id:, details: "")
       @message = "Destroying #{name.inspect}: #{id}. #{details}"
       puts @message
-      @platform_api.app.delete(id)
+      @api_rate_limit.call.app.delete(id)
     end
 
     private
