@@ -1,5 +1,9 @@
 ## HEAD
 
+## 4.0.1
+
+- Rate limit Heroku CI
+
 ## 4.0.0
 
 - Introduce API rate limiting (#46)

@@ -236,11 +236,14 @@ module Hatchet
 
       # create_app
       # platform_api.pipeline_coupling.create(app: name, pipeline: @pipeline_id, stage: "development")
-      test_run = TestRun.new(token:      api_key,
-                             buildpacks: @buildpacks,
-                             timeout:    timeout,
-                             app:        self,
-                             pipeline:   @pipeline_id)
+      test_run = TestRun.new(
+        token:          api_key,
+        buildpacks:     @buildpacks,
+        timeout:        timeout,
+        app:            self,
+        pipeline:       @pipeline_id,
+        api_rate_limit: api_rate_limit
+     )
 
       Hatchet::RETRIES.times.retry do
         test_run.create_test_run
