@@ -22,6 +22,7 @@ module Hatchet
       buildpacks:,
       app:,
       pipeline:,
+      api_rate_limit:,
       timeout:        10,
       pause:          5,
       commit_sha:     "sha",
@@ -41,6 +42,7 @@ module Hatchet
       @app             = app
       @mutex           = Mutex.new
       @status          = false
+      @api_rate_limit  = api_rate_limit
     end
     attr_reader :app
 
@@ -164,6 +166,7 @@ module Hatchet
 
         source_put_url = @app.create_source
         Hatchet::RETRIES.times.retry do
+          @api_rate_limit.call
           Excon.put(source_put_url,
                     expects: [200],
                     body:    File.read('slug.tgz'))
@@ -174,6 +177,7 @@ module Hatchet
 
   private
     def get_contents_or_whatever(url)
+      @api_rate_limit.call
       Excon.get(url, read_timeout: @pause).body
     rescue Excon::Error::Timeout
       ""
@@ -197,6 +201,7 @@ module Hatchet
       options[:body] = JSON.generate(options[:body]) if options[:body]
 
       Hatchet::RETRIES.times.retry do
+        @api_rate_limit.call
         connection = Excon.new("https://api.heroku.com")
         return connection.request(options)
       end

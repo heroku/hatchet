@@ -23,7 +23,7 @@ class ApiRateLimit
   # Unfortunatley `@platform_api.rate_limit` is an extra API
   # call, so by checking our limit, we also are using our limit 😬
   # to partially mitigate this, only check capacity every 5
-  # api calls, or if the
+  # api calls, or if the current capacity is under 1000
   def call
     @called += 1
 
