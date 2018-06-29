@@ -6,7 +6,7 @@ require 'tmpdir'
 module Hatchet
   class App
     HATCHET_BUILDPACK_BASE   = (ENV['HATCHET_BUILDPACK_BASE'] || "https://github.com/heroku/heroku-buildpack-ruby.git")
-    HATCHET_BUILDPACK_BRANCH = -> { ENV['HATCHET_BUILDPACK_BRANCH'] || Hatchet.git_branch }
+    HATCHET_BUILDPACK_BRANCH = -> { ENV['HATCHET_BUILDPACK_BRANCH'] || ENV['HEROKU_TEST_RUN_BRANCH'] || Hatchet.git_branch }
     BUILDPACK_URL = "https://github.com/heroku/heroku-buildpack-ruby.git"
 
     attr_reader :name, :stack, :directory, :repo_name
