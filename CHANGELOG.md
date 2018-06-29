@@ -1,5 +1,9 @@
 ## HEAD
 
+## 4.0.2
+
+- Support for running Hatchet tests on Heroku CI by defaulting to `ENV['HEROKU_TEST_RUN_BRANCH']` (#48)
+
 ## 4.0.1
 
 - Rate limit Heroku CI
