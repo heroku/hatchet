@@ -6,6 +6,7 @@ require 'json'
 require 'stringio'
 require 'fileutils'
 require 'stringio'
+require 'date'
 
 module Hatchet
 end
