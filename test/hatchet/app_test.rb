@@ -11,17 +11,17 @@ class AppTest < Minitest::Test
   def test_before_deploy
     @called = false
     @dir    = false
-    before_deploy = Proc.new do
+
+    app = Hatchet::App.new("default_ruby")
+    def app.push_with_retry!; end # Don't actually deploy
+
+    app.before_deploy do
       @called = true
       @dir    = Dir.pwd
     end
 
-    app = Hatchet::App.new("default_ruby", before_deploy: before_deploy)
-    def app.push_with_retry!; end # Don't actually deploy
-
     app.deploy do
       assert_equal true,    @called
-
       assert_equal Dir.pwd, @dir
     end
 
@@ -30,18 +30,36 @@ class AppTest < Minitest::Test
 
   def test_auto_commits_code
     string = "foo#{SecureRandom.hex}"
-    before_deploy = Proc.new do |app|
+
+    app = Hatchet::App.new("default_ruby")
+    def app.push_with_retry!; end # Don't actually deploy
+
+    app.before_deploy do |app|
       assert_equal false, app.send(:needs_commit?)
       `echo "#{string}" > Gemfile`
       assert_equal true, app.send(:needs_commit?)
     end
-
-    app = Hatchet::App.new("default_ruby", before_deploy: before_deploy)
-    def app.push_with_retry!; end # Don't actually deploy
-
     app.deploy do
       assert_equal string, File.read("Gemfile").chomp
       assert_equal false, app.send(:needs_commit?)
+    end
+  end
+
+
+  def test_nested_in_directory
+    string = "foo#{SecureRandom.hex}"
+
+    app = Hatchet::App.new("default_ruby")
+    def app.push_with_retry!; end # Don't actually deploy
+
+    app.in_directory do
+      `echo "#{string}" > Gemfile`
+      dir = Dir.pwd
+
+      app.deploy do
+        assert_equal string, File.read("Gemfile").chomp
+        assert_equal Dir.pwd, dir
+      end
     end
   end
 end

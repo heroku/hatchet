@@ -10,7 +10,6 @@ module Hatchet
     BUILDPACK_URL = "https://github.com/heroku/heroku-buildpack-ruby.git"
 
     attr_reader :name, :stack, :directory, :repo_name
-    attr_accessor :before_deploy
 
     class FailedDeploy < StandardError
       def initialize(app, output)
@@ -170,6 +169,14 @@ module Hatchet
     end
     alias :setup :setup!
 
+    def before_deploy(&block)
+      raise "block required" unless block
+      @before_deploy = block
+
+      self
+    end
+
+
     def commit!
       local_cmd_exec!('git add .; git commit -m next')
     end
@@ -188,10 +195,14 @@ module Hatchet
     end
 
     def in_directory(directory = self.directory)
+      yield directory and return if @already_in_dir
+
       Dir.mktmpdir do |tmpdir|
         FileUtils.cp_r("#{directory}/.", "#{tmpdir}/.")
         Dir.chdir(tmpdir) do
+          @already_in_dir = true
           yield directory
+          @already_in_dir = false
         end
       end
     end
@@ -224,7 +235,6 @@ module Hatchet
     alias :push! :push
     alias :push_with_retry  :push
     alias :push_with_retry! :push_with_retry
-
 
     def retry_error_message(error, attempt, max_retries)
       attempt += 1
@@ -325,14 +335,14 @@ module Hatchet
     end
 
     private def call_before_deploy
-      return unless before_deploy
-      raise "before_deploy: #{before_deploy.inspect} must respond to :call"  unless before_deploy.respond_to?(:call)
-      raise "before_deploy: #{before_deploy.inspect} must respond to :arity" unless before_deploy.respond_to?(:arity)
+      return unless @before_deploy
+      raise "before_deploy: #{@before_deploy.inspect} must respond to :call"  unless @before_deploy.respond_to?(:call)
+      raise "before_deploy: #{@before_deploy.inspect} must respond to :arity" unless @before_deploy.respond_to?(:arity)
 
-      if before_deploy.arity == 1
-        before_deploy.call(self)
+      if @before_deploy.arity == 1
+        @before_deploy.call(self)
       else
-        before_deploy.call
+        @before_deploy.call
       end
 
       commit! if needs_commit?
