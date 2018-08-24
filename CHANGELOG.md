@@ -1,5 +1,11 @@
 ## HEAD
 
+## 4.0.3
+
+- Introduce explicit `before_deploy` block that is called, well...before deploy happens. If any changes are made to disk at this time then contents are committed to disk (https://github.com/heroku/hatchet/pull/51)
+- Allow running `deploy` block inside of an `in_directory` block (https://github.com/heroku/hatchet/pull/51)
+- Introduce Hatchet::App#commit! that will commit any files to a repo in the current directory. (https://github.com/heroku/hatchet/pull/51)
+
 ## 4.0.2
 
 - Support for running Hatchet tests on Heroku CI by defaulting to `ENV['HEROKU_TEST_RUN_BRANCH']` (#48)
