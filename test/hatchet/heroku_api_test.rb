@@ -17,4 +17,14 @@ class HerokuApiTest < Minitest::Test
   ensure
     runner.teardown! if runner
   end
+
+
+  def test_config_vars_in_init
+    runner    = Hatchet::Runner.new("no_lockfile", config: { foo: "bar"}).setup!
+    actual    = runner.get_config
+    expected  = {"foo" => "bar"}
+    assert_equal expected, actual
+  ensure
+    runner.teardown! if runner
+  end
 end

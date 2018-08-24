@@ -31,10 +31,11 @@ module Hatchet
                    buildpack: nil,
                    buildpacks: nil,
                    buildpack_url: nil,
-                   before_deploy: nil
+                   before_deploy: nil,
+                   config: {}
                   )
       @repo_name     = repo_name
-      @directory     = config.path_for_name(@repo_name)
+      @directory     = self.config.path_for_name(@repo_name)
       @name          = name
       @stack         = stack
       @debug         = debug || debugging
@@ -43,6 +44,7 @@ module Hatchet
       @buildpacks    = buildpack || buildpacks || buildpack_url || self.class.default_buildpack
       @buildpacks    = Array(@buildpacks)
       @before_deploy = before_deploy
+      @app_config    = config
       @reaper        = Reaper.new(api_rate_limit: api_rate_limit)
     end
 
@@ -162,6 +164,7 @@ module Hatchet
       set_labs!
       buildpack_list = @buildpacks.map { |pack| { buildpack: pack } }
       api_rate_limit.call.buildpack_installation.update(name, updates: buildpack_list)
+      set_config @app_config
 
       call_before_deploy
       @app_is_setup = true
