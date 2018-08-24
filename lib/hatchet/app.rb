@@ -328,7 +328,7 @@ module Hatchet
     end
 
     private def is_git_repo?
-      out = `git status`
+      out = `git rev-parse --git-dir > /dev/null 2>&1`
       $?.success?
     end
 
@@ -339,7 +339,7 @@ module Hatchet
     end
 
     private def create_git_repo!
-      local_cmd_exec!('git init')
+      local_cmd_exec!('git init; git add .; git commit -m "init"')
     end
 
     private def default_name
