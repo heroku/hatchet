@@ -21,16 +21,28 @@ module Hatchet
       end
     end
 
-    def initialize(repo_name, options = {})
+    def initialize(repo_name,
+                   stack: "",
+                   name: default_name,
+                   debug: nil,
+                   debugging: nil,
+                   allow_failure: false,
+                   labs: [],
+                   buildpack: nil,
+                   buildpacks: nil,
+                   buildpack_url: nil,
+                   before_deploy: nil
+                  )
       @repo_name     = repo_name
       @directory     = config.path_for_name(@repo_name)
-      @name          = options[:name]          || "hatchet-t-#{SecureRandom.hex(10)}"
-      @stack         = options[:stack]
-      @debug         = options[:debug]         || options[:debugging]
-      @allow_failure = options[:allow_failure] || false
-      @labs          = ([] << options[:labs]).flatten.compact
-      @buildpacks    = options[:buildpack] || options[:buildpacks] || options[:buildpack_url] || self.class.default_buildpack
+      @name          = name
+      @stack         = stack
+      @debug         = debug || debugging
+      @allow_failure = allow_failure
+      @labs          = ([] << labs).flatten.compact
+      @buildpacks    = buildpack || buildpacks || buildpack_url || self.class.default_buildpack
       @buildpacks    = Array(@buildpacks)
+      @before_deploy = before_deploy
       @reaper        = Reaper.new(api_rate_limit: api_rate_limit)
     end
 
@@ -148,13 +160,26 @@ module Hatchet
       puts "Hatchet setup: #{name.inspect} for #{repo_name.inspect}"
       create_app
       set_labs!
-      # heroku.put_config_vars(name, 'BUILDPACK_URL' => @buildpack)
-      buildpack_list = @buildpacks.map {|pack| { buildpack: pack }}
+      buildpack_list = @buildpacks.map { |pack| { buildpack: pack } }
       api_rate_limit.call.buildpack_installation.update(name, updates: buildpack_list)
+
+      call_before_deploy
       @app_is_setup = true
       self
     end
     alias :setup :setup!
+
+    def before_deploy(&block)
+      raise "block required" unless block
+      @before_deploy = block
+
+      self
+    end
+
+
+    def commit!
+      local_cmd_exec!('git add .; git commit -m next')
+    end
 
     def push_without_retry!
       raise NotImplementedError
@@ -170,10 +195,14 @@ module Hatchet
     end
 
     def in_directory(directory = self.directory)
+      yield directory and return if @already_in_dir
+
       Dir.mktmpdir do |tmpdir|
         FileUtils.cp_r("#{directory}/.", "#{tmpdir}/.")
         Dir.chdir(tmpdir) do
+          @already_in_dir = true
           yield directory
+          @already_in_dir = false
         end
       end
     end
@@ -192,7 +221,6 @@ module Hatchet
       self.teardown!
     end
 
-
     def push
       max_retries = @allow_failure ? 1 : RETRIES
       max_retries.times.retry do |attempt|
@@ -207,7 +235,6 @@ module Hatchet
     alias :push! :push
     alias :push_with_retry  :push
     alias :push_with_retry! :push_with_retry
-
 
     def retry_error_message(error, attempt, max_retries)
       attempt += 1
@@ -290,9 +317,38 @@ module Hatchet
       @api_rate_limit ||= ApiRateLimit.new(@platform_api)
     end
 
-    private
-    # if someone uses bundle exec
-    def bundle_exec
+    private def needs_commit?
+      out = local_cmd_exec!('git status --porcelain').chomp
+
+      return false if out.empty?
+      true
+    end
+
+    private def local_cmd_exec!(cmd)
+      out = `#{cmd}`
+      raise "Command: #{cmd} failed: #{out}" unless $?.success?
+      out
+    end
+
+    private def default_name
+      "hatchet-t-#{SecureRandom.hex(10)}"
+    end
+
+    private def call_before_deploy
+      return unless @before_deploy
+      raise "before_deploy: #{@before_deploy.inspect} must respond to :call"  unless @before_deploy.respond_to?(:call)
+      raise "before_deploy: #{@before_deploy.inspect} must respond to :arity" unless @before_deploy.respond_to?(:arity)
+
+      if @before_deploy.arity == 1
+        @before_deploy.call(self)
+      else
+        @before_deploy.call
+      end
+
+      commit! if needs_commit?
+    end
+
+    private def bundle_exec
       if defined?(Bundler)
         Bundler.with_clean_env do
           yield

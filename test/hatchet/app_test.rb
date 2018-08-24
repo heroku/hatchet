@@ -7,4 +7,59 @@ class AppTest < Minitest::Test
     app.create_app
     assert_equal stack, app.platform_api.app.info(app.name)["build_stack"]["name"]
   end
+
+  def test_before_deploy
+    @called = false
+    @dir    = false
+
+    app = Hatchet::App.new("default_ruby")
+    def app.push_with_retry!; end # Don't actually deploy
+
+    app.before_deploy do
+      @called = true
+      @dir    = Dir.pwd
+    end
+
+    app.deploy do
+      assert_equal true,    @called
+      assert_equal Dir.pwd, @dir
+    end
+
+    refute_equal Dir.pwd, @dir
+  end
+
+  def test_auto_commits_code
+    string = "foo#{SecureRandom.hex}"
+
+    app = Hatchet::App.new("default_ruby")
+    def app.push_with_retry!; end # Don't actually deploy
+
+    app.before_deploy do |app|
+      assert_equal false, app.send(:needs_commit?)
+      `echo "#{string}" > Gemfile`
+      assert_equal true, app.send(:needs_commit?)
+    end
+    app.deploy do
+      assert_equal string, File.read("Gemfile").chomp
+      assert_equal false, app.send(:needs_commit?)
+    end
+  end
+
+
+  def test_nested_in_directory
+    string = "foo#{SecureRandom.hex}"
+
+    app = Hatchet::App.new("default_ruby")
+    def app.push_with_retry!; end # Don't actually deploy
+
+    app.in_directory do
+      `echo "#{string}" > Gemfile`
+      dir = Dir.pwd
+
+      app.deploy do
+        assert_equal string, File.read("Gemfile").chomp
+        assert_equal Dir.pwd, dir
+      end
+    end
+  end
 end
