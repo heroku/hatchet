@@ -1,5 +1,9 @@
 ## HEAD
 
+## 4.0.4 - release not found
+
+- Allow setting config when object is initialized (https://github.com/heroku/hatchet/pull/52)
+
 ## 4.0.3
 
 - Introduce explicit `before_deploy` block that is called, well...before deploy happens. If any changes are made to disk at this time then contents are committed to disk (https://github.com/heroku/hatchet/pull/51)
