@@ -160,6 +160,7 @@ module Hatchet
     def setup!
       return self if @app_is_setup
       puts "Hatchet setup: #{name.inspect} for #{repo_name.inspect}"
+      create_git_repo! unless is_git_repo?
       create_app
       set_labs!
       buildpack_list = @buildpacks.map { |pack| { buildpack: pack } }
@@ -178,7 +179,6 @@ module Hatchet
 
       self
     end
-
 
     def commit!
       local_cmd_exec!('git add .; git commit -m next')
@@ -327,10 +327,19 @@ module Hatchet
       true
     end
 
+    private def is_git_repo?
+      out = `git rev-parse --git-dir > /dev/null 2>&1`
+      $?.success?
+    end
+
     private def local_cmd_exec!(cmd)
       out = `#{cmd}`
       raise "Command: #{cmd} failed: #{out}" unless $?.success?
       out
+    end
+
+    private def create_git_repo!
+      local_cmd_exec!('git init; git add .; git commit -m "init"')
     end
 
     private def default_name
