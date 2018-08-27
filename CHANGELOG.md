@@ -1,5 +1,9 @@
 ## HEAD
 
+## 4.0.5
+
+- Allow for using locally checked in repo and skip the hatchet.lock dance (https://github.com/heroku/hatchet/pull/53)
+
 ## 4.0.4 - release not found
 
 - Allow setting config when object is initialized (https://github.com/heroku/hatchet/pull/52)
