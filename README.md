@@ -344,10 +344,10 @@ curl --fail --retry 3 --retry-delay 1 --connect-timeout 3 --max-time 30 https://
 
 Be sure to change the file permissions with `chmod u+x etc/ci_setup.sh` so that the file is executable.
 
-To run this script as part of your Travis setup, add the following to your `travis.yml` file before your `jobs` or `install` step:
+To run this and download the Heroku cli, you will need to add this step before your install or script depending on your Travis setup process.
 
 ```
-before_install:
+before_script:
   - bash etc/ci-setup.sh
 ```
 
