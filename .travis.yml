@@ -3,7 +3,7 @@ rvm:
 - 2.3.1
 before_script: 
   - bundle exec rake hatchet:setup_travis
-  - bash etc/ci_setup.sh
+  - sudo bash etc/ci_setup.sh
 script: bundle exec parallel_test test/hatchet -n 9
 after_script: bundle exec rake hatchet:teardown_travis
 env:
@@ -13,5 +13,5 @@ env:
   - HATCHET_APP_LIMIT=80
   - secure: KvuEChRTZYrWd1Q4PKt3YM5FkfuCAOtsKgjC4HDGjCYVNee3793XGwAr0e5LiQqrvHDmbJS7ZPelV3ptor2QJTdmZjPhu/tZKPMLQg7wm8vTcrJflkJDqJl6ECxd40zbUgmo+wSPSvx+K3ZGKqLF4D43vvFJaqBUoAVOGdt66c8=
   - secure: XuJ4XUraWzNlfY9a+6Mh9lVlLuRY988YAaA8LKQOe2KAT5MRqcZzqlKOwDeTWK0tas68bzK7T8RT/L+6/nck0u5VrPHMhkc8QDBSqcle8kFcBxf/64EnCzB40lZoxvcdQ3wm8E41DRwsI7hAHLdVVNXC8f1/wQOAm77nOEvPdvM=
-sudo: false
+sudo: true
 dist: trusty
