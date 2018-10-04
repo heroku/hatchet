@@ -332,15 +332,29 @@ I recommend signing up for a new heroku account for running your tests on travis
 $ travis encrypt HEROKU_API_KEY=<token> --add
 ```
 
-You'll also need these specified in your travis.yml:
+You'll also need to download the Heroku CLI. Add the file `etc/ci_setup.sh` to your project, with contents:
 
 ```
-addons:
-  apt:
-    sources:
-    - heroku
-    packages:
-    - heroku-toolbelt
+#!/usr/bin/env bash
+
+sudo apt-get -qq update
+sudo apt-get install software-properties-common
+curl --fail --retry 3 --retry-delay 1 --connect-timeout 3 --max-time 30 https://cli-assets.heroku.com/install-ubuntu.sh | sh
+```
+
+To run this script, add the following to your `travis.yml` file before your `jobs` or `install` step:
+
+```
+before_install:
+  - bash etc/ci-setup.sh
+```
+
+If your Travis tests are containerized, you may need sudo to complete this successfully. In that case, you'll need to add the following:
+
+```
+sudo: required
+before_install:
+  - sudo bash etc/ci-setup.sh
 ```
 
 ## Extra App Commands
