@@ -3,7 +3,7 @@ rvm:
 - 2.3.1
 before_script: 
   - bundle exec rake hatchet:setup_travis
-  - bash etc/ci-setup.sh
+  - bash etc/ci_setup.sh
 script: bundle exec parallel_test test/hatchet -n 9
 after_script: bundle exec rake hatchet:teardown_travis
 env:

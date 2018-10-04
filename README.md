@@ -348,7 +348,7 @@ To run this and download the Heroku cli, you will need to add this step before y
 
 ```
 before_script:
-  - bash etc/ci-setup.sh
+  - bash etc/ci_setup.sh
 ```
 
 If your Travis tests are containerized, you may need sudo to complete this successfully. In that case, you'll need to add the following:
@@ -356,7 +356,7 @@ If your Travis tests are containerized, you may need sudo to complete this succe
 ```
 sudo: required
 before_install:
-  - sudo bash etc/ci-setup.sh
+  - sudo bash etc/ci_setup.sh
 ```
 
 ## Extra App Commands
