@@ -1,6 +1,7 @@
 language: ruby
 rvm:
 - 2.3.1
+before_install: bash etc/ci-setup.sh
 before_script: bundle exec rake hatchet:setup_travis
 script: bundle exec parallel_test test/hatchet -n 9
 after_script: bundle exec rake hatchet:teardown_travis
@@ -13,9 +14,3 @@ env:
   - secure: XuJ4XUraWzNlfY9a+6Mh9lVlLuRY988YAaA8LKQOe2KAT5MRqcZzqlKOwDeTWK0tas68bzK7T8RT/L+6/nck0u5VrPHMhkc8QDBSqcle8kFcBxf/64EnCzB40lZoxvcdQ3wm8E41DRwsI7hAHLdVVNXC8f1/wQOAm77nOEvPdvM=
 sudo: false
 dist: trusty
-addons:
-  apt:
-    sources:
-    - heroku
-    packages:
-    - heroku-toolbelt
