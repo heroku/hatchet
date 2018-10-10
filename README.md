@@ -315,42 +315,21 @@ To run on travis you will need to configure your `.travis.yml` to run the approp
 
 For reference see the `.travis.yml` from [hatchet](https://github.com/heroku/hatchet/blob/master/.travis.yml) and the [heroku-ruby-buildpack](https://github.com/heroku/heroku-buildpack-ruby/blob/master/.travis.yml). To make running on travis easier there is a rake task in Hatchet that can be run before your tests are executed
 
-```
+```yml
 before_script: bundle exec hatchet ci:setup
 ```
 
 I recommend signing up for a new heroku account for running your tests on travis, otherwise you will quickly excede your API limit. Once you have the new api token you can use this technique to [securely send travis the data](http://docs.travis-ci.com/user/environment-variables/#Secure-Variables).
 
-
-```
+```sh
 $ travis encrypt HEROKU_API_KEY=<token> --add
-```
-
-You'll also need to download the Heroku CLI. Add the executable `etc/ci_setup.sh` to your project, with contents:
-
-```
-#!/usr/bin/env bash
-
-sudo apt-get -qq update
-sudo apt-get install software-properties-common
-curl --fail --retry 3 --retry-delay 1 --connect-timeout 3 --max-time 30 https://cli-assets.heroku.com/install-ubuntu.sh | sh
-```
-
-Be sure to change the file permissions with `chmod u+x etc/ci_setup.sh` so that the file is executable.
-
-To run this and download the Heroku cli, you will need to add this step before your install or script depending on your Travis setup process.
-
-```
-before_script:
-  - bash etc/ci_setup.sh
 ```
 
 If your Travis tests are containerized, you may need sudo to complete this successfully. In that case, you'll need to add the following:
 
-```
+```yml
+before_script: bundle exec hatchet ci:setup
 sudo: required
-before_install:
-  - sudo bash etc/ci_setup.sh
 ```
 
 ## Extra App Commands
