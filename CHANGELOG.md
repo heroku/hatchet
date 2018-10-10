@@ -1,5 +1,9 @@
 ## HEAD
 
+## 4.0.6
+
+- Setup script `hatchet ci:setup` added (https://github.com/heroku/hatchet/pull/55)
+
 ## 4.0.5
 
 - Allow for using locally checked in repo and skip the hatchet.lock dance (https://github.com/heroku/hatchet/pull/53)
