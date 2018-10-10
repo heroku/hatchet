@@ -17,6 +17,24 @@ require 'date'
 require 'yaml'
 
 class HatchetCLI < Thor
+  desc "ci:install_heroku", "installs the `heroku` cli"
+  define_method("ci:install_heroku") do
+    if `which heroku` && $?.success?
+      puts "The `heroku` command is already installed"
+      return
+    else
+      puts "installing `heroku` command"
+    end
+    script = File.expand_path File.join(__dir__, "../etc/setup_heroku.sh")
+    cmd(script)
+  end
+
+  desc "ci:setup", "sets up project to run on a linux CI environment"
+  define_method("ci:setup") do
+    script = File.expand_path File.join(__dir__, "../etc/ci_setup.rb")
+    cmd(script)
+  end
+
   desc "install", "installs repos defined in 'hatchet.json'"
   def install
     warn_dot_ignore!
@@ -44,12 +62,6 @@ class HatchetCLI < Thor
     end.map(&:join)
 
     self.lock if missing_commit
-  end
-
-  def load_lockfile
-    return YAML.safe_load(File.read('hatchet.lock')).to_h
-  rescue Errno::ENOENT => e
-    raise "No such file found `hatchet.lock` please run `$ bundle exec hatchet lock`"
   end
 
   desc "locks to specific git commits", "updates hatchet.lock"
@@ -98,6 +110,11 @@ class HatchetCLI < Thor
   end
 
   private
+  def load_lockfile
+    return YAML.safe_load(File.read('hatchet.lock')).to_h
+  rescue Errno::ENOENT => e
+    raise "No such file found `hatchet.lock` please run `$ bundle exec hatchet lock`"
+  end
 
   def bad_repo?(url)
     `git ls-remote --exit-code -h "#{url}"`
