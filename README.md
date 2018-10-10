@@ -41,17 +41,11 @@ $ travis encrypt HEROKU_API_USER=<example@example.com> --add
 
 If you're running locally, your system credentials will be pulled from `heroku auth:token`
 
-You'll also need to trigger a "setup" step for CI tasks. There is a setup task you can use first you need to require it, likely in your Rakefile:
-
-```ruby
-require 'hatchet/tasks'
-```
-
-Then execute the script `hatchet:setup_ci`. You can do it on Travis CI like this:
+You'll also need to trigger a "setup" step for CI tasks. You can do it on Travis CI like this:
 
 ```
 # .travis.yml
-before_script: bundle exec rake hatchet:setup_ci
+before_script: bundle exec hatchet ci:setup
 ```
 
 and on Heroku CI like this:
@@ -61,7 +55,7 @@ and on Heroku CI like this:
   "environments": {
     "test": {
       "scripts": {
-        "test-setup": "bundle exec rake hatchet:setup_ci",
+        "test-setup": "bundle exec hatchet ci:setup",
       }
     }
   }
@@ -322,7 +316,7 @@ To run on travis you will need to configure your `.travis.yml` to run the approp
 For reference see the `.travis.yml` from [hatchet](https://github.com/heroku/hatchet/blob/master/.travis.yml) and the [heroku-ruby-buildpack](https://github.com/heroku/heroku-buildpack-ruby/blob/master/.travis.yml). To make running on travis easier there is a rake task in Hatchet that can be run before your tests are executed
 
 ```
-before_script: bundle exec rake hatchet:setup_ci
+before_script: bundle exec hatchet ci:setup
 ```
 
 I recommend signing up for a new heroku account for running your tests on travis, otherwise you will quickly excede your API limit. Once you have the new api token you can use this technique to [securely send travis the data](http://docs.travis-ci.com/user/environment-variables/#Secure-Variables).
