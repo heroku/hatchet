@@ -130,6 +130,12 @@ Hatchet::Runner.new('no_lockfile')
 
 If you have conflicting names, use full paths.
 
+If you woud like to test with fixtures that are checked in locally, that is also possible by passing in the path to the fixture directory and skipping the `hatchet install`:
+
+```
+Hatchet::Runner.new("spec/fixtures/repos/node-10-metrics")
+```
+
 A word of warning on including repos inside of your test
 directory, if you're using a runner that looks for patterns such as
 `*_test.rb` to run your hatchet tests, it may incorrectly think you want
