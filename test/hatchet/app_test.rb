@@ -67,6 +67,7 @@ class AppTest < Minitest::Test
     app = Hatchet::GitApp.new("default_ruby")
     app.deploy do
       assert_match /ls: cannot access 'foo bar #baz': No such file or directory\s+Gemfile/, app.run("ls -a Gemfile 'foo bar #baz'")
+      assert (0 != $?.exitstatus) # $? is from the app.run use of backticks
     end
   end
 end
