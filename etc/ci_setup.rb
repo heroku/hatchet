@@ -1,5 +1,6 @@
 #!/usr/bin/env ruby
 require 'bundler'
+require 'shellwords'
 puts "== Setting Up CI =="
 
 netrc_file = "#{ENV['HOME']}/.netrc"
@@ -16,8 +17,8 @@ end
 [
  "bundle exec hatchet ci:install_heroku",
  "bundle exec hatchet install",
- "if [ `git config --get user.email` ]; then echo 'already set'; else `git config --global user.email '#{ENV.fetch('HEROKU_API_USER')}'`; fi",
- "if [ `git config --get user.name` ];  then echo 'already set'; else `git config --global user.name  'BuildpackTester'`      ; fi",
+ "git config --get user.email > /dev/null || git config --global user.email #{ENV.fetch('HEROKU_API_USER').shellescape}",
+ "git config --get user.name > /dev/null || git config --global user.name 'BuildpackTester'",
 ].each do |command|
   puts "== Running: #{command}"
   Bundler.with_clean_env do
