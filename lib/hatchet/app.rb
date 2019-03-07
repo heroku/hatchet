@@ -108,7 +108,11 @@ module Hatchet
     # but programatically and with more control
     def run(cmd_type, command = nil, options = {}, &block)
       command        = cmd_type.to_s if command.nil?
-      heroku_options = (options.delete(:heroku) || {}).map {|k,v| "--#{k.to_s.shellescape}=#{v.to_s.shellescape}"}.join(" ")
+      heroku_options = (options.delete(:heroku) || {}).map do |k,v|
+        arg = "--#{k.to_s.shellescape}"
+        arg << "=#{v.to_s.shellescape}" unless v.nil?
+        arg
+      end.join(" ")
       heroku_command = "heroku run #{command.to_s.shellescape} -a #{name} #{ heroku_options }"
       bundle_exec do
         if block_given?
