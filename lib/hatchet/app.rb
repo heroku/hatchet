@@ -113,7 +113,7 @@ module Hatchet
         arg << "=#{v.to_s.shellescape}" unless v.nil?
         arg
       end.join(" ")
-      heroku_command = "heroku run #{command.to_s.shellescape} -a #{name} #{ heroku_options }"
+      heroku_command = "heroku run -a #{name} #{heroku_options} -- #{command}"
       bundle_exec do
         if block_given?
           ReplRunner.new(cmd_type, heroku_command, options).run(&block)

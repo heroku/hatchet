@@ -62,4 +62,11 @@ class AppTest < Minitest::Test
       end
     end
   end
+  
+  def test_run
+    app = Hatchet::GitApp.new("default_ruby")
+    app.deploy do
+      assert_match /ls: cannot access 'foo bar #baz': No such file or directory\s+Gemfile/, app.run("ls -a Gemfile 'foo bar #baz'")
+    end
+  end
 end
