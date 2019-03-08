@@ -260,7 +260,46 @@ Hatchet::Runner.new("rails3_mri_193").deploy do |app|
 end
 ```
 
-Please read the docs on [repl_runner](http://github.com/schneems/repl_runner) for more info. The only interactive commands that are supported out of the box are `rails console`, `bash`, and `irb` it is fairly easy to add your own though:
+Please read the docs on [repl_runner](http://github.com/schneems/repl_runner) for more info. The only interactive commands that are supported out of the box are `rails console`, `bash`, and `irb` it is fairly easy to add your own though.
+
+## Modify Application Files on Disk
+
+While template apps provided from your `hatchet.json` can provide a wide array of different test cases, it's likely that you'll want to test minor varriations of an app. To do this you can use the `before_deploy` hook to modify files on disk inside of an app in a way that is threadsafe and will only affect the local instance of the app:
+
+```ruby
+Hatchet::App.new("default_ruby", before_deploy: { FileUtils.touch("foo.txt")}).deploy do
+  # Assert stuff
+end
+```
+
+After the `before_deploy` block fires, the results will be committed to git automatically before the app deploys.
+
+You can also manually call the `before_deploy` method:
+
+```ruby
+app  = Hatchet::App.new("default_ruby")
+app.before_deploy do
+  FileUtils.touch("foo.txt")
+end
+app.deploy do
+  # Assert stuff
+end
+```
+
+Note: If you're going to shell out in this `before_deploy` section, you should check the success of your command, for example:
+
+```ruby
+before_deploy = Proc.new do
+  cmd = "bundle update"
+  output = `#{cmd}`
+  raise "Command #{cmd.inspect} failed unexpectedly with output: #{output}"
+end
+Hatchet::App.new("default_ruby", before_deploy: before_deploy).deploy do
+  # Assert stuff
+end
+```
+
+It's helpful to make a helper function in your library if this pattern happens a lot in your app.
 
 ## Heroku CI
 
