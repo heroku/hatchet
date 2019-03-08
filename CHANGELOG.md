@@ -1,5 +1,10 @@
 ## HEAD
 
+## 4.0.7
+
+- Exit code is now returned from `app.run` commands (https://github.com/heroku/hatchet/pull/58)
+- ci_setup.rb no longer emits an error when run on `sh` (https://github.com/heroku/hatchet/pull/57)
+
 ## 4.0.6
 
 - Setup script `hatchet ci:setup` added (https://github.com/heroku/hatchet/pull/55)
