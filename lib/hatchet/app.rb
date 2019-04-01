@@ -148,7 +148,7 @@ module Hatchet
           hash = { name: name, stack: stack }
           hash.delete_if { |k,v| v.nil? }
           api_rate_limit.call.app.create(hash)
-        rescue
+        rescue => e
           @reaper.cycle
           raise e
         end

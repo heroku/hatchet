@@ -4,6 +4,7 @@
 
 - Fix `hatchet destroy` calling class from wrong module
 - Fix `hatchet destroy` not passing rate limited API to Reaper
+- Fix undeclared variable in `App#create_app` rescue block
 
 ## 4.0.7
 
