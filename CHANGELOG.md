@@ -1,5 +1,9 @@
 ## HEAD
 
+## 4.0.8
+
+- Fix `hatchet destroy` calling class from wrong module
+
 ## 4.0.7
 
 - Exit code is now returned from `app.run` commands (https://github.com/heroku/hatchet/pull/58)
