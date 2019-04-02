@@ -3,6 +3,7 @@
 ## 4.0.8
 
 - Fix `hatchet destroy` calling class from wrong module
+- Fix `hatchet destroy` not passing rate limited API to Reaper
 
 ## 4.0.7
 
