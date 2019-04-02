@@ -5,6 +5,7 @@
 - Fix `hatchet destroy` calling class from wrong module
 - Fix `hatchet destroy` not passing rate limited API to Reaper
 - Fix undeclared variable in `App#create_app` rescue block
+- Fix race condition in `Reaper#cycle` triggering 403s in API, causing test failures
 
 ## 4.0.7
 

@@ -1,3 +1,5 @@
+require 'tmpdir'
+
 module Hatchet
   # Hatchet apps are useful after the tests run for debugging purposes
   # the reaper is designed to allow the most recent apps to stay alive
@@ -24,16 +26,24 @@ module Hatchet
     end
 
     def cycle
+      # we don't want multiple Hatchet processes (e.g. when using rspec-parallel) to delete apps at the same time
+      # this could otherwise result in race conditions in API causing errors other than 404s, making tests fail
+      mutex = File.open("#{Dir.tmpdir()}/hatchet_reaper_mutex", File::CREAT)
+      mutex.flock(File::LOCK_EX)
+
+      # update list of apps once
       get_apps
-      if over_limit?
+
+      return unless over_limit?
+
+      while over_limit?
         if @hatchet_apps.count > 1
+          # remove our own apps until we are below limit
           destroy_oldest
-          cycle
         else
           puts "Warning: Reached Heroku app limit of #{HEROKU_APP_LIMIT}."
+          break
         end
-      else
-        # do nothing
       end
 
     # If the app is already deleted an exception
@@ -46,6 +56,9 @@ module Hatchet
         retry
       end
       raise e
+    ensure
+      # don't forget to close the mutex; this also releases our lock
+      mutex.close
     end
 
     def destroy_oldest
