@@ -347,7 +347,7 @@ module Hatchet
     end
 
     private def default_name
-      "hatchet-t-#{SecureRandom.hex(10)}"
+      "#{Hatchet::APP_PREFIX}#{SecureRandom.hex(5)}"
     end
 
     private def call_before_deploy

@@ -6,6 +6,7 @@
 - Fix `hatchet destroy` not passing rate limited API to Reaper
 - Fix undeclared variable in `App#create_app` rescue block
 - Fix race condition in `Reaper#cycle` triggering 403s in API, causing test failures
+- Allow configurable app name prefix (default "hatchet-t-") via `HATCHET_APP_PREFIX` env var
 
 ## 4.0.7
 

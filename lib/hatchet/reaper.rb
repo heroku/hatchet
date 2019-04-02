@@ -9,9 +9,8 @@ module Hatchet
   class Reaper
     HEROKU_APP_LIMIT = Integer(ENV["HEROKU_APP_LIMIT"]  || 100) # the number of apps heroku allows you to keep
     HATCHET_APP_LIMT = Integer(ENV["HATCHET_APP_LIMIT"] || 20)  # the number of apps hatchet keeps around
-    DEFAULT_REGEX = /^hatchet-t-/
+    DEFAULT_REGEX = /^#{Regexp.escape(Hatchet::APP_PREFIX)}[a-f0-9]+/
     attr_accessor :apps
-
 
     def initialize(api_rate_limit: , regex: DEFAULT_REGEX)
       @api_rate_limit = api_rate_limit

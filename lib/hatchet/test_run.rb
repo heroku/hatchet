@@ -30,7 +30,7 @@ module Hatchet
       commit_message: "commit",
       organization:    nil
     )
-      @pipeline        = pipeline || "hatchet-t-#{SecureRandom.hex(10)}"
+      @pipeline        = pipeline || "#{Hatchet::APP_PREFIX}#{SecureRandom.hex(5)}"
       @timeout         = timeout
       @pause           = pause
       @organization    = organization
