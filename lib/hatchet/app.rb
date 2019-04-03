@@ -148,7 +148,7 @@ module Hatchet
           hash = { name: name, stack: stack }
           hash.delete_if { |k,v| v.nil? }
           api_rate_limit.call.app.create(hash)
-        rescue
+        rescue => e
           @reaper.cycle
           raise e
         end
@@ -347,7 +347,7 @@ module Hatchet
     end
 
     private def default_name
-      "hatchet-t-#{SecureRandom.hex(10)}"
+      "#{Hatchet::APP_PREFIX}#{SecureRandom.hex(5)}"
     end
 
     private def call_before_deploy

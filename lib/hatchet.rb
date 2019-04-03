@@ -9,6 +9,7 @@ require 'stringio'
 require 'date'
 
 module Hatchet
+    APP_PREFIX = (ENV['HATCHET_APP_PREFIX'] || "hatchet-t-")
 end
 
 require 'hatchet/version'
