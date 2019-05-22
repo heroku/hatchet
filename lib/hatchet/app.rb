@@ -21,6 +21,8 @@ module Hatchet
       end
     end
 
+    SkipDefaultOption = Object.new
+
     def initialize(repo_name,
                    stack: "",
                    name: default_name,
@@ -108,12 +110,14 @@ module Hatchet
     # but programatically and with more control
     def run(cmd_type, command = nil, options = {}, &block)
       command        = cmd_type.to_s if command.nil?
-      heroku_options = (options.delete(:heroku) || {}).map do |k,v|
+      default_options = { "app" => name, "exit-code" => nil }
+      heroku_options = (default_options.merge(options.delete(:heroku) || {})).map do |k,v|
+        next if v == Hatchet::App::SkipDefaultOption # for forcefully removing e.g. --exit-code, a user can pass this
         arg = "--#{k.to_s.shellescape}"
-        arg << "=#{v.to_s.shellescape}" unless v.nil?
+        arg << "=#{v.to_s.shellescape}" unless v.nil? # nil means we include the option without an argument
         arg
       end.join(" ")
-      heroku_command = "heroku run -a #{name} #{heroku_options} --exit-code -- #{command}"
+      heroku_command = "heroku run #{heroku_options} -- #{command}"
       bundle_exec do
         if block_given?
           ReplRunner.new(cmd_type, heroku_command, options).run(&block)
