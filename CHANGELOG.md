@@ -1,5 +1,7 @@
 ## HEAD
 
+- Fix logic in rake task (https://github.com/heroku/hatchet/pull/62)
+
 ## 4.0.10
 
 - Fix syntax in rake task (https://github.com/heroku/hatchet/pull/61)
