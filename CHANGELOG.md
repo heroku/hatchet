@@ -1,5 +1,9 @@
 ## HEAD
 
+## 4.0.10
+
+- Fix syntax in rake task (https://github.com/heroku/hatchet/pull/61)
+
 ## 4.0.9
 
 - Allow overriding of all App#run options, including option removal (by passing `Hatchet::App::SkipDefaultOption` as the value)
