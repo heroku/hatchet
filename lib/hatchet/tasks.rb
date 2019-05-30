@@ -2,7 +2,7 @@ namespace :hatchet do
   task :setup_ci do
     script = File.expand_path(File.join(__dir__, "../../etc/ci_setup.rb"))
     out = `#{script}`
-    raise "Command #{script.inspect} failed\n#{out}"
+    raise "Command #{script.inspect} failed\n#{out}" unless $?.success?
   end
 
   task :setup_travis do
