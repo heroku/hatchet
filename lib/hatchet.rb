@@ -31,4 +31,13 @@ module Hatchet
     raise "Attempting to find current branch name. Error: Cannot describe git: #{out}" unless $?.success?
     out
   end
+
+  if ENV["HATCHET_DEBUG_DEADLOCK"]
+    Thread.new do
+      loop do
+        sleep ENV["HATCHET_DEBUG_DEADLOCK"].to_f # seconds
+        Thread.list.each { |t| puts "=" * 80; puts t.backtrace }
+      end
+    end
+  end
 end
