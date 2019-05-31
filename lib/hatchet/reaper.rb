@@ -52,6 +52,7 @@ module Hatchet
       body = e.response.body
       if body =~ /Couldn\'t find that app./
         puts "#{@message}, but looks like it was already deleted"
+        mutex.close # ensure only gets called on block exit and not on `retry`
         retry
       end
       raise e

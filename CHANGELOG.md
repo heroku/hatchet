@@ -1,5 +1,12 @@
 ## HEAD
 
+## 4.0.12
+
+- Fix deadlock when a single process kills the same app twice (https://github.com/heroku/hatchet/pull/63)
+- Add ability to debug deadlock with HATCHET_DEBUG_DEADLOCK env var.
+
+## 4.0.11
+
 - Fix logic in rake task (https://github.com/heroku/hatchet/pull/62)
 
 ## 4.0.10
