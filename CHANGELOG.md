@@ -1,9 +1,13 @@
 ## HEAD
 
+## 4.0.13
+
+- Introduce `App#in_directory_fork` for safe execution of code that might mutate the process env vars (https://github.com/heroku/hatchet/pull/65)
+
 ## 4.0.12
 
 - Fix deadlock when a single process kills the same app twice (https://github.com/heroku/hatchet/pull/63)
-- Add ability to debug deadlock with HATCHET_DEBUG_DEADLOCK env var.
+- Add ability to debug deadlock with `HATCHET_DEBUG_DEADLOCK` env var.
 
 ## 4.0.11
 
