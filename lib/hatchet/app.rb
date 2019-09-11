@@ -218,6 +218,32 @@ module Hatchet
       end
     end
 
+    # A safer alternative to in_directory
+    # this method is used to run code that may mutate the
+    # current process anything run in this block is executed
+    # in a different fork
+    def in_directory_fork(&block)
+      Tempfile.create("stdout") do |tmp_file|
+        pid = fork do
+          $stdout.reopen(tmp_file, "w")
+          $stderr.reopen(tmp_file, "w")
+          $stdout.sync = true
+          $stderr.sync = true
+          in_directory do |dir|
+            yield dir
+          end
+          Kernel.exit!(0) # needed for https://github.com/seattlerb/minitest/pull/683
+        end
+        Process.waitpid(pid)
+
+        if $?.success?
+          puts File.read(tmp_file)
+        else
+          raise File.read(tmp_file)
+        end
+      end
+    end
+
     # creates a new app on heroku, "pushes" via anvil or git
     # then yields to self so you can call self.run or
     # self.deployed?
