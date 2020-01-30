@@ -9,7 +9,7 @@ module Hatchet
     HATCHET_BUILDPACK_BRANCH = -> { ENV['HATCHET_BUILDPACK_BRANCH'] || ENV['HEROKU_TEST_RUN_BRANCH'] || Hatchet.git_branch }
     BUILDPACK_URL = "https://github.com/heroku/heroku-buildpack-ruby.git"
 
-    attr_reader :name, :stack, :directory, :repo_name
+    attr_reader :name, :stack, :directory, :repo_name, :app_config
 
     class FailedDeploy < StandardError
       def initialize(app, output)
