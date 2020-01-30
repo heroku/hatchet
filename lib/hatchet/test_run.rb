@@ -160,6 +160,7 @@ module Hatchet
         app_json["environments"]                       ||= {}
         app_json["environments"]["test"]               ||= {}
         app_json["environments"]["test"]["buildpacks"] = @buildpacks.map {|b| { url: b } }
+        app_json["stack"]                              ||= @app.stack if @app.stack && !@app.stack.empty?
         File.open("app.json", "w") {|f| f.write(JSON.generate(app_json)) }
 
         `tar c . | gzip -9 > slug.tgz`
