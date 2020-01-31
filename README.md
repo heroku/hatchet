@@ -71,7 +71,7 @@ Testing a buildpack prevents regressions, and pushes out new features faster and
 
 ## What can Hatchet Test?
 
-Hatchet can easily test ceratin operations: deployment of buildpacks, getting the build output, and running arbitrary interactive processes (e.g. `heroku run bash`). Hatchet can also test running CI against an app.
+Hatchet can easily test certain operations: deployment of buildpacks, getting the build output, and running arbitrary interactive processes (e.g. `heroku run bash`). Hatchet can also test running CI against an app.
 
 ## Writing Tests
 
