@@ -9,7 +9,7 @@ module Hatchet
     HATCHET_BUILDPACK_BRANCH = -> { ENV['HATCHET_BUILDPACK_BRANCH'] || ENV['HEROKU_TEST_RUN_BRANCH'] || Hatchet.git_branch }
     BUILDPACK_URL = "https://github.com/heroku/heroku-buildpack-ruby.git"
 
-    attr_reader :name, :stack, :directory, :repo_name
+    attr_reader :name, :stack, :directory, :repo_name, :app_config
 
     class FailedDeploy < StandardError
       def initialize(app, output)
@@ -298,8 +298,16 @@ module Hatchet
         @pipeline_id = result["id"]
       end
 
-      # create_app
-      # platform_api.pipeline_coupling.create(app: name, pipeline: @pipeline_id, stage: "development")
+      # when the CI run finishes, the associated ephemeral app created for the test run internally gets removed almost immediately
+      # the system then sees a pipeline with no apps, and deletes it, also almost immediately
+      # that would, with bad timing, mean our test run info poll in wait! would 403, and/or the delete_pipeline at the end
+      # that's why we create an app explictly (or maybe it already exists), and then associate it with with the pipeline
+      # the app will be auto cleaned up later
+      self.setup!
+      Hatchet::RETRIES.times.retry do
+        couple_pipeline(@name, @pipeline_id)
+      end
+
       test_run = TestRun.new(
         token:          api_key,
         buildpacks:     @buildpacks,
@@ -315,6 +323,7 @@ module Hatchet
       test_run.wait!(&block)
     ensure
       delete_pipeline(@pipeline_id) if @pipeline_id
+      @pipeline_id = nil
     end
 
     def pipeline_id
@@ -323,6 +332,10 @@ module Hatchet
 
     def create_pipeline
       api_rate_limit.call.pipeline.create(name: @name)
+    end
+
+    def couple_pipeline(app_name, pipeline_id)
+      api_rate_limit.call.pipeline_coupling.create(app: app_name, pipeline: pipeline_id, stage: "development")
     end
 
     def source_get_url
