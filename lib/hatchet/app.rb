@@ -323,6 +323,7 @@ module Hatchet
       test_run.wait!(&block)
     ensure
       delete_pipeline(@pipeline_id) if @pipeline_id
+      @pipeline_id = nil
     end
 
     def pipeline_id
