@@ -1,5 +1,10 @@
 ## HEAD
 
+## 4.1.0
+
+- Fix CI 403 errors caused by Heroku auto deleting pipelines that do not have an app attached (https://github.com/heroku/hatchet/pull/68)
+- CI runs now default to `heroku-18` this is a breaking change (https://github.com/heroku/hatchet/pull/68)
+
 ## 4.0.13
 
 - Introduce `App#in_directory_fork` for safe execution of code that might mutate the process env vars (https://github.com/heroku/hatchet/pull/65)
