@@ -1,5 +1,7 @@
 ## HEAD
 
+## 4.1.1
+
 - Fix branch resolution on Travis when a pull-request is tested (https://github.com/heroku/hatchet/pull/70)
 
 ## 4.1.0
