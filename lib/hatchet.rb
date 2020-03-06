@@ -26,7 +26,12 @@ module Hatchet
   Runner  = Hatchet::GitApp
 
   def self.git_branch
+    # TRAVIS_BRANCH works fine unless the build is a pull-request. In that case, it will contain the target branch
+    # not the actual pull-request branch! TRAVIS_PULL_REQUEST_BRANCH contains the correct branch but will be empty
+    # for push builds. See: https://docs.travis-ci.com/user/environment-variables/
+    return ENV['TRAVIS_PULL_REQUEST_BRANCH'] if ENV['TRAVIS_PULL_REQUEST_BRANCH'] && !ENV['TRAVIS_PULL_REQUEST_BRANCH'].empty?
     return ENV['TRAVIS_BRANCH'] if ENV['TRAVIS_BRANCH']
+
     out = `git describe --contains --all HEAD`.strip
     raise "Attempting to find current branch name. Error: Cannot describe git: #{out}" unless $?.success?
     out

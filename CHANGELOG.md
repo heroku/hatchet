@@ -1,5 +1,7 @@
 ## HEAD
 
+- Fix branch resolution on Travis when a pull-request is tested (https://github.com/heroku/hatchet/pull/70)
+
 ## 4.1.0
 
 - Fix CI 403 errors caused by Heroku auto deleting pipelines that do not have an app attached (https://github.com/heroku/hatchet/pull/68)
