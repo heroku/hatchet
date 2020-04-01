@@ -110,10 +110,23 @@ module Hatchet
       end
     end
 
+    DefaultCommand = Object.new
     # runs a command on heroku similar to `$ heroku run #foo`
     # but programatically and with more control
-    def run(cmd_type, command = nil, options = {}, &block)
-      command        = cmd_type.to_s if command.nil?
+    def run(cmd_type, command = DefaultCommand, options = {}, &block)
+      case command
+      when Hash
+        options.merge!(command)
+        command = cmd_type.to_s
+      when nil
+        STDERR.puts "Calling App#run with an explicit nil value in the second argument is deprecated."
+        STDERR.puts "You can pass in a hash directly as the second argument now.\n#{caller}"
+        command = cmd_type.to_s
+      when DefaultCommand
+        command = cmd_type.to_s
+      end
+      command = command.shellescape unless options.delete(:raw)
+
       default_options = { "app" => name, "exit-code" => nil }
       heroku_options = (default_options.merge(options.delete(:heroku) || {})).map do |k,v|
         next if v == Hatchet::App::SkipDefaultOption # for forcefully removing e.g. --exit-code, a user can pass this
@@ -122,7 +135,10 @@ module Hatchet
         arg
       end.join(" ")
       heroku_command = "heroku run #{heroku_options} -- #{command}"
+
       if block_given?
+        STDERR.puts "Using App#run with a block is deprecated, support for ReplRunner is being removed.\n#{caller}"
+        # When we deprecated this we can get rid of the "cmd_type" from the method signature
         require 'repl_runner'
         ReplRunner.new(cmd_type, heroku_command, options).run(&block)
       else
