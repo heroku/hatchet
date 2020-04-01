@@ -120,10 +120,12 @@ module Hatchet
         command = cmd_type.to_s
       when nil
         STDERR.puts "Calling App#run with an explicit nil value in the second argument is deprecated."
-        STDERR.puts "You can pass in a hash directly as the second argument now.\n#{caller}"
+        STDERR.puts "You can pass in a hash directly as the second argument now.\n#{caller.join("\n")}"
         command = cmd_type.to_s
       when DefaultCommand
         command = cmd_type.to_s
+      else
+        command = command.to_s
       end
       command = command.shellescape unless options.delete(:raw)
 
