@@ -13,7 +13,7 @@ class EditRepoTest < Minitest::Test
     end
 
     Hatchet::GitApp.new("default_ruby").in_directory do |app|
-      refute_match /foo/, `ls`
+      refute_match(/foo/, `ls`)
     end
   end
 end

@@ -46,6 +46,8 @@ module Hatchet
       @buildpacks    = buildpack || buildpacks || buildpack_url || self.class.default_buildpack
       @buildpacks    = Array(@buildpacks)
       @buildpacks.map! {|b| b == :default ? self.class.default_buildpack : b}
+      @already_in_dir = nil
+      @app_is_setup = nil
 
       @before_deploy = before_deploy
       @app_config    = config
@@ -122,6 +124,7 @@ module Hatchet
       heroku_command = "heroku run #{heroku_options} -- #{command}"
       bundle_exec do
         if block_given?
+          require 'repl_runner'
           ReplRunner.new(cmd_type, heroku_command, options).run(&block)
         else
           `#{heroku_command}`
@@ -280,6 +283,7 @@ module Hatchet
       return "" if attempt == max_retries
       msg = "\nRetrying failed Attempt ##{attempt}/#{max_retries} to push for '#{name}' due to error: \n"<<
             "#{error.class} #{error.message}\n  #{error.backtrace.join("\n  ")}"
+      return msg
     end
 
     def output
@@ -377,7 +381,7 @@ module Hatchet
     end
 
     private def is_git_repo?
-      out = `git rev-parse --git-dir > /dev/null 2>&1`
+      `git rev-parse --git-dir > /dev/null 2>&1`
       $?.success?
     end
 

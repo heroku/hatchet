@@ -71,7 +71,7 @@ class AppTest < Minitest::Test
   def test_run
     app = Hatchet::GitApp.new("default_ruby")
     app.deploy do
-      assert_match /ls: cannot access 'foo bar #baz': No such file or directory\s+Gemfile/, app.run("ls -a Gemfile 'foo bar #baz'")
+      assert_match(/ls: cannot access 'foo bar #baz': No such file or directory\s+Gemfile/, app.run("ls -a Gemfile 'foo bar #baz'"))
       assert (0 != $?.exitstatus) # $? is from the app.run use of backticks
       sleep(3)
       app.run("ls erpderp", nil, { :heroku => { "exit-code" => Hatchet::App::SkipDefaultOption } } )
@@ -80,9 +80,9 @@ class AppTest < Minitest::Test
       app.run("ls erpderp", nil, { :heroku => { "no-tty" => nil } } )
       assert (0 != $?.exitstatus) # $? is from the app.run use of backticks
       sleep(3)
-      assert_match /ohai world/, app.run('echo \$HELLO \$NAME', nil, { :heroku => { "env" => "HELLO=ohai;NAME=world" } } )
+      assert_match(/ohai world/, app.run('echo \$HELLO \$NAME', nil, { :heroku => { "env" => "HELLO=ohai;NAME=world" } } ))
       sleep(3)
-      refute_match /ohai world/, app.run('echo \$HELLO \$NAME', nil, { :heroku => { "env" => "" } } )
+      refute_match(/ohai world/, app.run('echo \$HELLO \$NAME', nil, { :heroku => { "env" => "" } } ))
     end
   end
 end

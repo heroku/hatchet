@@ -14,13 +14,12 @@ class ConfigTest < Minitest::Test
     {
       "test/fixtures/repos/bundler/no_lockfile"   => "https://github.com/sharpstone/no_lockfile.git",
       "test/fixtures/repos/default/default_ruby"  => "https://github.com/sharpstone/default_ruby.git",
-      "test/fixtures/repos/default/default_ruby"  => "https://github.com/sharpstone/default_ruby.git",
       "test/fixtures/repos/rails2/rails2blog"     => "https://github.com/sharpstone/rails2blog.git",
       "test/fixtures/repos/rails3/rails3_mri_193" => "https://github.com/sharpstone/rails3_mri_193.git"
      }.each do |key, value|
        assert_include(key, value, @config.dirs)
      end
-   end
+  end
 
   def test_config_repos
     {

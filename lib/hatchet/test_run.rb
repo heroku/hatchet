@@ -195,7 +195,7 @@ module Hatchet
     end
 
     def raw_excon_request(options)
-      version = options[:version] || 3
+      version = options.delete(:version) || 3
       options[:headers] = {
         "Authorization" => "Bearer #{@token}",
         "Accept"        => "application/vnd.heroku+json; version=#{version}",
