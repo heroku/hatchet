@@ -9,7 +9,7 @@ module Hatchet
     HATCHET_BUILDPACK_BRANCH = -> { ENV['HATCHET_BUILDPACK_BRANCH'] || ENV['HEROKU_TEST_RUN_BRANCH'] || Hatchet.git_branch }
     BUILDPACK_URL = "https://github.com/heroku/heroku-buildpack-ruby.git"
 
-    attr_reader :name, :stack, :directory, :repo_name, :app_config
+    attr_reader :name, :stack, :directory, :repo_name, :app_config, :buildpacks
 
     class FailedDeploy < StandardError
       def initialize(app, output)
@@ -45,6 +45,8 @@ module Hatchet
       @labs          = ([] << labs).flatten.compact
       @buildpacks    = buildpack || buildpacks || buildpack_url || self.class.default_buildpack
       @buildpacks    = Array(@buildpacks)
+      @buildpacks.map! {|b| b == :default ? self.class.default_buildpack : b}
+
       @before_deploy = before_deploy
       @app_config    = config
       @reaper        = Reaper.new(api_rate_limit: api_rate_limit)

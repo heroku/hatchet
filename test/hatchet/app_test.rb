@@ -1,6 +1,11 @@
 require 'test_helper'
 
 class AppTest < Minitest::Test
+  def test_app_with_default
+    app = Hatchet::App.new("default_ruby", buildpacks: [:default])
+    assert_match "https://github.com/heroku/heroku-buildpack-ruby", app.buildpacks.first
+  end
+
   def test_create_app_with_stack
     stack = "heroku-16"
     app = Hatchet::App.new("default_ruby", stack: stack)
@@ -62,7 +67,7 @@ class AppTest < Minitest::Test
       end
     end
   end
-  
+
   def test_run
     app = Hatchet::GitApp.new("default_ruby")
     app.deploy do
