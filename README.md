@@ -187,12 +187,16 @@ def test_deploy
   # ...
 ```
 
-You can specify multiple buildpacks by passing in an array.
-
-You can use `Hatchet::App.default_buildpack` to get the buildpack URL and branch specified by environment variables:
+You can specify multiple buildpacks by passing in an array. When you do that you also need to tell hatchet where to place your buildpack. Since hatchet needs to build your buildpack from a branch you should not hardcode a path like `heroku/ruby` instead Hatchet has a replacement mechanism. Use the `:default` symbol where you want your buildpack to execute. For example:
 
 ```
-Hatchet::Runner.new("default_ruby", buildpacks: [Hatchet::App.default_buildpack, "https://github.com/pgbouncer/pgbouncer"])
+Hatchet::Runner.new("default_ruby", buildpacks: [:default, "https://github.com/pgbouncer/pgbouncer"])
+```
+
+That will expand your buildpack and branch. For example if you're on the `update_readme` branch of the `heroku-buildpack-ruby` buildpack it would expand to:
+
+```
+Hatchet::Runner.new("default_ruby", buildpacks: ["https://github.com/heroku/heroku-buildpack-ruby#update_readme", "https://github.com/pgbouncer/pgbouncer"])
 ```
 
 You can also specify a stack:

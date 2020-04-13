@@ -1,5 +1,7 @@
 ## HEAD
 
+- Hatchet::App.default_buildpack is aliased to `:default` symbol while passing in buildpacks as an array to Hatchet::App (https://github.com/heroku/hatchet/pull/73)
+
 ## 4.1.1
 
 - Fix branch resolution on Travis when a pull-request is tested (https://github.com/heroku/hatchet/pull/70)
