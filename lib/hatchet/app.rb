@@ -122,13 +122,11 @@ module Hatchet
         arg
       end.join(" ")
       heroku_command = "heroku run #{heroku_options} -- #{command}"
-      bundle_exec do
-        if block_given?
-          require 'repl_runner'
-          ReplRunner.new(cmd_type, heroku_command, options).run(&block)
-        else
-          `#{heroku_command}`
-        end
+      if block_given?
+        require 'repl_runner'
+        ReplRunner.new(cmd_type, heroku_command, options).run(&block)
+      else
+        `#{heroku_command}`
       end
     end
 
@@ -291,7 +289,7 @@ module Hatchet
     end
 
     def api_key
-      @api_key ||= ENV['HEROKU_API_KEY'] || bundle_exec {`heroku auth:token`.chomp }
+      @api_key ||= ENV['HEROKU_API_KEY'] || `heroku auth:token`.chomp
     end
 
     def heroku
@@ -411,16 +409,6 @@ module Hatchet
       end
 
       commit! if needs_commit?
-    end
-
-    private def bundle_exec
-      if defined?(Bundler)
-        Bundler.with_clean_env do
-          yield
-        end
-      else
-        yield
-      end
     end
   end
 end

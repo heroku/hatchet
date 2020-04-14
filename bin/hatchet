@@ -96,7 +96,7 @@ class HatchetCLI < Thor
   desc "destroy [NAME]", "Deletes applications"
   option :all, :type => :boolean
   def destroy(name=nil)
-    api_key      = ENV['HEROKU_API_KEY'] || bundle_exec {`heroku auth:token`.chomp }
+    api_key      = ENV['HEROKU_API_KEY'] || `heroku auth:token`.chomp
     platform_api = PlatformAPI.connect_oauth(api_key, cache: Moneta.new(:Null))
     api_rate_limit = ApiRateLimit.new(platform_api)
     reaper       = Hatchet::Reaper.new(api_rate_limit: api_rate_limit)
@@ -113,7 +113,7 @@ class HatchetCLI < Thor
   private
   def load_lockfile
     return YAML.safe_load(File.read('hatchet.lock')).to_h
-  rescue Errno::ENOENT => e
+  rescue Errno::ENOENT
     raise "No such file found `hatchet.lock` please run `$ bundle exec hatchet lock`"
   end
 
@@ -159,16 +159,6 @@ class HatchetCLI < Thor
     path = File.join(path, '..') # up one dir to prevent repos/codetriage/codetriage/#...
     FileUtils.mkdir_p(path)
     cmd("cd #{path} && git clone #{git_repo} --quiet", quiet: quiet)
-  end
-
-  def bundle_exec
-    if defined?(Bundler)
-      Bundler.with_clean_env do
-        yield
-      end
-    else
-      yield
-    end
   end
 
   def cmd(command, let_fail: false, stdin: nil, quiet: true)

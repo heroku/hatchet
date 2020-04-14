@@ -1,5 +1,7 @@
 ## HEAD
 
+- Shelling out to `heroku` commands no longer uses `Bundler.with_clean_env` (https://github.com/heroku/hatchet/pull/74)
+
 ## 4.1.2
 
 - Hatchet::App.default_buildpack is aliased to `:default` symbol while passing in buildpacks as an array to Hatchet::App (https://github.com/heroku/hatchet/pull/73)
