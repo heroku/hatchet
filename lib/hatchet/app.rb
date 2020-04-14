@@ -46,6 +46,8 @@ module Hatchet
       @buildpacks    = buildpack || buildpacks || buildpack_url || self.class.default_buildpack
       @buildpacks    = Array(@buildpacks)
       @buildpacks.map! {|b| b == :default ? self.class.default_buildpack : b}
+      @already_in_dir = nil
+      @app_is_setup = nil
 
       @before_deploy = before_deploy
       @app_config    = config
@@ -120,12 +122,11 @@ module Hatchet
         arg
       end.join(" ")
       heroku_command = "heroku run #{heroku_options} -- #{command}"
-      bundle_exec do
-        if block_given?
-          ReplRunner.new(cmd_type, heroku_command, options).run(&block)
-        else
-          `#{heroku_command}`
-        end
+      if block_given?
+        require 'repl_runner'
+        ReplRunner.new(cmd_type, heroku_command, options).run(&block)
+      else
+        `#{heroku_command}`
       end
     end
 
@@ -280,6 +281,7 @@ module Hatchet
       return "" if attempt == max_retries
       msg = "\nRetrying failed Attempt ##{attempt}/#{max_retries} to push for '#{name}' due to error: \n"<<
             "#{error.class} #{error.message}\n  #{error.backtrace.join("\n  ")}"
+      return msg
     end
 
     def output
@@ -287,7 +289,7 @@ module Hatchet
     end
 
     def api_key
-      @api_key ||= ENV['HEROKU_API_KEY'] || bundle_exec {`heroku auth:token`.chomp }
+      @api_key ||= ENV['HEROKU_API_KEY'] || `heroku auth:token`.chomp
     end
 
     def heroku
@@ -377,7 +379,7 @@ module Hatchet
     end
 
     private def is_git_repo?
-      out = `git rev-parse --git-dir > /dev/null 2>&1`
+      `git rev-parse --git-dir > /dev/null 2>&1`
       $?.success?
     end
 
@@ -407,16 +409,6 @@ module Hatchet
       end
 
       commit! if needs_commit?
-    end
-
-    private def bundle_exec
-      if defined?(Bundler)
-        Bundler.with_clean_env do
-          yield
-        end
-      else
-        yield
-      end
     end
   end
 end

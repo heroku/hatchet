@@ -4,8 +4,8 @@ class MultiCmdRunnerTest < Minitest::Test
   # slow but needed, there are ghosts in the machine
   # by running common command multiple times we can find them
   def test_multi_repl_commands
+    require 'repl_runner'
     Hatchet::GitApp.new("default_ruby").deploy do |app|
-
       assert_raise(ReplRunner::UnregisteredCommand) do
         app.run("ls", 2) do |ls| # will return right away, should raise error
           ls.run("cat")

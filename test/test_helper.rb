@@ -7,15 +7,10 @@ Bundler.require
 # require 'test/unit'
 
 require 'minitest/autorun'
-require "mocha/setup"
+require "mocha/minitest"
 
 require 'minitest/retry'
 Minitest::Retry.use!
-
-# Not needed if you're using the most recent version
-if defined?(MiniTest::Unit::TestCase)
-  Minitest::Test = MiniTest::Unit::TestCase
-end
 
 def assert_raise(*args, &block)
   assert_raises(*args, &block)
