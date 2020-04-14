@@ -7,7 +7,7 @@ Bundler.require
 # require 'test/unit'
 
 require 'minitest/autorun'
-require "mocha/setup"
+require "mocha/minitest"
 
 require 'minitest/retry'
 Minitest::Retry.use!
