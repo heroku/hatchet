@@ -20,3 +20,9 @@ end
 ENV['HATCHET_BUILDPACK_BRANCH'] = "master"
 
 require 'parallel_tests/test/runtime_logger' if ENV['RECORD_RUNTIME']
+
+def run!(cmd)
+  out = `#{cmd}`
+  raise "Error running #{cmd}, output: #{out}" unless $?.success?
+  out
+end

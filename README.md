@@ -302,6 +302,10 @@ Hatchet supports testing Heroku CI.
 ```ruby
 Hatchet::Runner.new("rails5_ruby_schema_format").run_ci do |test_run|
   assert_match "Ruby buildpack tests completed successfully", test_run.output
+
+  test_run.run_again # Runs tests again, for example to make sure the cache was used
+
+  assert_match "Using rake", test_run.output
 end
 ```
 
