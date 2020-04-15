@@ -46,6 +46,17 @@ module Hatchet
     end
     attr_reader :app
 
+    def run_again(&block)
+      @mutex.synchronize do
+        @status = false
+      end
+
+      Hatchet::RETRIES.times.retry do
+        create_test_run
+      end
+      wait!(&block)
+    end
+
     def create_test_run
       @mutex.synchronize do
         raise "Test is already running" if @status
@@ -116,11 +127,11 @@ module Hatchet
           info
           case @status
           when :succeeded
-            yield self
+            yield self if block_given?
             return self
           when :failed, :errored
             raise FailedTestError.new(self.app, self.output) unless app.allow_failure?
-            yield self
+            yield self if block_given?
             return self
           else
             # keep looping
@@ -165,7 +176,8 @@ module Hatchet
         app_json["stack"]                              ||= @app.stack if @app.stack && !@app.stack.empty?
         File.open("app.json", "w") {|f| f.write(JSON.generate(app_json)) }
 
-        `tar c . | gzip -9 > slug.tgz`
+        out = `tar c . | gzip -9 > slug.tgz`
+        raise "Tar command failed: #{out}" unless $?.success?
 
         source_put_url = @app.create_source
         Hatchet::RETRIES.times.retry do

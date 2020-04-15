@@ -1,6 +1,7 @@
 ## HEAD
 
 - Shelling out to `heroku` commands no longer uses `Bundler.with_clean_env` (https://github.com/heroku/hatchet/pull/74)
+- CI runs can now happen multiple times against the same app/pipeline (https://github.com/heroku/hatchet/pull/75)
 
 ## 4.1.2
 

@@ -319,12 +319,15 @@ module Hatchet
         app:            self,
         pipeline:       @pipeline_id,
         api_rate_limit: api_rate_limit
-     )
+      )
+      in_directory do
+        call_before_deploy
 
-      Hatchet::RETRIES.times.retry do
-        test_run.create_test_run
+        Hatchet::RETRIES.times.retry do
+          test_run.create_test_run
+        end
+        test_run.wait!(&block)
       end
-      test_run.wait!(&block)
     ensure
       delete_pipeline(@pipeline_id) if @pipeline_id
       @pipeline_id = nil

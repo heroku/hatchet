@@ -6,7 +6,7 @@
 - - test/fixtures/repos/ci/rails5_ruby_schema_format
   - 3e63c3e13f435cf4ab11265e9abd161cc28cc552
 - - test/fixtures/repos/default/default_ruby
-  - da748a59340be8b950e7bbbfb32077eb67d70c3c
+  - 6e642963acec0ff64af51bd6fba8db3c4176ed6e
 - - test/fixtures/repos/lock/lock_fail
   - da748a59340be8b950e7bbbfb32077eb67d70c3c
 - - test/fixtures/repos/rails2/rails2blog
