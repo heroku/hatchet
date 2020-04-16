@@ -1,5 +1,7 @@
 ## HEAD
 
+- Circle CI support in `ci:setup` command (https://github.com/heroku/hatchet/pull/76)
+
 ## 5.0.0
 
 - Shelling out to `heroku` commands no longer uses `Bundler.with_clean_env` (https://github.com/heroku/hatchet/pull/74)
