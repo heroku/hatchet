@@ -1,7 +1,15 @@
 ## HEAD
 
+## 5.0.0
+
 - Shelling out to `heroku` commands no longer uses `Bundler.with_clean_env` (https://github.com/heroku/hatchet/pull/74)
 - CI runs can now happen multiple times against the same app/pipeline (https://github.com/heroku/hatchet/pull/75)
+- Breaking change: Do not allow App#run to escape to system shell by default (https://github.com/heroku/hatchet/pull/72)
+
+> Note: If you were relying on this behavior, use the `raw: true` option.
+
+- ReplRunner use with App#run is now deprecated (https://github.com/heroku/hatchet/pull/72)
+- Calling App#run with a nil in the second argument is now deprecated (https://github.com/heroku/hatchet/pull/72)
 
 ## 4.1.2
 

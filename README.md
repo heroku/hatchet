@@ -242,19 +242,62 @@ Hatchet::Runner.new("rails3_mri_193").deploy do |app|
 end
 ```
 
-This is the prefered way to run commands against the app. You can also string together commands in a session, but it's less deterministic due to difficulties in driving a REPL programatically via [repl_runner](http://github.com/schneems/repl_runner).
+By default commands will be shell escaped (to prevent commands from escaping the `heroku run` command), if you want to manage your own quoting you can use the `raw: true` option:
 
-
-```ruby
-Hatchet::Runner.new("rails3_mri_193").deploy do |app|
-  app.run("bash") do |bash|
-    bash.run("ls")           {|result| assert_match "Gemfile.lock", result }
-    bash.run("cat Procfile") {|result| assert_match "web:", result }
-  end
-end
+```
+app.run('echo \$HELLO \$NAME', raw: true)
 ```
 
-Please read the docs on [repl_runner](http://github.com/schneems/repl_runner) for more info. The only interactive commands that are supported out of the box are `rails console`, `bash`, and `irb`. It is fairly easy to add your own though.
+You can specify Heroku flags to the `heroku run` command by passing in the `heroku:` key along with a hash.
+
+```
+app.run("nproc", heroku: { "size" => "performance-l" })
+# => 8
+```
+
+You can see a list of Heroku flags by running:
+
+```
+$ heroku run --help
+run a one-off process inside a heroku dyno
+
+USAGE
+  $ heroku run
+
+OPTIONS
+  -a, --app=app        (required) app to run command against
+  -e, --env=env        environment variables to set (use ';' to split multiple vars)
+  -r, --remote=remote  git remote of app to use
+  -s, --size=size      dyno size
+  -x, --exit-code      passthrough the exit code of the remote command
+  --no-notify          disables notification when dyno is up (alternatively use HEROKU_NOTIFICATIONS=0)
+  --no-tty             force the command to not run in a tty
+  --type=type          process type
+```
+
+By default Hatchet will set the app name and the exit code
+
+
+```
+app.run("exit 127")
+puts $?.exitcode
+# => 127
+```
+
+To skip a value you can use the constant:
+
+```
+app.run("exit 127", heroku: { "exit-code" => Hatchet::App::SkipDefaultOption})
+puts $?.exitcode
+# => 0
+```
+
+To specify a flag that has no value (such as `--no-notify`, `no-tty`, or `--exit-code`) pass a `nil` value:
+
+```
+app.run("echo 'foo'", heroku: { "no-notify" => nil })
+# This is the same as `heroku run echo 'foo' --no-notify`
+```
 
 ## Modify Application Files on Disk
 
