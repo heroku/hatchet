@@ -11,6 +11,7 @@ machine git.heroku.com
 login #{ENV.fetch('HEROKU_API_USER')}
 password #{ENV.fetch('HEROKU_API_KEY')}
 EOF
+    `chmod 0600 "$HOME/.netrc"`
   end
 end
 
