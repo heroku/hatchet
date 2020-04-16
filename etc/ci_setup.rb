@@ -8,8 +8,11 @@ unless File.exists?(netrc_file)
   File.open(netrc_file, 'w') do |file|
     file.write <<-EOF
 machine git.heroku.com
-login #{ENV.fetch('HEROKU_API_USER')}
-password #{ENV.fetch('HEROKU_API_KEY')}
+  login #{ENV.fetch('HEROKU_API_USER')}
+  password #{ENV.fetch('HEROKU_API_KEY')}
+machine api.heroku.com
+  login #{ENV.fetch('HEROKU_API_USER')}
+  password #{ENV.fetch('HEROKU_API_KEY')}
 EOF
     `chmod 0600 "$HOME/.netrc"`
   end
