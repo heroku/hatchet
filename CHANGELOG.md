@@ -1,5 +1,7 @@
 ## HEAD
 
+## 5.0.0
+
 - Shelling out to `heroku` commands no longer uses `Bundler.with_clean_env` (https://github.com/heroku/hatchet/pull/74)
 - CI runs can now happen multiple times against the same app/pipeline (https://github.com/heroku/hatchet/pull/75)
 - Breaking change: Do not allow App#run to escape to system shell by default (https://github.com/heroku/hatchet/pull/72)
