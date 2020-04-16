@@ -8,9 +8,13 @@ unless File.exists?(netrc_file)
   File.open(netrc_file, 'w') do |file|
     file.write <<-EOF
 machine git.heroku.com
-login #{ENV.fetch('HEROKU_API_USER')}
-password #{ENV.fetch('HEROKU_API_KEY')}
+  login #{ENV.fetch('HEROKU_API_USER')}
+  password #{ENV.fetch('HEROKU_API_KEY')}
+machine api.heroku.com
+  login #{ENV.fetch('HEROKU_API_USER')}
+  password #{ENV.fetch('HEROKU_API_KEY')}
 EOF
+    `chmod 0600 "$HOME/.netrc"`
   end
 end
 
@@ -21,9 +25,7 @@ end
  "git config --get user.name > /dev/null || git config --global user.name 'BuildpackTester'",
 ].each do |command|
   puts "== Running: #{command}"
-  Bundler.with_clean_env do
-    result = `#{command}`
-    raise "Command failed: #{command.inspect}\nResult: #{result}" unless $?.success?
-  end
+  result = `#{command}`
+  raise "Command failed: #{command.inspect}\nResult: #{result}" unless $?.success?
 end
 puts "== Done =="

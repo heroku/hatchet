@@ -31,4 +31,5 @@ Gem::Specification.new do |gem|
   gem.add_development_dependency "mocha",          ">= 1"
   gem.add_development_dependency "parallel_tests", ">= 2"
   gem.add_development_dependency "travis",         ">= 1"
+  gem.add_development_dependency "m"
 end

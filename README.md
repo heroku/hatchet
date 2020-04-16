@@ -4,62 +4,13 @@
 
 Hatchet is a an integration testing library for developing Heroku buildpacks.
 
-[![Build Status](https://travis-ci.org/heroku/hatchet.svg?branch=master)](https://travis-ci.org/heroku/hatchet)
-
 ## Install
 
 First run:
 
     $ bundle install
 
-This library uses the heroku CLI and API. You will need to make your API key available to the system. If you're running on a CI platform, you'll need to generate an OAuth token and make it available on the system you're running on.
-
-To get a token, install the https://github.com/heroku/heroku-cli-oauth#creating plugin. Then run:
-
-```sh
-$ heroku authorizations:create --description "For Travis"
-Creating OAuth Authorization... done
-Client:      <none>
-ID:          <id value>
-Description: For Travis
-Scope:       global
-Token:      <token>
-```
-
-You'll set the `<token>` value to the `HEROKU_API_KEY` env var. For example, you could add it on Travis like this:
-
-```sh
-$ travis encrypt HEROKU_API_KEY=<token> --add
-```
-
-You'll also need an email address that goes with your token:
-
-```sh
-$ travis encrypt HEROKU_API_USER=<example@example.com> --add
-```
-
-If you're running locally, your system credentials will be pulled from `heroku auth:token`.
-
-You'll also need to trigger a "setup" step for CI tasks. You can do it on Travis CI like this:
-
-```
-# .travis.yml
-before_script: bundle exec hatchet ci:setup
-```
-
-and on Heroku CI like this:
-
-```json
-{
-  "environments": {
-    "test": {
-      "scripts": {
-        "test-setup": "bundle exec hatchet ci:setup",
-      }
-    }
-  }
-}
-```
+This library uses the heroku CLI and API. You will need to make your API key available to the system. If you're running on a CI platform, you'll need to generate an OAuth token and make it available on the system you're running on see the "CI" section below.
 
 ## Run the Tests
 
@@ -83,7 +34,7 @@ Whatever testing framework you chose, we recommend using a parallel test runner 
 
 If you're unfamiliar with the ruby testing eco-system or want some help, start by looking at existing projects.
 
-*Spoilers: There is a section below on getting Hatchet to work on Travis.
+*Spoilers*: There is a section below on getting Hatchet to work on CI
 
 ## Testing a Buildpack
 
@@ -152,7 +103,7 @@ HATCHET_BUILDPACK_BASE=https://github.com/heroku/heroku-buildpack-ruby.git
 HATCHET_BUILDPACK_BRANCH=master
 ```
 
-If you do not specify `HATCHET_BUILDPACK_URL` the default Ruby buildpack will be used. If you do not specify a `HATCHET_BUILDPACK_BRANCH` the current branch you are on will be used. This is how the Ruby buildpack runs tests on branches on travis (by leaving `HATCHET_BUILDPACK_BRANCH` blank).
+If you do not specify `HATCHET_BUILDPACK_URL` the default Ruby buildpack will be used. If you do not specify a `HATCHET_BUILDPACK_BRANCH` the current branch you are on will be used. This is how the Ruby buildpack runs tests on branches on CI (by leaving `HATCHET_BUILDPACK_BRANCH` blank).
 
 If the `ENV['HATCHET_RETRIES']` is set to a number, deploys are expected to work and automatically retry that number of times. Due to testing using a network and random failures, setting this value to `3` retries seems to work well. If an app cannot be deployed within its allotted number of retries, an error will be raised.
 
@@ -391,31 +342,23 @@ Hatchet::Runner.new("rails5_ruby_schema_format", buildpacks: buildpacks).run_ci 
 end
 ```
 
-## Testing on Travis
+## Testing on CI
 
-Once you've got your tests working locally, you'll likely want to get them running on Travis because a) CI is awesome, and b) you can use pull requests to run your all your tests in parallel without having to kill your network connection.
+Once you've got your tests working locally, you'll likely want to get them running on CI. For reference see the [Circle CI config from this repo](https://github.com/heroku/hatchet/blob/master/.circleci/config.yml) and the [Heroku CI config from the ruby buildpack](https://github.com/heroku/heroku-buildpack-ruby/blob/master/app.json).
 
-Set the `HATCHET_DEPLOY_STRATEGY` to `git`.
-
-To run on travis, you will need to configure your `.travis.yml` to run the appropriate commands and to set up encrypted data so you can run tests against a valid heroku user.
-
-For reference see the `.travis.yml` from [hatchet](https://github.com/heroku/hatchet/blob/master/.travis.yml) and the [heroku-ruby-buildpack](https://github.com/heroku/heroku-buildpack-ruby/blob/master/.travis.yml). To make running on travis easier, there is a rake task in Hatchet that can be run before your tests are executed
+To make running on CI easier, there is a setup script in Hatchet that can be run before your tests are executed:
 
 ```yml
-before_script: bundle exec hatchet ci:setup
+bundle exec hatchet ci:setup
 ```
 
-I recommend signing up for a new heroku account for running your tests on travis to prevent exceding your API limit. Once you have the new api token, you can use this technique to [securely send travis the data](http://docs.travis-ci.com/user/environment-variables/#Secure-Variables).
+If you're a Heroku employee see [private instructions for setting up test users](https://github.com/heroku/languages-team/blob/master/guides/create_test_users_for_ci.md) to generate a user a grab the API token. Once you have an API token you'll want to set up these env vars with your CI provider:
 
-```sh
-$ travis encrypt HEROKU_API_KEY=<token> --add
 ```
-
-If your Travis tests are containerized, you may need sudo to complete this successfully. In that case, add the following:
-
-```yml
-before_script: bundle exec hatchet ci:setup
-sudo: required
+HATCHET_APP_LIMIT=100
+HATCHET_RETRIES=3
+HEROKU_API_KEY=<redacted>
+HEROKU_API_USER=<redacted@example.com>
 ```
 
 ## Extra App Commands
