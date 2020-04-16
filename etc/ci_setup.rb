@@ -21,9 +21,7 @@ end
  "git config --get user.name > /dev/null || git config --global user.name 'BuildpackTester'",
 ].each do |command|
   puts "== Running: #{command}"
-  Bundler.with_clean_env do
-    result = `#{command}`
-    raise "Command failed: #{command.inspect}\nResult: #{result}" unless $?.success?
-  end
+  result = `#{command}`
+  raise "Command failed: #{command.inspect}\nResult: #{result}" unless $?.success?
 end
 puts "== Done =="
