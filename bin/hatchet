@@ -67,6 +67,7 @@ class HatchetCLI < Thor
   desc "locks to specific git commits", "updates hatchet.lock"
   def lock
     lock_hash = {}
+    lockfile_hash = load_lockfile
     dirs.map do |directory, git_repo|
       Threaded.later do
         puts "== locking #{directory}"
@@ -75,8 +76,12 @@ class HatchetCLI < Thor
           clone(directory, git_repo, quiet: false)
         end
 
-        commit = commit_at_directory(directory)
-        lock_hash[directory] = commit
+        if lockfile_hash[directory] == "master"
+          lock_hash[directory] = "master"
+        else
+          commit = commit_at_directory(directory)
+          lock_hash[directory] = commit
+        end
       end
     end.map(&:join)
 
