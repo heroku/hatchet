@@ -315,31 +315,30 @@ module Hatchet
     end
 
     def run_ci(timeout: 300, &block)
-      Hatchet::RETRIES.times.retry do
-        result       = create_pipeline
-        @pipeline_id = result["id"]
-      end
-
-      # when the CI run finishes, the associated ephemeral app created for the test run internally gets removed almost immediately
-      # the system then sees a pipeline with no apps, and deletes it, also almost immediately
-      # that would, with bad timing, mean our test run info poll in wait! would 403, and/or the delete_pipeline at the end
-      # that's why we create an app explictly (or maybe it already exists), and then associate it with with the pipeline
-      # the app will be auto cleaned up later
-      self.setup!
-      Hatchet::RETRIES.times.retry do
-        couple_pipeline(@name, @pipeline_id)
-      end
-
-      test_run = TestRun.new(
-        token:          api_key,
-        buildpacks:     @buildpacks,
-        timeout:        timeout,
-        app:            self,
-        pipeline:       @pipeline_id,
-        api_rate_limit: api_rate_limit
-      )
       in_directory do
-        call_before_deploy
+        Hatchet::RETRIES.times.retry do
+          result       = create_pipeline
+          @pipeline_id = result["id"]
+        end
+
+        # when the CI run finishes, the associated ephemeral app created for the test run internally gets removed almost immediately
+        # the system then sees a pipeline with no apps, and deletes it, also almost immediately
+        # that would, with bad timing, mean our test run info poll in wait! would 403, and/or the delete_pipeline at the end
+        # that's why we create an app explictly (or maybe it already exists), and then associate it with with the pipeline
+        # the app will be auto cleaned up later
+        self.setup!
+        Hatchet::RETRIES.times.retry do
+          couple_pipeline(@name, @pipeline_id)
+        end
+
+        test_run = TestRun.new(
+          token:          api_key,
+          buildpacks:     @buildpacks,
+          timeout:        timeout,
+          app:            self,
+          pipeline:       @pipeline_id,
+          api_rate_limit: api_rate_limit
+        )
 
         Hatchet::RETRIES.times.retry do
           test_run.create_test_run

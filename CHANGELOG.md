@@ -1,5 +1,11 @@
 ## HEAD
 
+## 5.0.2
+
+- Fix `before_deploy` use with ci test runs (https://github.com/heroku/hatchet/pull/78)
+
+## 5.0.1
+
 - Circle CI support in `ci:setup` command (https://github.com/heroku/hatchet/pull/76)
 
 ## 5.0.0
