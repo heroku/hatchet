@@ -92,6 +92,32 @@ Be careful when including repos inside of your test directory. If you're using a
 
 When basing tests on external repos, do not change the tests or they may spontaneously fail. We may create a hatchet.lockfile or something to declare the commit in the future.
 
+When you run `hatchet install` it will lock all the Repos to a specific commit. This is done so that if a repo changes upstream that introduces an error the test suite won't automatically pick it up. For example in https://github.com/sharpstone/lock_fail/commit/e61ba47043fbae131abb74fd74added7e6e504df an error is added, but this will only cause a failure if your project intentionally locks to commit `e61ba47043fbae131abb74fd74added7e6e504df` or later.
+
+You can re-lock your projects by running `hatchet lock`. This modifies the `hatchet.lock` file. For example:
+
+```
+---
+- - test/fixtures/repos/bundler/no_lockfile
+  - 1947ce9a9c276d5df1c323b2ad78d1d85c7ab4c0
+- - test/fixtures/repos/ci/rails5_ci_fails_no_database
+  - 3044f05febdfbbe656f0f5113cf5968ca07e34fd
+- - test/fixtures/repos/ci/rails5_ruby_schema_format
+  - 3e63c3e13f435cf4ab11265e9abd161cc28cc552
+- - test/fixtures/repos/default/default_ruby
+  - 6e642963acec0ff64af51bd6fba8db3c4176ed6e
+- - test/fixtures/repos/lock/lock_fail
+  - da748a59340be8b950e7bbbfb32077eb67d70c3c
+- - test/fixtures/repos/lock/lock_fail_master
+  - master
+- - test/fixtures/repos/rails2/rails2blog
+  - b37357a498ae5e8429f5601c5ab9524021dc2aaa
+- - test/fixtures/repos/rails3/rails3_mri_193
+  - 88c5d0d067cfd11e4452633994a85b04627ae8c7
+```
+
+If you don't want to lock a specific commit, you can instead specify `master` and it will always grab the latest commits.
+
 
 ## Deploying apps
 

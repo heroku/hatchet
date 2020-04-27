@@ -1,5 +1,9 @@
 ## HEAD
 
+## 5.0.3
+
+- Allow repos to be "locked" to master instead of a specific commit (https://github.com/heroku/hatchet/pull/80)
+
 ## 5.0.2
 
 - Fix `before_deploy` use with ci test runs (https://github.com/heroku/hatchet/pull/78)
