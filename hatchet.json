@@ -1,6 +1,6 @@
 {
   "hatchet": {
-    "directory": "test/fixtures"
+    "directory": "repo_fixtures"
   },
   "rails3":  ["sharpstone/rails3_mri_193"],
   "rails2":  ["sharpstone/rails2blog"],
