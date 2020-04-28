@@ -5,14 +5,14 @@ references:
       name: Run test suite
       command: PARALLEL_SPLIT_TEST_PROCESSES=25 bundle exec parallel_split_test spec/
   restore: &restore
-   restore_cache:
-     keys:
-       - bundler_deps
+    restore_cache:
+      keys:
+        - v1_bundler_deps-{{ .Environment.CIRCLE_JOB }}
   save: &save
-   save_cache:
+    save_cache:
       paths:
         - ./vendor/bundle
-      key: bundler_deps
+      key: v1_bundler_deps-{{ .Environment.CIRCLE_JOB }} # CIRCLE_JOB e.g. "ruby-2.5"
   hatchet_setup: &hatchet_setup
     run:
       name: Hatchet setup
