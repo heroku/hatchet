@@ -1,8 +1,10 @@
 .DS_Store
 test/fixtures/repos/*
+repo_fixtures/repos/*
 *.gem
 
 
 Gemfile.lock
 debug.rb
 .ruby-version
+.rspec_status

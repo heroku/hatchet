@@ -24,12 +24,11 @@ Gem::Specification.new do |gem|
   gem.add_dependency "thor",          "~> 0"
   gem.add_dependency "repl_runner",   "~> 0.0.3"
   gem.add_dependency "threaded",      "~> 0"
-  gem.add_dependency 'minitest-retry', '~> 0.1.9'
 
-  gem.add_development_dependency "minitest",       ">= 5.1"
+  gem.add_development_dependency "rspec"
   gem.add_development_dependency "rake",           ">= 10"
   gem.add_development_dependency "mocha",          ">= 1"
-  gem.add_development_dependency "parallel_tests", ">= 2"
+  gem.add_development_dependency "parallel_split_test"
   gem.add_development_dependency "travis",         ">= 1"
-  gem.add_development_dependency "m"
+  gem.add_development_dependency "rspec-retry"
 end

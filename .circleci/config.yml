@@ -3,7 +3,16 @@ references:
   unit: &unit
     run:
       name: Run test suite
-      command: bundle exec parallel_test test/hatchet -n 11
+      command: PARALLEL_SPLIT_TEST_PROCESSES=25 bundle exec parallel_split_test spec/
+  restore: &restore
+    restore_cache:
+      keys:
+        - v1_bundler_deps-{{ .Environment.CIRCLE_JOB }}
+  save: &save
+    save_cache:
+      paths:
+        - ./vendor/bundle
+      key: v1_bundler_deps-{{ .Environment.CIRCLE_JOB }} # CIRCLE_JOB e.g. "ruby-2.5"
   hatchet_setup: &hatchet_setup
     run:
       name: Hatchet setup
@@ -14,31 +23,40 @@ references:
       name: install dependencies
       command: |
         bundle install --jobs=4 --retry=3 --path vendor/bundle
+        bundle update
+        bundle clean
+
 jobs:
   "ruby-2.5":
     docker:
       - image: circleci/ruby:2.5
     steps:
       - checkout
+      - <<: *restore
       - <<: *bundle
       - <<: *hatchet_setup
       - <<: *unit
+      - <<: *save
   "ruby-2.6":
     docker:
       - image: circleci/ruby:2.6
     steps:
       - checkout
+      - <<: *restore
       - <<: *bundle
       - <<: *hatchet_setup
       - <<: *unit
+      - <<: *save
   "ruby-2.7":
     docker:
       - image: circleci/ruby:2.7
     steps:
       - checkout
+      - <<: *restore
       - <<: *bundle
       - <<: *hatchet_setup
       - <<: *unit
+      - <<: *save
 
 workflows:
   version: 2
