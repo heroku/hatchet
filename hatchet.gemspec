@@ -18,7 +18,7 @@ Gem::Specification.new do |gem|
   gem.test_files    = gem.files.grep(%r{^(test|spec|features)/})
   gem.require_paths = ["lib"]
 
-  gem.add_dependency "platform-api",  "~> 2"
+  gem.add_dependency "platform-api",  "3.0.0.pre.1 "
   gem.add_dependency "rrrretry",      "~> 1"
   gem.add_dependency "excon",         "~> 0"
   gem.add_dependency "thor",          "~> 0"
