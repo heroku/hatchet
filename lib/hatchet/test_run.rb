@@ -181,10 +181,11 @@ module Hatchet
 
         source_put_url = @app.create_source
         Hatchet::RETRIES.times.retry do
-          @api_rate_limit.call
-          Excon.put(source_put_url,
-                    expects: [200],
-                    body:    File.read('slug.tgz'))
+          PlatformAPI.rate_throttle.call do
+            Excon.put(source_put_url,
+                      expects: [200],
+                      body:    File.read('slug.tgz'))
+          end
         end
       end
       return @app.source_get_url
@@ -192,8 +193,11 @@ module Hatchet
 
   private
     def get_contents_or_whatever(url)
-      @api_rate_limit.call
-      Excon.get(url, read_timeout: @pause).body
+      response = PlatformAPI.rate_throttle.call do
+        Excon.get(url, read_timeout: @pause)
+      end
+
+      return response.body
     rescue Excon::Error::Timeout
       ""
     end
@@ -216,9 +220,11 @@ module Hatchet
       options[:body] = JSON.generate(options[:body]) if options[:body]
 
       Hatchet::RETRIES.times.retry do
-        @api_rate_limit.call
-        connection = Excon.new("https://api.heroku.com")
-        return connection.request(options)
+        PlatformAPI.rate_throttle.call do
+          connection = Excon.new("https://api.heroku.com")
+
+          return connection.request(options)
+        end
       end
     end
   end
