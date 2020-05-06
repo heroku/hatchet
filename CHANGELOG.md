@@ -1,5 +1,9 @@
 ## HEAD
 
+## 6.0.0
+
+- Rate throttling is now provided directly by `platform-api` (https://github.com/heroku/hatchet/pull/82)
+
 ## 5.0.3
 
 - Allow repos to be "locked" to master instead of a specific commit (https://github.com/heroku/hatchet/pull/80)
