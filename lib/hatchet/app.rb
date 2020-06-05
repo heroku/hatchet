@@ -381,7 +381,6 @@ module Hatchet
     end
 
     def platform_api
-      puts "Deprecated: use `api_rate_limit.call` instead of platform_api"
       api_rate_limit
       return @platform_api
     end
