@@ -12,6 +12,7 @@
  ],
  "lock": [
    "sharpstone/lock_fail",
-   "sharpstone/lock_fail_master"
+   "sharpstone/lock_fail_master",
+   "sharpstone/lock_fail_main"
  ]
 }
