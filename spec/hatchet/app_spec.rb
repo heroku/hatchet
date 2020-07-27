@@ -132,23 +132,88 @@ describe "AppTest" do
   end
 
   it "run" do
-    app = Hatchet::GitApp.new("default_ruby")
+    skip("Must set HATCHET_EXPENSIVE_MODE") unless ENV["HATCHET_EXPENSIVE_MODE"]
+
+    app = Hatchet::GitApp.new("default_ruby", run_multi: true)
     app.deploy do
       expect(app.run("ls -a Gemfile 'foo bar #baz'")).to match(/ls: cannot access 'foo bar #baz': No such file or directory\s+Gemfile/)
       expect((0 != $?.exitstatus)).to be_truthy
-      sleep(4)
+
       app.run("ls erpderp", heroku: ({ "exit-code" => (Hatchet::App::SkipDefaultOption) }))
       expect((0 == $?.exitstatus)).to be_truthy
-      sleep(4)
+
       app.run("ls erpderp", heroku: ({ "no-tty" => nil }))
       expect((0 != $?.exitstatus)).to be_truthy
-      sleep(4)
+
       expect(app.run("echo \\$HELLO \\$NAME", raw: true, heroku: ({ "env" => "HELLO=ohai;NAME=world" }))).to match(/ohai world/)
-      sleep(4)
+
       expect(app.run("echo \\$HELLO \\$NAME", raw: true, heroku: ({ "env" => "" }))).to_not match(/ohai world/)
-      sleep(4)
+
       random_name = SecureRandom.hex
       expect(app.run("mkdir foo; touch foo/#{random_name}; ls foo/")).to match(/#{random_name}/)
+    end
+  end
+
+  class AtomicCount
+    attr_reader :value
+
+    def initialize(value)
+      @value = value
+      @mutex = Mutex.new
+    end
+
+    # In MRI the `+=` is not atomic, it is two seperate virtual machine
+    # instructions. To protect against race conditions, we can lock with a mutex
+    def add(val)
+      @mutex.synchronize do
+        @value += val
+      end
+    end
+  end
+
+  it "run multi" do
+    skip("Must set HATCHET_EXPENSIVE_MODE") unless ENV["HATCHET_EXPENSIVE_MODE"]
+
+    @run_count = AtomicCount.new(0)
+    app = Hatchet::GitApp.new("default_ruby", run_multi: true)
+    app.deploy do
+      app.run_multi("ls") { |out| expect(out).to include("Gemfile"); @run_count.add(1) }
+      app.run_multi("blerg -v") { |_, status| expect(status.success?).to be_falsey; @run_count.add(1) }
+      app.run_multi("ruby -v") do |out, status|
+        expect(out).to include("ruby")
+        expect(status.success?).to be_truthy
+
+        @run_count.add(1)
+      end
+
+      expect(app.platform_api.formation.list(app.name).detect {|ps| ps["type"] == "web"}["size"].downcase).to_not eq("free")
+    end
+
+    # After the deploy block exits `teardown!` is called
+    # this ensures all `run_multi` commands have exited and the dyno should be scaled down
+    expect(@run_count.value).to eq(3)
+  end
+
+  describe "running concurrent tests in different examples works" do
+    before(:all) do
+      skip("Must set HATCHET_EXPENSIVE_MODE") unless ENV["HATCHET_EXPENSIVE_MODE"]
+
+      @app = Hatchet::GitApp.new("default_ruby", run_multi: true)
+      @app.deploy
+    end
+
+    after(:all) do
+      @app.teardown! if @app
+    end
+
+    it "test one" do
+      @app.run_multi("ls") { |out| expect(out).to include("Gemfile") }
+      expect(@app.platform_api.formation.list(@app.name).detect {|ps| ps["type"] == "web"}["size"].downcase).to_not eq("free")
+    end
+
+    it "test two" do
+      @app.run_multi("ruby -v") { |out| expect(out).to include("ruby") }
+      expect(@app.platform_api.formation.list(@app.name).detect {|ps| ps["type"] == "web"}["size"].downcase).to_not eq("free")
     end
   end
 end

@@ -4,6 +4,8 @@ references:
     run:
       name: Run test suite
       command: PARALLEL_SPLIT_TEST_PROCESSES=25 bundle exec parallel_split_test spec/
+      environment:
+        HATCHET_EXPENSIVE_MODE: 1 # !!!! WARNING !!!! ONLY RUN THIS IF YOU WORK FOR HEROKU !!!! WARNING !!!!
   restore: &restore
     restore_cache:
       keys:
