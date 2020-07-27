@@ -11,12 +11,24 @@ module Hatchet
 
     attr_reader :name, :stack, :directory, :repo_name, :app_config, :buildpacks
 
-    class FailedDeploy < StandardError
+    class FailedDeploy < StandardError; end
+
+    class FailedDeployError < FailedDeploy
       def initialize(app, output)
-        msg = "Could not deploy '#{app.name}' (#{app.repo_name}) using '#{app.class}' at path: '#{app.directory}'\n" <<
-              " if this was expected add `allow_failure: true` to your deploy hash.\n" <<
-              "output:\n" <<
-              "#{output}"
+        msg = "Could not deploy '#{app.name}' (#{app.repo_name}) using '#{app.class}' at path: '#{app.directory}'\n"
+        msg << "if this was expected add `allow_failure: true` to your deploy hash.\n"
+        msg << "output:\n"
+        msg << "#{output}"
+        super(msg)
+      end
+    end
+
+    class FailedReleaseError < FailedDeploy
+      def initialize(app, output)
+        msg = "Could not release '#{app.name}' (#{app.repo_name}) using '#{app.class}' at path: '#{app.directory}'\n"
+        msg << "if this was expected add `allow_failure: true` to your deploy hash.\n"
+        msg << "output:\n"
+        msg << "#{output}"
         super(msg)
       end
     end
