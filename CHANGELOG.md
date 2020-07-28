@@ -1,7 +1,5 @@
 ## HEAD
 
-- Hatchet created apps no have a configurable minimium time to live based off of setting HATCHET_MINIMUM_TTL_MINUTES=7 (https://github.com/heroku/hatchet/pull/95)
-
 ## 6.0.0
 
 - Rate throttling is now provided directly by `platform-api` (https://github.com/heroku/hatchet/pull/82)
