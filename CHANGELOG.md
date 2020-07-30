@@ -1,7 +1,5 @@
 ## HEAD
 
-## 7.0.0
-
 - Deployment now raises and error when the release failed (https://github.com/heroku/hatchet/pull/93)
 
 ## 6.0.0
