@@ -337,8 +337,9 @@ module Hatchet
         platform_api.formation.update(name, "web", {"size" => "free"})
       end
 
-      @app_update_info = platform_api.app.update(name, { maintenance: true })
-      @reaper.cycle
+    ensure
+      @app_update_info = platform_api.app.update(name, { maintenance: true }) if @app_is_setup
+      @reaper.cycle if @app_is_setup
     end
 
     def in_directory(directory = self.directory)

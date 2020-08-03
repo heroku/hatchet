@@ -195,15 +195,15 @@ describe "AppTest" do
   end
 
   describe "running concurrent tests in different examples works" do
-    before(:all) do
+    # Would love for this to be a `before(:all)` however we're hitting this issue: https://github.com/grosser/parallel_split_test/issues/7#issuecomment-668616973
+    before(:each) do
       skip("Must set HATCHET_EXPENSIVE_MODE") unless ENV["HATCHET_EXPENSIVE_MODE"]
 
-      puts "====== YOU SHOULD ONLY SEE THIS ONCE"
       @app = Hatchet::GitApp.new("default_ruby", run_multi: true)
       @app.deploy
     end
 
-    after(:all) do
+    after(:each) do
       @app.teardown! if @app
     end
 
