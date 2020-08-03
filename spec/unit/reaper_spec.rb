@@ -138,6 +138,7 @@ describe "Reaper" do
       end
     end
   end
+
   it "over limit" do
     reaper = Hatchet::Reaper.new(api_rate_limit: -> (){}, io: StringIO.new)
     def reaper.hatchet_app_count; Hatchet::Reaper::HATCHET_APP_LIMIT + 1; end
