@@ -575,7 +575,7 @@ end
 
 - `app.in_directory_fork`: Runs the given block in a temp directory and inside of a forked process
 - `app.directory`: Returns the current temp directory the appp is in.
-- `app.deploy`: Your main method, takes a block to execute after the deploy is successful. If no block is provided you must manually call `app.teardown! (see below for an example).
+- `app.deploy`: Your main method, takes a block to execute after the deploy is successful. If no block is provided you must manually call `app.teardown!` (see below for an example).
 - `app.output`: The output contents of the deploy
 - `app.platform_api`: Returns an instance of the [platform-api Heroku client](https://github.com/heroku/platform-api). If hatchet doesn't give you access to a part of Heroku that you need, you can likely do it with the platform-api client.
 - `app.push!`: Push code to your heroku app. Can be used inside of a `deploy` block to re-deploy.
