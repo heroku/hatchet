@@ -175,6 +175,10 @@ module Hatchet
       else
         raise e
       end
+    rescue Excon::Error::Forbidden => e
+      puts "403 random error debugging: " + message
+      puts e.methods
+      raise e
     end
 
     private def hatchet_app_count

@@ -198,6 +198,7 @@ describe "AppTest" do
     before(:all) do
       skip("Must set HATCHET_EXPENSIVE_MODE") unless ENV["HATCHET_EXPENSIVE_MODE"]
 
+      puts "====== YOU SHOULD ONLY SEE THIS ONCE"
       @app = Hatchet::GitApp.new("default_ruby", run_multi: true)
       @app.deploy
     end
