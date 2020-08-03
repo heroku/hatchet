@@ -621,7 +621,7 @@ HATCHET_ALIVE_TTL_MINUTES=7
 - `HATCHET_APP_LIMIT`: The maximum number of **hatchet** apps that hatchet will allow in the given account before running the reaper. For local execution keep this low as you don't want your account dominated by hatchet apps. For CI you want it to be much larger, 80-100 since it's not competiting with non-hatchet apps. Your test runner account needs to be a dedicated account.
 - `HEROKU_API_KEY`: The api key of your test account user. If you run locally without this set it will use your personal credentials.
 - `HEROKU_API_USER`: The email address of your user account. If you run locally without this set it will use your personal credentials.
-- `HATCHET_ALIVE_TTL_MINUTES`: The minimum time that hatchet appplications must be allowed to live on a given account if they're not marked by being in maintenance mode. For example if you set this value to 3 it guarantees that a Hatchet app will be allowed to live 3 minutes before Hatchet will try to delete it. Default is 7 minutes. Set to zero to disable.
+- `HATCHET_ALIVE_TTL_MINUTES`: The minimum time that hatchet appplications must be allowed to live on a given account if they're not marked as safe to delete by being in maintenance mode. For example if you set this value to 3 it guarantees that a Hatchet app will be allowed to live 3 minutes before Hatchet will try to delete it. Default is 7 minutes. Set to zero to disable.
 
 ## Basic
 
