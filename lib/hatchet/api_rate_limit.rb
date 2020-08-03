@@ -1,14 +1,11 @@
-# Wraps platform-api and adds API rate limits
+# Legacy class
 #
-# Instead of:
+# Not needed since rate throttling went directly into the platform-api gem.
+# This class is effectively now a no-op
 #
-#     platform_api.pipeline.create(name: @name)
-#
-# Use:
-#
-#     api_rate_limit = ApiRateLimit.new(platform_api)
-#     api_rate_limit.call.pipeline.create(name: @name)
-#
+# It's being left in as it's interface was public and it's hard-ish to
+# deprecate/remove. Since it's so small there's not much value in removal
+# so it's probably fine to keep around for quite some time.
 class ApiRateLimit
   def initialize(platform_api)
     @platform_api = platform_api
@@ -16,14 +13,6 @@ class ApiRateLimit
     @called   = 0
   end
 
-
-  # Sleeps for progressively longer when api rate limit capacity
-  # is lower.
-  #
-  # Unfortunatley `@platform_api.rate_limit` is an extra API
-  # call, so by checking our limit, we also are using our limit 😬
-  # to partially mitigate this, only check capacity every 5
-  # api calls, or if the current capacity is under 1000
   def call
     # @called += 1
 

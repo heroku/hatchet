@@ -1,5 +1,6 @@
 ## HEAD
 
+- Calls to `git push heroku` are now rate throttled (https://github.com/heroku/hatchet/pull/98)
 - Deployment now raises and error when the release failed (https://github.com/heroku/hatchet/pull/93)
 
 ## 6.0.0

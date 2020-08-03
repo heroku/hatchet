@@ -14,9 +14,13 @@ module Hatchet
     class FailedDeploy < StandardError; end
 
     class FailedDeployError < FailedDeploy
-      def initialize(app, output)
+      attr_reader :output
+
+      def initialize(app, message, output: )
+        @output = output
         msg = "Could not deploy '#{app.name}' (#{app.repo_name}) using '#{app.class}' at path: '#{app.directory}'\n"
         msg << "if this was expected add `allow_failure: true` to your deploy hash.\n"
+        msg << "#{message}\n"
         msg << "output:\n"
         msg << "#{output}"
         super(msg)
@@ -24,9 +28,13 @@ module Hatchet
     end
 
     class FailedReleaseError < FailedDeploy
-      def initialize(app, output)
+      attr_reader :output
+
+      def initialize(app, message, output: )
+        @output = output
         msg = "Could not release '#{app.name}' (#{app.repo_name}) using '#{app.class}' at path: '#{app.directory}'\n"
         msg << "if this was expected add `allow_failure: true` to your deploy hash.\n"
+        msg << "#{message}\n"
         msg << "output:\n"
         msg << "#{output}"
         super(msg)

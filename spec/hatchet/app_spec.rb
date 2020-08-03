@@ -1,6 +1,26 @@
 require("spec_helper")
 
 describe "AppTest" do
+  it "rate throttles `git push` " do
+    app = Hatchet::GitApp.new("default_ruby")
+    def app.git_push_heroku_yall
+      @_git_push_heroku_yall_call_count ||= 0
+      @_git_push_heroku_yall_call_count += 1
+      if @_git_push_heroku_yall_call_count >= 2
+        "Success"
+      else
+        raise Hatchet::App::FailedDeployError.new(self, "message", output: "Your account reached the API rate limit Please wait a few minutes before making new requests")
+      end
+    end
+
+    def app.sleep_called?; @sleep_called; end
+
+    def app.what_is_git_push_heroku_yall_call_count; @_git_push_heroku_yall_call_count; end
+    app.push_without_retry!
+
+    expect(app.what_is_git_push_heroku_yall_call_count).to be(2)
+  end
+
   it "app with default" do
     app = Hatchet::App.new("default_ruby", buildpacks: [:default])
     expect(app.buildpacks.first).to match("https://github.com/heroku/heroku-buildpack-ruby")
