@@ -5,6 +5,7 @@
 - The HEROKU_APP_LIMIT env var no longer does anything, instead hatchet application reaping is manually executed if an app cannot be created (https://github.com/heroku/hatchet/pull/97)
 - App#deploy without a block will no longer run `teardown!` automatically (https://github.com/heroku/hatchet/pull/97)
 - Calls to `git push heroku` are now rate throttled (https://github.com/heroku/hatchet/pull/98)
+- Calls to `app.run` are now rate throttled (https://github.com/heroku/hatchet/pull/99)
 - Deployment now raises and error when the release failed (https://github.com/heroku/hatchet/pull/93)
 
 ## 6.0.0
