@@ -4,7 +4,8 @@ describe "CIFourTest" do
   it "error with bad app" do
     string = SecureRandom.hex
 
-    Hatchet::GitApp.new("default_ruby").run_ci do |test_run|
+    app = Hatchet::GitApp.new("default_ruby")
+    app.run_ci do |test_run|
       expect(test_run.output).to_not match(string)
       expect(test_run.output).to match("Installing rake")
 
@@ -14,7 +15,15 @@ describe "CIFourTest" do
       expect(test_run.output).to match(string)
       expect(test_run.output).to match("Using rake")
       expect(test_run.output).to_not match("Installing rake")
+
+      expect(app.platform_api.app.info(app.name)["maintenance"]).to be_falsey
     end
+
+    # After the app is updated, there's no guarantee it will still exist
+    # so we cannot rely on an api call to determine maintenance mode
+    app_update_info = app.instance_variable_get(:"@app_update_info")
+    expect(app_update_info["name"]).to eq(app.name)
+    expect(app_update_info["maintenance"]).to be_truthy
   end
 
   it "error with bad app" do

@@ -122,18 +122,18 @@ describe "Reaper" do
   describe "reaper throttle" do
     it "increments and decrements based on min_sleep" do
       reaper_throttle = Hatchet::Reaper::ReaperThrottle.new(initial_sleep: 2)
-      reaper_throttle.call(min_sleep: 5) do |sleep_for|
+      reaper_throttle.call(max_sleep: 5) do |sleep_for|
         expect(sleep_for).to eq(2)
       end
-      reaper_throttle.call(min_sleep: 5) do |sleep_for|
+      reaper_throttle.call(max_sleep: 5) do |sleep_for|
         expect(sleep_for).to eq(4)
       end
-      reaper_throttle.call(min_sleep: 5) do |sleep_for|
+      reaper_throttle.call(max_sleep: 5) do |sleep_for|
         expect(sleep_for).to eq(5)
       end
       # The throttle is now reset since it hit the min_sleep value
 
-      reaper_throttle.call(min_sleep: 5) do |sleep_for|
+      reaper_throttle.call(max_sleep: 5) do |sleep_for|
         expect(sleep_for).to eq(2)
       end
     end

@@ -121,7 +121,7 @@ module Hatchet
         @unfinished_hatchet_apps << app
 
         # Sleep, try again later
-        @reaper_throttle.call(min_sleep: age.sleep_for_ttl) do |sleep_for|
+        @reaper_throttle.call(max_sleep: age.sleep_for_ttl) do |sleep_for|
           io.puts <<~EOM
             WARNING: Attempting to destroy an app without maintenance mode on, but it is not old enough. app: #{app["name"]}, app_age: #{age.in_minutes} minutes
                      This can happen if App#teardown! is not called on an application, which will leave it in an 'unfinished' state

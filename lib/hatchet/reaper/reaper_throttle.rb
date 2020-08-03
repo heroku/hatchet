@@ -12,19 +12,19 @@ module Hatchet
     # Example:
     #
     #   reaper_throttle = ReaperThrottle.new(initial_sleep: 2)
-    #   reaper_throttle.call(min_sleep: 5) do |sleep_for|
+    #   reaper_throttle.call(max_sleep: 5) do |sleep_for|
     #     puts sleep_for # => 2
     #   end
-    #   reaper_throttle.call(min_sleep: 5) do |sleep_for|
+    #   reaper_throttle.call(max_sleep: 5) do |sleep_for|
     #     puts sleep_for # => 4
     #   end
-    #   reaper_throttle.call(min_sleep: 5) do |sleep_for|
+    #   reaper_throttle.call(max_sleep: 5) do |sleep_for|
     #     puts sleep_for # => 5
     #   end
     #
-    #   # The throttle is now reset since it hit the min_sleep value
+    #   # The throttle is now reset since it hit the max_sleep value
     #
-    #   reaper_throttle.call(min_sleep: 5) do |sleep_for|
+    #   reaper_throttle.call(max_sleep: 5) do |sleep_for|
     #     puts sleep_for # => 2
     #   end
     class ReaperThrottle
@@ -33,10 +33,10 @@ module Hatchet
         @sleep_for = @initial_sleep
       end
 
-      def call(min_sleep: )
+      def call(max_sleep: )
         raise "Must call with a block" unless block_given?
 
-        sleep_for = [@sleep_for, min_sleep].min
+        sleep_for = [@sleep_for, max_sleep].min
 
         yield sleep_for
 
