@@ -580,7 +580,7 @@ end
 - `app.platform_api`: Returns an instance of the [platform-api Heroku client](https://github.com/heroku/platform-api). If hatchet doesn't give you access to a part of Heroku that you need, you can likely do it with the platform-api client.
 - `app.push!`: Push code to your heroku app. Can be used inside of a `deploy` block to re-deploy.
 - `app.run_ci`: Runs Heroku CI against the app, returns a TestRun object in the block
-- `app.teardown!`: This method is called automatically when using `app.deploy` in block mode after the deploy block finishes. When called it will clean up resources, mark the app as being finished (by setting {maintenance" => true} on the app) so that the reaper knows it is safe to delete later. Here is an example of a test that creates and deploys an app manually, then later tears it down manually. If you deploy an application without calling `teardown!` then Hatchet will not know it is safe to delete and may keep it around for much longer than required for the test to finish.
+- `app.teardown!`: This method is called automatically when using `app.deploy` in block mode after the deploy block finishes. When called it will clean up resources, mark the app as being finished (by setting `{"maintenance" => true}` on the app) so that the reaper knows it is safe to delete later. Here is an example of a test that creates and deploys an app manually, then later tears it down manually. If you deploy an application without calling `teardown!` then Hatchet will not know it is safe to delete and may keep it around for much longer than required for the test to finish.
 
 ```ruby
 before(:all) do
