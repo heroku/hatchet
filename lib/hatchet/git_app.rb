@@ -5,37 +5,17 @@ module Hatchet
       "https://git.heroku.com/#{name}.git"
     end
 
-    # Helper class to be used along with the PlatformAPI.rate_throttle interface
-    # that expects a response object
-    class FakeResponse
-      attr_reader :status, :headers
-
-      def initialize(status:, remaining: )
-        @status = status
-
-        @headers = {
-          "RateLimit-Remaining" => remaining,
-          "RateLimit-Multiplier" => 1,
-          "Content-Type" => "text/plain".freeze
-        }
-      end
-    end
 
     def push_without_retry!
       output = ""
 
-      # The `git push heroku` call can fail due to a rate limit, instead of re-writing our own rate throttling
-      # we can hijack the existing Platform API rate throttling mechanism by providing it with a fake response
-      PlatformAPI.rate_throttle.call do
-        remaining = @platform_api.rate_limit.info["remaining"]
+      ShellThrottle.new(platform_api: @platform_api).call do
         output = git_push_heroku_yall
-        FakeResponse.new(status: 200, remaining: remaining)
       rescue FailedDeploy => e
         if e.output.match?(/reached the API rate limit/)
-          FakeResponse.new(status: 429, remaining: remaining)
+          throw(:throttle)
         elsif @allow_failure
           output = e.output
-          FakeResponse.new(status: 200, remaining: remaining)
         else
           raise e
         end

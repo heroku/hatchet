@@ -162,10 +162,16 @@ module Hatchet
         STDERR.puts "Using App#run with a block is deprecated, support for ReplRunner is being removed.\n#{caller}"
         # When we deprecated this we can get rid of the "cmd_type" from the method signature
         require 'repl_runner'
-        ReplRunner.new(cmd_type, heroku_command, options).run(&block)
-      else
-        `#{heroku_command}`
+        return ReplRunner.new(cmd_type, heroku_command, options).run(&block)
       end
+      output = ""
+
+      ShellThrottle.new(platform_api: @platform_api).call do |throttle|
+        output = `#{heroku_command}`
+        throw(:throttle) if output.match?(/reached the API rate limit/)
+      end
+
+      return output
     end
 
     # set debug: true when creating app if you don't want it to be
@@ -450,3 +456,4 @@ module Hatchet
   end
 end
 
+require_relative 'shell_throttle.rb'
