@@ -21,6 +21,22 @@ describe "AppTest" do
     expect(app.what_is_git_push_heroku_yall_call_count).to be(2)
   end
 
+  it "calls reaper if cannot create an app" do
+    app = Hatchet::App.new("default_ruby", buildpacks: [:default])
+    def app.heroku_api_create_app(*args); raise StandardError.new("made you look"); end
+
+    reaper = app.reaper
+
+    def reaper.cycle(app_exception_message: ); @app_exception_message = app_exception_message; end
+    def reaper.recorded_app_exception_message; @app_exception_message; end
+
+    expect {
+      app.create_app
+    }.to raise_error("made you look")
+
+    expect(reaper.recorded_app_exception_message).to match("made you look")
+  end
+
   it "app with default" do
     app = Hatchet::App.new("default_ruby", buildpacks: [:default])
     expect(app.buildpacks.first).to match("https://github.com/heroku/heroku-buildpack-ruby")
@@ -31,6 +47,37 @@ describe "AppTest" do
     app = Hatchet::App.new("default_ruby", stack: stack)
     app.create_app
     expect(app.platform_api.app.info(app.name)["build_stack"]["name"]).to eq(stack)
+  end
+
+  it "marks itself 'finished' when done in block mode" do
+    app = Hatchet::Runner.new("default_ruby")
+
+    def app.push_with_retry!; nil; end
+    app.deploy do |app|
+      expect(app.platform_api.app.info(app.name)["maintenance"]).to be_falsey
+    end
+
+    # After the app is updated, there's no guarantee it will still exist
+    # so we cannot rely on an api call to determine maintenance mode
+    app_update_info = app.instance_variable_get(:"@app_update_info")
+    expect(app_update_info["name"]).to eq(app.name)
+    expect(app_update_info["maintenance"]).to be_truthy
+  end
+
+  it "marks itself 'finished' when done in non-block mode" do
+    app = Hatchet::Runner.new("default_ruby")
+
+    def app.push_with_retry!; nil; end
+    app.deploy
+    expect(app.platform_api.app.info(app.name)["maintenance"]).to be_falsey
+
+    app.teardown!
+
+    # After the app is updated, there's no guarantee it will still exist
+    # so we cannot rely on an api call to determine maintenance mode
+    app_update_info = app.instance_variable_get(:"@app_update_info")
+    expect(app_update_info["name"]).to eq(app.name)
+    expect(app_update_info["maintenance"]).to be_truthy
   end
 
   it "before deploy" do

@@ -9,7 +9,7 @@ module Hatchet
     HATCHET_BUILDPACK_BRANCH = -> { ENV['HATCHET_BUILDPACK_BRANCH'] || ENV['HEROKU_TEST_RUN_BRANCH'] || Hatchet.git_branch }
     BUILDPACK_URL = "https://github.com/heroku/heroku-buildpack-ruby.git"
 
-    attr_reader :name, :stack, :directory, :repo_name, :app_config, :buildpacks
+    attr_reader :name, :stack, :directory, :repo_name, :app_config, :buildpacks, :reaper
 
     class FailedDeploy < StandardError; end
 
@@ -182,22 +182,24 @@ module Hatchet
     alias :no_debug? :not_debugging?
 
     def deployed?
-      # !heroku.get_ps(name).body.detect {|ps| ps["process"].include?("web") }.nil?
       api_rate_limit.call.formation.list(name).detect {|ps| ps["type"] == "web"}
     end
 
     def create_app
       3.times.retry do
         begin
-          # heroku.post_app({ name: name, stack: stack }.delete_if {|k,v| v.nil? })
           hash = { name: name, stack: stack }
           hash.delete_if { |k,v| v.nil? }
-          api_rate_limit.call.app.create(hash)
+          heroku_api_create_app(hash)
         rescue => e
-          @reaper.cycle
+          @reaper.cycle(app_exception_message: e.message)
           raise e
         end
       end
+    end
+
+    private def heroku_api_create_app(hash)
+      api_rate_limit.call.app.create(hash)
     end
 
     def update_stack(stack_name)
@@ -239,10 +241,9 @@ module Hatchet
 
     def teardown!
       return false unless @app_is_setup
-      if debugging?
-        puts "Debugging App:#{name}"
-        return false
-      end
+
+      @app_update_info = platform_api.app.update(name, { maintenance: true })
+
       @reaper.cycle
     end
 
@@ -285,10 +286,6 @@ module Hatchet
       end
     end
 
-    # creates a new app on heroku, "pushes" via anvil or git
-    # then yields to self so you can call self.run or
-    # self.deployed?
-    # Allow deploy failures on CI server by setting ENV['HATCHET_RETRIES']
     def deploy(&block)
       in_directory do
         self.setup!
@@ -296,7 +293,7 @@ module Hatchet
         block.call(self, api_rate_limit.call, output) if block_given?
       end
     ensure
-      self.teardown!
+      self.teardown! if block_given?
     end
 
     def push
@@ -366,6 +363,7 @@ module Hatchet
         test_run.wait!(&block)
       end
     ensure
+      teardown! if block_given?
       delete_pipeline(@pipeline_id) if @pipeline_id
       @pipeline_id = nil
     end

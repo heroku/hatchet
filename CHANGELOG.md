@@ -1,5 +1,9 @@
 ## HEAD
 
+- Apps are now marked as being "finished" by enabling maintenance mode on them when `teardown!` is called. Finished apps can be reaped immediately (https://github.com/heroku/hatchet/pull/97)
+- Applications that are not marked as "finished" will be allowed to live for a HATCHET_ALIVE_TTL_MINUTES duration before they're deleted by the reaper to protect against deleting an app mid-deploy, default is seven minutes (https://github.com/heroku/hatchet/pull/97)
+- The HEROKU_APP_LIMIT env var no longer does anything, instead hatchet application reaping is manually executed if an app cannot be created (https://github.com/heroku/hatchet/pull/97)
+- App#deploy without a block will no longer run `teardown!` automatically (https://github.com/heroku/hatchet/pull/97)
 - Calls to `git push heroku` are now rate throttled (https://github.com/heroku/hatchet/pull/98)
 - Deployment now raises and error when the release failed (https://github.com/heroku/hatchet/pull/93)
 

@@ -310,11 +310,12 @@ $ heroku run bash -a hatchet-t-bed73940a6
 And use that to debug. Hatchet deletes old apps on demand. You tell it what your limits are and it will stay within those limits:
 
 ```
-HEROKU_APP_LIMIT=100
 HATCHET_APP_LIMIT=20
 ```
 
-With these env vars, Hatchet will "reap" older hatchet apps when it sees there are 20 or more hatchet apps, or if you have 100 or more apps under your user account. For CI, it's recomment you increase the HATCHET_APP_LIMIT to 80-100. If these values are too low and you're running hatchet tests in parallel then one execution of the reaper from one test run might cause an app that is still being used for a test to be deleted.
+With these env vars, Hatchet will "reap" older hatchet apps when it sees there are 20 or more hatchet apps. For CI, it's recomment you increase the HATCHET_APP_LIMIT to 80-100. Hatchet will mark apps as safe for deletion once they've finished and the `teardown!` method has been called on them (it tracks this by enabling maintenance mode on apps). Hatchet only tracks its own apps. If your account has reached the maximum number of global Heroku apps, you'll need to manually remove some.
+
+If for some reason an app is not marked as being in maintenance mode it can be deleted, but only after it has been allowed to live for a period of time. This is configured by the `HATCHET_ALIVE_TTL_MINUTES` env var. For example if you set it for `7` then Hatchet will ensure any apps that are not marked as being in maintenace mode are allowed to live for at least seven minutes. This should give the app time to finish execution of the test so it is not deleted mid-deploy. When this deletion happens, you'll see a warning in your output. It could indicate you're not properly cleaning up and calling `teardown!` on some of your apps, or it could mean that you're attempting to execute more tests concurrently than your `HATCHET_APP_LIMIT` allows. This might happen if you have multiple CI runs executing at the same time.
 
 It's recommend you don't use your personal Heroku API key for running tests on a CI server since the hatchet apps count against your account maximum limits. Running tests using your account locally is fine for debugging one or two tests.
 
@@ -336,11 +337,10 @@ Hatchet::Runner.new("python_default").deploy do |app|
   expect(app.output).to match(/Installing pip/)
 
   # Redeploy with changed requirements file
-  run!(%Q{echo "" >> requirements.txt})
   run!(%Q{echo "pygments" >> requirements.txt})
-  run!(%Q{git add . ; git commit --allow-empty -m next})
+  app.commit!
 
-  app.push!
+  app.push! # <======= HERE
 
   expect(app.output).to match("Requirements file has been changed, clearing cached dependencies")
 end
@@ -349,7 +349,6 @@ end
 ### Testing CI
 
 You can run an app against CI using the `run_ci` command (instead of `deploy`). You can re-run tests against the same app with the `run_again` command.
-
 
 ```ruby
 Hatchet::Runner.new("python_default").run_ci do |test_run|
@@ -576,11 +575,28 @@ end
 
 - `app.in_directory_fork`: Runs the given block in a temp directory and inside of a forked process
 - `app.directory`: Returns the current temp directory the appp is in.
-- `app.deploy`: Your main method, takes a block to execute after the deploy is successful
+- `app.deploy`: Your main method, takes a block to execute after the deploy is successful. If no block is provided you must manually call `app.teardown!` (see below for an example).
 - `app.output`: The output contents of the deploy
 - `app.platform_api`: Returns an instance of the [platform-api Heroku client](https://github.com/heroku/platform-api). If hatchet doesn't give you access to a part of Heroku that you need, you can likely do it with the platform-api client.
 - `app.push!`: Push code to your heroku app. Can be used inside of a `deploy` block to re-deploy.
 - `app.run_ci`: Runs Heroku CI against the app, returns a TestRun object in the block
+- `app.teardown!`: This method is called automatically when using `app.deploy` in block mode after the deploy block finishes. When called it will clean up resources, mark the app as being finished (by setting `{"maintenance" => true}` on the app) so that the reaper knows it is safe to delete later. Here is an example of a test that creates and deploys an app manually, then later tears it down manually. If you deploy an application without calling `teardown!` then Hatchet will not know it is safe to delete and may keep it around for much longer than required for the test to finish.
+
+```ruby
+before(:all) do
+  @app = Hatchet::Runner.new("default_ruby")
+  @app.deploy
+end
+
+after(:all) do
+  @app.teardown! if @app
+end
+
+it "uses ruby" do
+  expect(@app.run("ruby -v")).to match("ruby")
+end
+
+```
 - `test_run.run_again`: Runs the app again in Heroku CI
 - `test_run.status`: Returns the status of the CI run (possible values are `:pending`, `:building`, `:creating`, `:succeeded`, `:failed`, `:errored`)
 - `test_run.output`: The output of a given test run
@@ -591,10 +607,10 @@ end
 HATCHET_BUILDPACK_BASE=https://github.com/heroku/heroku-buildpack-nodejs.git
 HATCHET_BUILDPACK_BRANCH=<branch name if you dont want hatchet to set it for you>
 HATCHET_RETRIES=2
-HEROKU_APP_LIMIT=100
 HATCHET_APP_LIMIT=(set to something low like 20 locally, set higher like 80-100 on CI)
 HEROKU_API_KEY=<redacted>
 HEROKU_API_USER=<redacted@redacted.com>
+HATCHET_ALIVE_TTL_MINUTES=7
 ```
 
 > The syntax to set an env var in Ruby is `ENV["HATCHET_RETRIES"] = "2"` all env vars are strings.
@@ -602,10 +618,10 @@ HEROKU_API_USER=<redacted@redacted.com>
 - `HATCHET_BUILDPACK_BASE`: This is the URL where hatchet can find your buildpack. It must be public for Heroku to be able to use your buildpack.
 - `HATCHET_BUILDPACK_BRANCH`: By default Hatchet will use your current git branch name. If for some reason git is not available or you want to manually specify it like `ENV["HATCHET_BUILDPACK_BRANCH'] = ENV[`MY_CI_BRANCH`]` then you can.
 - `HATCHET_RETRIES` If the `ENV['HATCHET_RETRIES']` is set to a number, deploys are expected to work and automatically retry that number of times. Due to testing using a network and random failures, setting this value to `3` retries seems to work well. If an app cannot be deployed within its allotted number of retries, an error will be raised. The downside of a larger number is that your suite will keep running for much longer when there are legitimate failures.
-- `HEROKU_APP_LIMIT`: The maximum number of total apps hatchet will allow in the given account before running the reaper
 - `HATCHET_APP_LIMIT`: The maximum number of **hatchet** apps that hatchet will allow in the given account before running the reaper. For local execution keep this low as you don't want your account dominated by hatchet apps. For CI you want it to be much larger, 80-100 since it's not competiting with non-hatchet apps. Your test runner account needs to be a dedicated account.
 - `HEROKU_API_KEY`: The api key of your test account user. If you run locally without this set it will use your personal credentials.
 - `HEROKU_API_USER`: The email address of your user account. If you run locally without this set it will use your personal credentials.
+- `HATCHET_ALIVE_TTL_MINUTES`: The minimum time that hatchet appplications must be allowed to live on a given account if they're not marked as safe to delete by being in maintenance mode. For example if you set this value to 3 it guarantees that a Hatchet app will be allowed to live 3 minutes before Hatchet will try to delete it. Default is 7 minutes. Set to zero to disable.
 
 ## Basic
 
@@ -631,8 +647,7 @@ end
 
 - **spec/hatchet/buildpack_spec.rb**
 
-Rspec knows a file is a test file or not by the name. It looks for files that end in `_spec.rb` you can have as many as you want. I recommend putting them in a "spec/hatchet" sub-folder.
-
+Rspec knows a file is a test file or not by the name. It looks for files that end in `spec.rb` you can have as many as you want. I recommend putting them in a "spec/hatchet" sub-folder.
 
 - **File contents**
 
@@ -676,7 +691,6 @@ If you want to assert the opposite you can use `to_not`:
 expect(value).to_not eq(false)
 ```
 
-
 - **matcher syntax**
 
 In the above example the `eq` is called a "matcher". You're matching it against an object. In this case you're looking for equality `==`.
@@ -693,7 +707,6 @@ expect(value).to include("there")
 Rspec uses some "magic" to convert anything you pass to
 
 Since most values in hatchet are strings, the ones I use the most are:
-
 
 - Rspec matchers
   - include https://relishapp.com/rspec/rspec-expectations/v/3-2/docs/built-in-matchers/include-matcher#string-usage
@@ -822,7 +835,6 @@ puts my_hash.inspect
 
 Blocks are a concept in Ruby for closure. Depending on how it's used it can be an anonomous method. It's always a method for passing around code. When you see `do |app|` that's the beginning of an implicit block. In addition to an implicit block you can create an explicit block using lambdas and procs. In hatchet, these are most likely to be used to update the app `before_deploy`. Here's an example of some syntax for creating various blocks.
 
-
 ```ruby
 before_deploy = -> { FileUtils.touch("foo.txt") } # This syntax is called a "stabby lambda"
 before_deploy = lambda { FileUtils.touch("foo.txt") } # This is a more verbose lambda
@@ -880,7 +892,6 @@ For more info on commands. If you're using the source code you can run
 the command by going to the source code directory and running:
 
     $ ./bin/hatchet --help
-
 
 ## License
 
