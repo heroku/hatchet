@@ -166,19 +166,19 @@ module Hatchet
       @api_rate_limit.call.app.delete(id)
 
       io.puts message
-
     rescue Excon::Error::NotFound => e
       body = e.response.body
+      request_id = e.response.headers["Request-Id"]
       if body =~ /Couldn\'t find that app./
-        io.puts "Duplicate destoy attempted #{name.inspect}: #{id}"
+        io.puts "Duplicate destoy attempted #{name.inspect}: #{id}, status: 404, request_id: #{request_id}"
         raise AlreadyDeletedError.new
       else
         raise e
       end
     rescue Excon::Error::Forbidden => e
-      puts "403 random error debugging: " + message
-      puts e.methods
-      raise e
+      request_id = e.response.headers["Request-Id"]
+      io.puts "Duplicate destoy attempted #{name.inspect}: #{id}, status: 403, request_id: #{request_id}"
+      raise AlreadyDeletedError.new
     end
 
     private def hatchet_app_count
