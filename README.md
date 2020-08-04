@@ -490,6 +490,23 @@ end
 
 > A hash in Ruby is like a dict in python. It is a set of key/value pairs. The syntax `=>` is called a "hashrocket" and is an alternative syntax to "json" syntax for hashes. It is used to allow for string keys instead of symbol keys.
 
+- `run_multi` (Boolean): Allows you to run more than a single "one-off" dyno at a time (the `HATCHET_EXPENSIVE_MODE` env var must be set to use this feature). By default "free" heroku apps are restricted to only allowing one dyno to run at a time. You can increase this limit by scaling an application to paid application, but it will incur chages against your application:
+
+```ruby
+Hatchet::Runner.new("default_ruby", run_multi: true).deploy do |app|
+  app.run_multi("ls") do |out, status|
+    expect(status.success?).to be_truthy
+    expect(out).to include("Gemfile")
+  end
+  app.run_multi("ruby -v") do |out, status|
+    expect(status.success?).to be_truthy
+    expect(out).to include("ruby")
+  end
+end
+```
+
+In this example the `heroku run ls` and `heroku run ruby -v` will be executed concurrently. The order that the `run_multi` blocks execute is not guaranteed. You can toggle this `run_multi` setting on globally by using `HATCHET_RUN_MULTI=1`. Without this setting enabled, you might need to add a `sleep` between multiple `app.run` invocations. WARNING: Enabling this `run_multi` setting will charge your application account. To work, this requires your application to have a `web` process associated with it.
+
 ### App methods:
 
 - `app.set_config()`: Updates the configuration on your app taking in a hash
@@ -515,6 +532,7 @@ app.get_config("DEPLOY_TASKS") # => "run:bloop"
 - `app.set_lab()`: Enables the specified lab/feature on the app
 - `app.add_database()`: adds a database to the app, defaults to the "dev" command
 - `app.run()`: Runs a `heroku run bash` session with the arguments, covered above.
+- `app.run_multi()`: Runs a `heroku run bash` session in the background and yields the results. This requires the `run_multi` flag of the app to be set to `true` which will charge your application (the `HATCHET_EXPENSIVE_MODE` env var must also be set to use this feature). Example above.
 - `app.create_app`: Can be uused to manually create the app without deploying it (You probably want `setup!` though)
 - `app.setup!`: Gets the application in a state ready for deploy.
   - Creates the Heroku app
@@ -541,7 +559,6 @@ end
 app = Hatchet::Runner.new("default_ruby", before_deploy: before_deploy_proc)
 app.setup!
 ```
-
 
 - `app.commit!`: Will updates the contents of your local git dir if you've modified files on disk
 
@@ -611,6 +628,9 @@ HATCHET_APP_LIMIT=(set to something low like 20 locally, set higher like 80-100 
 HEROKU_API_KEY=<redacted>
 HEROKU_API_USER=<redacted@redacted.com>
 HATCHET_ALIVE_TTL_MINUTES=7
+
+# HATCHET_RUN_MULTI=1      # WARNING: Setting this env var will incur chages against your account. To use this env var you must also enable `HATCHET_EXPENSIVE_MODE`
+# HATCHET_EXPENSIVE_MODE=1 # WARNING: Do not set this environment variable unless you're okay with possibly large bills
 ```
 
 > The syntax to set an env var in Ruby is `ENV["HATCHET_RETRIES"] = "2"` all env vars are strings.
@@ -621,7 +641,8 @@ HATCHET_ALIVE_TTL_MINUTES=7
 - `HATCHET_APP_LIMIT`: The maximum number of **hatchet** apps that hatchet will allow in the given account before running the reaper. For local execution keep this low as you don't want your account dominated by hatchet apps. For CI you want it to be much larger, 80-100 since it's not competiting with non-hatchet apps. Your test runner account needs to be a dedicated account.
 - `HEROKU_API_KEY`: The api key of your test account user. If you run locally without this set it will use your personal credentials.
 - `HEROKU_API_USER`: The email address of your user account. If you run locally without this set it will use your personal credentials.
-- `HATCHET_ALIVE_TTL_MINUTES`: The minimum time that hatchet appplications must be allowed to live on a given account if they're not marked as safe to delete by being in maintenance mode. For example if you set this value to 3 it guarantees that a Hatchet app will be allowed to live 3 minutes before Hatchet will try to delete it. Default is 7 minutes. Set to zero to disable.
+- `HATCHET_RUN_MULTI`: If enabled, this will scale up deployed apps to "standard-1x" once deployed instead of running on the free tier. This enables the `run_multi` method capability, however scaling up is not free. WARNING: Setting this env var will incur chages to your heroku account. We recommended to never enable this setting unless you work for Heroku. To use this you must also set `HATCHET_EXPENSIVE_MODE=1`
+- `HATCHET_EXPENSIVE_MODE`: This is intended to be a "safety" environment variable. If it is not set, then hatchet will prevent you from using the `run_multi: true` setting or the `HATCHET_RUN_MULTI` environment variables. There are still ways to incur charges without this feature, but unless you're absolutely confident your test setup will not leave "orphan" apps that are billing you, do not enable this setting. Even then, only set this value if you work for Heroku. To recap WARNING: setting this is expensive.
 
 ## Basic
 

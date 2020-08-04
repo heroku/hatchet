@@ -54,6 +54,7 @@ module Hatchet
                    buildpacks: nil,
                    buildpack_url: nil,
                    before_deploy: nil,
+                   run_multi: ENV["HATCHET_RUN_MULTI"],
                    config: {}
                   )
       @repo_name     = repo_name
@@ -66,6 +67,12 @@ module Hatchet
       @buildpacks    = buildpack || buildpacks || buildpack_url || self.class.default_buildpack
       @buildpacks    = Array(@buildpacks)
       @buildpacks.map! {|b| b == :default ? self.class.default_buildpack : b}
+      @run_multi = run_multi
+
+      if run_multi && !ENV["HATCHET_EXPENSIVE_MODE"]
+        raise "You're attempting to enable `run_multi: true` mode, but have not enabled `HATCHET_EXPENSIVE_MODE=1` env var to verify you understand the risks"
+      end
+      @run_multi_array = []
       @already_in_dir = nil
       @app_is_setup = nil
 
@@ -147,6 +154,28 @@ module Hatchet
       else
         command = command.to_s
       end
+
+      heroku_command = build_heroku_command(command, options)
+
+      allow_run_multi! if @run_multi
+      if block_given?
+        STDERR.puts "Using App#run with a block is deprecated, support for ReplRunner is being removed.\n#{caller}"
+        # When we deprecated this we can get rid of the "cmd_type" from the method signature
+        require 'repl_runner'
+        return ReplRunner.new(cmd_type, heroku_command, options).run(&block)
+      end
+
+      output = ""
+
+      ShellThrottle.new(platform_api: @platform_api).call do |throttle|
+        output = `#{heroku_command}`
+        throw(:throttle) if output.match?(/reached the API rate limit/)
+      end
+
+      return output
+    end
+
+    private def build_heroku_command(command, options = {})
       command = command.shellescape unless options.delete(:raw)
 
       default_options = { "app" => name, "exit-code" => nil }
@@ -156,22 +185,77 @@ module Hatchet
         arg << "=#{v.to_s.shellescape}" unless v.nil? # nil means we include the option without an argument
         arg
       end.join(" ")
-      heroku_command = "heroku run #{heroku_options} -- #{command}"
 
-      if block_given?
-        STDERR.puts "Using App#run with a block is deprecated, support for ReplRunner is being removed.\n#{caller}"
-        # When we deprecated this we can get rid of the "cmd_type" from the method signature
-        require 'repl_runner'
-        return ReplRunner.new(cmd_type, heroku_command, options).run(&block)
+      "heroku run #{heroku_options} -- #{command}"
+    end
+
+    private def allow_run_multi!
+      raise "Must explicitly enable the `run_multi: true` option. This requires scaling up a dyno and is not free, it may incur charges on your account" unless @run_multi
+
+      @run_multi_is_setup ||= platform_api.formation.update(name, "web", {"size" => "Standard-1X"})
+    end
+
+
+    # Allows multiple commands to be run concurrently in the background.
+    #
+    # WARNING! Using the feature requres that the underlying app is not on the "free" Heroku
+    # tier. This requires scaling up the dyno which is not free. If an app is
+    # scaled up and left in that state it can incur large costs.
+    #
+    # Enabling this feature should be done with extreme caution.
+    #
+    # Example:
+    #
+    #    Hatchet::Runner.new("default_ruby", run_multi: true)
+    #      app.run_multi("ls") { |out| expect(out).to include("Gemfile") }
+    #      app.run_multi("ruby -v") { |out| expect(out).to include("ruby") }
+    #    end
+    #
+    # This example will run `heroku run ls` as well as `ruby -v` at the same time in the background.
+    # The return result will be yielded to the block after they finish running.
+    #
+    # Order of execution is not guaranteed.
+    #
+    # If you need to assert a command was successful, you can yield a second status object like this:
+    #
+    #    Hatchet::Runner.new("default_ruby", run_multi: true)
+    #      app.run_multi("ls") do |out, status|
+    #        expect(status.success?).to be_truthy
+    #        expect(out).to include("Gemfile")
+    #      end
+    #      app.run_multi("ruby -v") do |out, status|
+    #        expect(status.success?).to be_truthy
+    #        expect(out).to include("ruby")
+    #      end
+    #    end
+    def run_multi(command, options = {}, &block)
+      raise "Block required" if block.nil?
+      allow_run_multi!
+
+      run_thread = Thread.new do
+        heroku_command = build_heroku_command(command, options)
+
+        out = nil
+        status = nil
+        ShellThrottle.new(platform_api: @platform_api).call do |throttle|
+          out = `#{heroku_command}`
+          throw(:throttle) if output.match?(/reached the API rate limit/)
+          status = $?
+        end
+
+        yield out, status
+
+        # if block.arity == 1
+        #   block.call(out)
+        # else
+        #   block.call(out, status)
+        # end
       end
-      output = ""
+      run_thread.abort_on_exception = true
 
-      ShellThrottle.new(platform_api: @platform_api).call do |throttle|
-        output = `#{heroku_command}`
-        throw(:throttle) if output.match?(/reached the API rate limit/)
-      end
+      @run_multi_array << run_thread
 
-      return output
+      true
     end
 
     # set debug: true when creating app if you don't want it to be
@@ -248,9 +332,14 @@ module Hatchet
     def teardown!
       return false unless @app_is_setup
 
-      @app_update_info = platform_api.app.update(name, { maintenance: true })
+      if @run_multi_is_setup
+        @run_multi_array.map(&:join)
+        platform_api.formation.update(name, "web", {"size" => "free"})
+      end
 
-      @reaper.cycle
+    ensure
+      @app_update_info = platform_api.app.update(name, { maintenance: true }) if @app_is_setup
+      @reaper.cycle if @app_is_setup
     end
 
     def in_directory(directory = self.directory)
