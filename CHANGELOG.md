@@ -1,5 +1,6 @@
 ## HEAD
 
+- Ignore  403 on app delete due to race condition (https://github.com/heroku/hatchet/pull/101)
 - Allow concurrent one-off dyno runs with the `run_multi: true` flag on apps ()
 - Apps are now marked as being "finished" by enabling maintenance mode on them when `teardown!` is called. Finished apps can be reaped immediately (https://github.com/heroku/hatchet/pull/97)
 - Applications that are not marked as "finished" will be allowed to live for a HATCHET_ALIVE_TTL_MINUTES duration before they're deleted by the reaper to protect against deleting an app mid-deploy, default is seven minutes (https://github.com/heroku/hatchet/pull/97)
