@@ -600,20 +600,20 @@ end
 - `app.teardown!`: This method is called automatically when using `app.deploy` in block mode after the deploy block finishes. When called it will clean up resources, mark the app as being finished (by setting `{"maintenance" => true}` on the app) so that the reaper knows it is safe to delete later. Here is an example of a test that creates and deploys an app manually, then later tears it down manually. If you deploy an application without calling `teardown!` then Hatchet will not know it is safe to delete and may keep it around for much longer than required for the test to finish.
 
 ```ruby
-before(:all) do
+before(:each) do
   @app = Hatchet::Runner.new("default_ruby")
   @app.deploy
 end
 
-after(:all) do
+after(:each) do
   @app.teardown! if @app
 end
 
 it "uses ruby" do
   expect(@app.run("ruby -v")).to match("ruby")
 end
-
 ```
+
 - `test_run.run_again`: Runs the app again in Heroku CI
 - `test_run.status`: Returns the status of the CI run (possible values are `:pending`, `:building`, `:creating`, `:succeeded`, `:failed`, `:errored`)
 - `test_run.output`: The output of a given test run
@@ -737,6 +737,7 @@ Generally I use include when I know the exact value I want to assert against, I 
 
 For building regular expressions I like to use the tool https://rubular.com/ for developing and testing regular expressions. Ruby's regular expression engine is very powerful.
 
+
 - **Keep it simple**
 
 Rspec is a massive library with a host of features. It's possible to quickly make your tests unmaintainable and unreadable in the efforts to keep your code [DRY](https://en.wikipedia.org/wiki/Don%27t_repeat_yourself). I recommend sticking to only the features mentioned here at first before trying to do anything fancy.
@@ -746,6 +747,43 @@ Rspec is a massive library with a host of features. It's possible to quickly mak
 Here's a PR with a description of several common failure modes that lots of buildpacks should be aware of along with reference implementations:
 
 https://github.com/heroku/heroku-buildpack-python/pull/969
+
+
+- **before(:all) gotcha**
+
+In rspec you can use `before` blocks to execute before a test, and `after` blocks to execute after a test. This might sound like you can deploy a hatchet app once and then write multiple tests against that app. However if `before(:all)` can be executed N times if you're running via parallel processes. Example:
+
+```ruby
+# Warning running `before(:all)` in a multi-process test runner context likely executes your
+# block N times where N is the number of tests in that context: https://github.com/grosser/parallel_split_test/pull/22/files
+before(:all) do
+  @app = Hatchet::Runner.new("default_ruby") # Warning: This is a gotcha
+  @app.deploy
+end
+
+after(:all) do
+  @app.teardown! if @app # Warning: This is a gotcha
+end
+
+it "tests app somehow" do
+  expect(@app.run("ruby -v")).to match("ruby") # Warning: This is a gotcha
+end
+
+
+it "tests app somehow 2" do
+  expect(@app.run("ls")).to match("Gemfile") # Warning: This is a gotcha
+end
+```
+
+Running this via the parallel_split_test gem will cause the `before(:all)` block to be invoked multiple times:
+
+```
+$ PARALLEL_SPLIT_TEST_PROCESSES=3 bundle exec parallel_split_test spec/RALLEL_SPLIT_TEST_PROCESSES=3 bundle exec parallel_split_test spec/
+Hatchet setup: "hatchet-t-af7dffc006"
+Hatchet setup: "hatchet-t-bf7dffc006"
+```
+
+Would result in 2 apps being deployed. You can find more information [on the documentation](https://github.com/grosser/parallel_split_test#beforeall-rspec-hooks). For clarity of what will happen behind the scenes when running with multiple processes, it's recommended to use `before(:each)` instead of `before(:all)`.
 
 ### Basic Ruby
 

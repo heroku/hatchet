@@ -195,15 +195,21 @@ describe "AppTest" do
   end
 
   describe "running concurrent tests in different examples works" do
-    # Would love for this to be a `before(:all)` however we're hitting this issue: https://github.com/grosser/parallel_split_test/issues/7#issuecomment-668616973
-    before(:each) do
+    # This is not a great pattern if we're running tests via a parallel runner
+    #
+    # For example this will be guaranteed to be called, not just once, but at least once for every process
+    # that needs to run a test. In the best case it will only fire once, in the worst case it will fire N times
+    # if there are N tests. It is effectively the same as a `before(:each)`
+    #
+    # Documented here: https://github.com/grosser/parallel_split_test/pull/22/files
+    before(:all) do
       skip("Must set HATCHET_EXPENSIVE_MODE") unless ENV["HATCHET_EXPENSIVE_MODE"]
 
       @app = Hatchet::GitApp.new("default_ruby", run_multi: true)
       @app.deploy
     end
 
-    after(:each) do
+    after(:all) do
       @app.teardown! if @app
     end
 
