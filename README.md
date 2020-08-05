@@ -159,15 +159,15 @@ You can re-lock your projects by running `hatchet lock`. This modifies the `hatc
   - 6e642963acec0ff64af51bd6fba8db3c4176ed6e
 - - test/fixtures/repos/lock/lock_fail
   - da748a59340be8b950e7bbbfb32077eb67d70c3c
-- - test/fixtures/repos/lock/lock_fail_master
-  - master
+- - test/fixtures/repos/lock/lock_fail_main
+  - main
 - - test/fixtures/repos/rails2/rails2blog
   - b37357a498ae5e8429f5601c5ab9524021dc2aaa
 - - test/fixtures/repos/rails3/rails3_mri_193
   - 88c5d0d067cfd11e4452633994a85b04627ae8c7
 ```
 
-If you don't want to lock to a specific commit, you can always use the latest commit by specifying `master` manually as seen above.
+If you don't want to lock to a specific commit, you can always use the latest commit by specifying `main` manually as seen above.
 
 ### Deploying apps
 

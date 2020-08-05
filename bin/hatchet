@@ -78,6 +78,8 @@ class HatchetCLI < Thor
 
         if lockfile_hash[directory] == "master"
           lock_hash[directory] = "master"
+        elsif lockfile_hash[directory] == "main"
+          lock_hash[directory] = "main"
         else
           commit = commit_at_directory(directory)
           lock_hash[directory] = commit
@@ -157,7 +159,7 @@ class HatchetCLI < Thor
   end
 
   def pull(path, git_repo, commit: false)
-    cmd("cd #{path} && git pull --rebase #{git_repo} master --quiet")
+    cmd("cd #{path} && git pull --rebase #{git_repo} --quiet")
   end
 
   def clone(path, git_repo, quiet: true)
