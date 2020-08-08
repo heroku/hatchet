@@ -158,12 +158,6 @@ module Hatchet
       heroku_command = build_heroku_command(command, options)
 
       allow_run_multi! if @run_multi
-      if block_given?
-        STDERR.puts "Using App#run with a block is deprecated, support for ReplRunner is being removed.\n#{caller}"
-        # When we deprecated this we can get rid of the "cmd_type" from the method signature
-        require 'repl_runner'
-        return ReplRunner.new(cmd_type, heroku_command, options).run(&block)
-      end
 
       output = ""
 
