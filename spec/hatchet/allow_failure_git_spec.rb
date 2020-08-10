@@ -14,7 +14,7 @@ describe "AllowFailureGitTest" do
 
     it "is marked as a failure if the release fails" do
       expect {
-        Hatchet::GitApp.new("default_ruby", before_deploy: release_fail_proc).deploy
+        Hatchet::GitApp.new("default_ruby", before_deploy: release_fail_proc).deploy {}
       }.to(raise_error(Hatchet::App::FailedReleaseError))
     end
 
@@ -27,7 +27,6 @@ describe "AllowFailureGitTest" do
 
   it "allowed failure" do
     Hatchet::GitApp.new("no_lockfile", allow_failure: true).deploy do |app|
-      puts app.output
       expect(app.deployed?).to be_falsey
       expect(app.output).to match("Gemfile.lock required")
     end
@@ -35,7 +34,7 @@ describe "AllowFailureGitTest" do
 
   it "failure with no flag" do
     expect {
-      Hatchet::GitApp.new("no_lockfile").deploy
+      Hatchet::GitApp.new("no_lockfile").deploy {}
     }.to(raise_error(Hatchet::App::FailedDeploy))
   end
 end
