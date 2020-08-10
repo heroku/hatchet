@@ -42,7 +42,7 @@ If you're unfamiliar with the ruby testing eco-system or want some help, start b
   - [Tell Hatchet how to find your buildpack](#specify-buildpack)
   - [Give Hatchet some example apps to deploy](#example-apps)
   - [Use Hatchet to deploy app](#deploying-apps)
-  - [Use Hatchet to test runtime behavior and enviornment](#build-versus-run-testing)
+  - [Use Hatchet to test runtime behavior and environment](#build-versus-run-testing)
   - [How to update or modify test app files safely in parallel](#modifying-apps-on-disk-before-deploy)
   - [Understand how Hatchet (does and does not) clean up apps](#app-reaping)
   - [How to re-deploy the same app](#deploying-multiple-times)
@@ -80,7 +80,7 @@ If you do not specify `HATCHET_BUILDPACK_URL` the default Ruby buildpack will be
 The workflow generally looks like this:
 
 1. Make a change to the codebase
-2. Commit it and push to GitHub so it's publically available
+2. Commit it and push to GitHub so it's publicly available
 3. Execute your test suite or individual test
 4. Repeat until you're happy
 
@@ -202,7 +202,7 @@ In this example hatchet is calling `heroku run which node` and passing the resul
 
 - **Asserting exit status:**
 
-In ruby the way you assert a command you ran on the shell was succesful or not is by using the `$?` "magic object". By default calling `app.run` will set this variable which can be used in your tests:
+In ruby the way you assert a command you ran on the shell was successful or not is by using the `$?` "magic object". By default calling `app.run` will set this variable which can be used in your tests:
 
 ```ruby
 Hatchet::Runner.new("minimal_webpacker", buildpacks: buildpacks).deploy do |app, heroku|
@@ -313,9 +313,9 @@ And use that to debug. Hatchet deletes old apps on demand. You tell it what your
 HATCHET_APP_LIMIT=20
 ```
 
-With these env vars, Hatchet will "reap" older hatchet apps when it sees there are 20 or more hatchet apps. For CI, it's recomment you increase the HATCHET_APP_LIMIT to 80-100. Hatchet will mark apps as safe for deletion once they've finished and the `teardown!` method has been called on them (it tracks this by enabling maintenance mode on apps). Hatchet only tracks its own apps. If your account has reached the maximum number of global Heroku apps, you'll need to manually remove some.
+With these env vars, Hatchet will "reap" older hatchet apps when it sees there are 20 or more hatchet apps. For CI, it's recommended that you increase the `HATCHET_APP_LIMIT` to 80-100. Hatchet will mark apps as safe for deletion once they've finished and the `teardown!` method has been called on them (it tracks this by enabling maintenance mode on apps). Hatchet only tracks its own apps. If your account has reached the maximum number of global Heroku apps, you'll need to manually remove some.
 
-If for some reason an app is not marked as being in maintenance mode it can be deleted, but only after it has been allowed to live for a period of time. This is configured by the `HATCHET_ALIVE_TTL_MINUTES` env var. For example if you set it for `7` then Hatchet will ensure any apps that are not marked as being in maintenace mode are allowed to live for at least seven minutes. This should give the app time to finish execution of the test so it is not deleted mid-deploy. When this deletion happens, you'll see a warning in your output. It could indicate you're not properly cleaning up and calling `teardown!` on some of your apps, or it could mean that you're attempting to execute more tests concurrently than your `HATCHET_APP_LIMIT` allows. This might happen if you have multiple CI runs executing at the same time.
+If for some reason an app is not marked as being in maintenance mode it can be deleted, but only after it has been allowed to live for a period of time. This is configured by the `HATCHET_ALIVE_TTL_MINUTES` env var. For example if you set it for `7` then Hatchet will ensure any apps that are not marked as being in maintenance mode are allowed to live for at least seven minutes. This should give the app time to finish execution of the test so it is not deleted mid-deploy. When this deletion happens, you'll see a warning in your output. It could indicate you're not properly cleaning up and calling `teardown!` on some of your apps, or it could mean that you're attempting to execute more tests concurrently than your `HATCHET_APP_LIMIT` allows. This might happen if you have multiple CI runs executing at the same time.
 
 It's recommend you don't use your personal Heroku API key for running tests on a CI server since the hatchet apps count against your account maximum limits. Running tests using your account locally is fine for debugging one or two tests.
 
@@ -389,7 +389,7 @@ You probably need an `app.json` in the root directory of the app you're deployin
 
 This is on [a Rails5 test app](https://github.com/sharpstone/rails5_ruby_schema_format/blob/master/app.json) that needs the database to run.
 
-Do **NOT** specify a `buildpacks` key in the `app.json` because Hatchet will automatically do this for you. If you need to set buildpacks you can pass them into the `buildpacks:` keword argument:
+Do **NOT** specify a `buildpacks` key in the `app.json` because Hatchet will automatically do this for you. If you need to set buildpacks you can pass them into the `buildpacks:` keyword argument:
 
 ```ruby
 buildpacks = [
@@ -439,7 +439,7 @@ HEROKU_API_KEY=<redacted>
 HEROKU_API_USER=<redacted@example.com>
 ```
 
-You can refernce this PR for getting a buildpack set up from scratch with tests to see what kinds of files you might need: https://github.com/sharpstone/force_absolute_paths_buildpack/pull/2
+You can reference this PR for getting a buildpack set up from scratch with tests to see what kinds of files you might need: https://github.com/sharpstone/force_absolute_paths_buildpack/pull/2
 
 ## Reference docs
 
@@ -490,7 +490,7 @@ end
 
 > A hash in Ruby is like a dict in python. It is a set of key/value pairs. The syntax `=>` is called a "hashrocket" and is an alternative syntax to "json" syntax for hashes. It is used to allow for string keys instead of symbol keys.
 
-- `run_multi` (Boolean): Allows you to run more than a single "one-off" dyno at a time (the `HATCHET_EXPENSIVE_MODE` env var must be set to use this feature). By default "free" heroku apps are restricted to only allowing one dyno to run at a time. You can increase this limit by scaling an application to paid application, but it will incur chages against your application:
+- `run_multi` (Boolean): Allows you to run more than a single "one-off" dyno at a time (the `HATCHET_EXPENSIVE_MODE` env var must be set to use this feature). By default "free" heroku apps are restricted to only allowing one dyno to run at a time. You can increase this limit by scaling an application to paid application, but it will incur charges against your application:
 
 ```ruby
 Hatchet::Runner.new("default_ruby", run_multi: true).deploy do |app|
@@ -533,7 +533,7 @@ app.get_config("DEPLOY_TASKS") # => "run:bloop"
 - `app.add_database()`: adds a database to the app, defaults to the "dev" command
 - `app.run()`: Runs a `heroku run bash` session with the arguments, covered above.
 - `app.run_multi()`: Runs a `heroku run bash` session in the background and yields the results. This requires the `run_multi` flag of the app to be set to `true` which will charge your application (the `HATCHET_EXPENSIVE_MODE` env var must also be set to use this feature). Example above.
-- `app.create_app`: Can be uused to manually create the app without deploying it (You probably want `setup!` though)
+- `app.create_app`: Can be used to manually create the app without deploying it (You probably want `setup!` though)
 - `app.setup!`: Gets the application in a state ready for deploy.
   - Creates the Heroku app
   - Sets up any specified labs (from initialization)
@@ -579,7 +579,7 @@ end
 > Note: Any changes to disk from a `before_deploy` block will be committed automatically after the block executes
 
 
-- `app.in_directory`: Runs the given block in a temp directory (but in the same process). One advanced debugging technique is indefinetly pause test execution after outputting the directory so you can `cd` there and manually debug:
+- `app.in_directory`: Runs the given block in a temp directory (but in the same process). One advanced debugging technique is to indefinitely pause test execution after outputting the directory so you can `cd` there and manually debug:
 
 ```ruby
 Hatchet::Runner.new("python_default").in_directory do |app|
@@ -591,7 +591,7 @@ end
 > Note: If you want to execute tests in this temp directory, you likely want to use `in_directory_fork` otherwise you might accidentally contaminate the current environment's variables if you modify them.
 
 - `app.in_directory_fork`: Runs the given block in a temp directory and inside of a forked process
-- `app.directory`: Returns the current temp directory the appp is in.
+- `app.directory`: Returns the current temp directory the app is in.
 - `app.deploy`: Your main method, takes a block to execute after the deploy is successful. If no block is provided you must manually call `app.teardown!` (see below for an example).
 - `app.output`: The output contents of the deploy
 - `app.platform_api`: Returns an instance of the [platform-api Heroku client](https://github.com/heroku/platform-api). If hatchet doesn't give you access to a part of Heroku that you need, you can likely do it with the platform-api client.
@@ -629,7 +629,7 @@ HEROKU_API_KEY=<redacted>
 HEROKU_API_USER=<redacted@redacted.com>
 HATCHET_ALIVE_TTL_MINUTES=7
 
-# HATCHET_RUN_MULTI=1      # WARNING: Setting this env var will incur chages against your account. To use this env var you must also enable `HATCHET_EXPENSIVE_MODE`
+# HATCHET_RUN_MULTI=1      # WARNING: Setting this env var will incur charges against your account. To use this env var you must also enable `HATCHET_EXPENSIVE_MODE`
 # HATCHET_EXPENSIVE_MODE=1 # WARNING: Do not set this environment variable unless you're okay with possibly large bills
 ```
 
@@ -638,17 +638,17 @@ HATCHET_ALIVE_TTL_MINUTES=7
 - `HATCHET_BUILDPACK_BASE`: This is the URL where hatchet can find your buildpack. It must be public for Heroku to be able to use your buildpack.
 - `HATCHET_BUILDPACK_BRANCH`: By default Hatchet will use your current git branch name. If for some reason git is not available or you want to manually specify it like `ENV["HATCHET_BUILDPACK_BRANCH'] = ENV[`MY_CI_BRANCH`]` then you can.
 - `HATCHET_RETRIES` If the `ENV['HATCHET_RETRIES']` is set to a number, deploys are expected to work and automatically retry that number of times. Due to testing using a network and random failures, setting this value to `3` retries seems to work well. If an app cannot be deployed within its allotted number of retries, an error will be raised. The downside of a larger number is that your suite will keep running for much longer when there are legitimate failures.
-- `HATCHET_APP_LIMIT`: The maximum number of **hatchet** apps that hatchet will allow in the given account before running the reaper. For local execution keep this low as you don't want your account dominated by hatchet apps. For CI you want it to be much larger, 80-100 since it's not competiting with non-hatchet apps. Your test runner account needs to be a dedicated account.
+- `HATCHET_APP_LIMIT`: The maximum number of **hatchet** apps that hatchet will allow in the given account before running the reaper. For local execution keep this low as you don't want your account dominated by hatchet apps. For CI you want it to be much larger, 80-100 since it's not competing with non-hatchet apps. Your test runner account needs to be a dedicated account.
 - `HEROKU_API_KEY`: The api key of your test account user. If you run locally without this set it will use your personal credentials.
 - `HEROKU_API_USER`: The email address of your user account. If you run locally without this set it will use your personal credentials.
-- `HATCHET_RUN_MULTI`: If enabled, this will scale up deployed apps to "standard-1x" once deployed instead of running on the free tier. This enables the `run_multi` method capability, however scaling up is not free. WARNING: Setting this env var will incur chages to your heroku account. We recommended to never enable this setting unless you work for Heroku. To use this you must also set `HATCHET_EXPENSIVE_MODE=1`
+- `HATCHET_RUN_MULTI`: If enabled, this will scale up deployed apps to "standard-1x" once deployed instead of running on the free tier. This enables the `run_multi` method capability, however scaling up is not free. WARNING: Setting this env var will incur charges to your heroku account. We recommended to never enable this setting unless you work for Heroku. To use this you must also set `HATCHET_EXPENSIVE_MODE=1`
 - `HATCHET_EXPENSIVE_MODE`: This is intended to be a "safety" environment variable. If it is not set, then hatchet will prevent you from using the `run_multi: true` setting or the `HATCHET_RUN_MULTI` environment variables. There are still ways to incur charges without this feature, but unless you're absolutely confident your test setup will not leave "orphan" apps that are billing you, do not enable this setting. Even then, only set this value if you work for Heroku. To recap WARNING: setting this is expensive.
 
 ## Basic
 
 ### Basic rspec
 
-Rspec is a testing framework for Ruby. It allows you to "describe" your tests using strings and blocks. This section is intended to be a breif introduction and include a few pitfalls but is not comprehensive.
+Rspec is a testing framework for Ruby. It allows you to "describe" your tests using strings and blocks. This section is intended to be a brief introduction and include a few pitfalls but is not comprehensive.
 
 In your directory rspec assumes a `spec/` folder. It's common to have a `spec_helper.rb` in the root of that folder:
 
@@ -778,7 +778,7 @@ end
 Running this via the parallel_split_test gem will cause the `before(:all)` block to be invoked multiple times:
 
 ```
-$ PARALLEL_SPLIT_TEST_PROCESSES=3 bundle exec parallel_split_test spec/RALLEL_SPLIT_TEST_PROCESSES=3 bundle exec parallel_split_test spec/
+$ PARALLEL_SPLIT_TEST_PROCESSES=3 bundle exec parallel_split_test spec/
 Hatchet setup: "hatchet-t-af7dffc006"
 Hatchet setup: "hatchet-t-bf7dffc006"
 ```
@@ -787,7 +787,7 @@ Would result in 2 apps being deployed. You can find more information [on the doc
 
 ### Basic Ruby
 
-If you're not a Ruby specialist, not to worry. Here's a few things you migth want to do:
+If you're not a Ruby specialist, not to worry. Here's a few things you might want to do:
 
 - **Write a file and manipulate disk**
 
@@ -880,7 +880,7 @@ all values must be a string. See the Hash docs for more information on manipulat
 
 - **Strings versus symbols**
 
-In Ruby you can have a define a symobl `:thing` as well as a `"string"`. They look and behave very closely but are different. A symbol is a singleton object, while the string is unique object. One really confusing thing is you can have a hash with both string and symbol keys:
+In Ruby you can have a define a symbol `:thing` as well as a `"string"`. They look and behave very closely but are different. A symbol is a singleton object, while the string is unique object. One really confusing thing is you can have a hash with both string and symbol keys:
 
 ```ruby
 my_hash = {}
@@ -892,7 +892,7 @@ puts my_hash.inspect
 
 - **Blocks, procs, and lambdas**
 
-Blocks are a concept in Ruby for closure. Depending on how it's used it can be an anonomous method. It's always a method for passing around code. When you see `do |app|` that's the beginning of an implicit block. In addition to an implicit block you can create an explicit block using lambdas and procs. In hatchet, these are most likely to be used to update the app `before_deploy`. Here's an example of some syntax for creating various blocks.
+Blocks are a concept in Ruby for closure. Depending on how it's used it can be an anonymous method. It's always a method for passing around code. When you see `do |app|` that's the beginning of an implicit block. In addition to an implicit block you can create an explicit block using lambdas and procs. In hatchet, these are most likely to be used to update the app `before_deploy`. Here's an example of some syntax for creating various blocks.
 
 ```ruby
 before_deploy = -> { FileUtils.touch("foo.txt") } # This syntax is called a "stabby lambda"
@@ -918,7 +918,7 @@ You might have noticed that some ruby methods use parens and some don't. I.e. `p
 
 - **Debugging**
 
-If you're not used to debugging Ruby you can reference the [Ruby debugging magic cheat sheet](https://www.schneems.com/2016/01/25/ruby-debugging-magic-cheat-sheet.html). The Ruby language is very powerful in it's ability to [reflect on itself](https://en.wikipedia.org/wiki/Reflection_%28computer_programming%29). Essentially the Ruby code is able to introspect iself to tell you what it's doin. If you're ever lost, ask your ruby code. It might confuse you, but it won't lie to you.
+If you're not used to debugging Ruby you can reference the [Ruby debugging magic cheat sheet](https://www.schneems.com/2016/01/25/ruby-debugging-magic-cheat-sheet.html). The Ruby language is very powerful in it's ability to [reflect on itself](https://en.wikipedia.org/wiki/Reflection_%28computer_programming%29). Essentially the Ruby code is able to introspect itself to tell you what it's doing. If you're ever lost, ask your ruby code. It might confuse you, but it won't lie to you.
 
 Another good debugging tool is the [Pry debugger and repl](https://github.com/pry/pry).
 
@@ -938,7 +938,7 @@ If you see this it means a variable you're using is `nil` unexpectedly. You'll n
 
 - **More**
 
-Ruby is full of multitudes, this isn't even close to being exhaustive, just enough to make you dangerous and write a few tests. It's infanetly useful for testing, writing CLIs and web apps.
+Ruby is full of multitudes, this isn't even close to being exhaustive, just enough to make you dangerous and write a few tests. It's infinitely useful for testing, writing CLIs and web apps.
 
 ## Hatchet CLI
 

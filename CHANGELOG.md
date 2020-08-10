@@ -259,7 +259,7 @@
 
 ## 1.1.1
 
-- Ensure external commands run inside of `bundle_exec` block are run with propper environment variables set.
+- Ensure external commands run inside of `bundle_exec` block are run with proper environment variables set.
 
 ## 1.1.0
 
