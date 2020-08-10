@@ -218,12 +218,13 @@ module Hatchet
         "Content-Type"  => "application/json"
       }.merge(options[:headers] || {})
       options[:body] = JSON.generate(options[:body]) if options[:body]
+      options[:expects] << 429 if options[:expects]
 
       Hatchet::RETRIES.times.retry do
         PlatformAPI.rate_throttle.call do
           connection = Excon.new("https://api.heroku.com")
 
-          return connection.request(options)
+          connection.request(options)
         end
       end
     end

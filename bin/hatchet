@@ -46,7 +46,7 @@ class HatchetCLI < Thor
       Threaded.later do
         commit = lock_hash[directory]
         directory = File.expand_path(directory)
-        if Dir[directory].present?
+        if !Dir[directory]&.empty?
           puts "== pulling '#{git_repo}' into '#{directory}'\n"
           pull(directory, git_repo)
         else

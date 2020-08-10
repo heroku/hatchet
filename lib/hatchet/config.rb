@@ -46,7 +46,7 @@ module Hatchet
     def path_for_name(name)
       possible_paths = [repos[name.to_s], "repos/#{name}", name].compact
       path = possible_paths.detect do |path|
-        Dir[path].present?
+        !Dir[path]&.empty?
       end
       raise BadRepoName.new(name, possible_paths) if path.nil? || path.empty?
       path

@@ -1,4 +1,3 @@
-require 'active_support/core_ext/object/blank'
 require 'rrrretry'
 
 require 'json'
@@ -8,7 +7,7 @@ require 'stringio'
 require 'date'
 
 module Hatchet
-    APP_PREFIX = (ENV['HATCHET_APP_PREFIX'] || "hatchet-t-")
+  APP_PREFIX = (ENV['HATCHET_APP_PREFIX'] || "hatchet-t-")
 end
 
 require 'hatchet/version'

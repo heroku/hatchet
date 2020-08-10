@@ -1,5 +1,6 @@
 ## HEAD
 
+- ActiveSupport's Object#blank? and Object#present? are no longer provided by default (https://github.com/heroku/hatchet/pull/107)
 - Remove deprecated support for passing a block to `App#run` (https://github.com/heroku/hatchet/pull/105)
 - Ignore  403 on app delete due to race condition (https://github.com/heroku/hatchet/pull/101)
 - The hatchet.lock file can now be locked to "main" in addition to "master" (https://github.com/heroku/hatchet/pull/86)
