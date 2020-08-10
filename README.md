@@ -505,7 +505,11 @@ Hatchet::Runner.new("default_ruby", run_multi: true).deploy do |app|
 end
 ```
 
-In this example the `heroku run ls` and `heroku run ruby -v` will be executed concurrently. The order that the `run_multi` blocks execute is not guaranteed. You can toggle this `run_multi` setting on globally by using `HATCHET_RUN_MULTI=1`. Without this setting enabled, you might need to add a `sleep` between multiple `app.run` invocations. WARNING: Enabling this `run_multi` setting will charge your application account. To work, this requires your application to have a `web` process associated with it.
+In this example the `heroku run ls` and `heroku run ruby -v` will be executed concurrently. The order that the `run_multi` blocks execute is not guaranteed. You can toggle this `run_multi` setting on globally by using `HATCHET_RUN_MULTI=1`. Without this setting enabled, you might need to add a `sleep` between multiple `app.run` invocations.
+
+WARNING: Enabling `run_multi` setting on an app will charge your Heroku account 🤑.
+WARNING: Do not use `run_multi` if you're not using the `deploy` block syntax or manually call `teardown!` inside of the text context [more info about how behavior does not work with the `after` block syntax in rspec](https://github.com/heroku/hatchet/issues/110).
+WARNING: To work, `run_multi` requires your application to have a `web` process associated with it.
 
 ### App methods:
 
