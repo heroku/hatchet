@@ -3,7 +3,7 @@
 - Remove deprecated support for passing a block to `App#run` (https://github.com/heroku/hatchet/pull/105)
 - Ignore  403 on app delete due to race condition (https://github.com/heroku/hatchet/pull/101)
 - The hatchet.lock file can now be locked to "main" in addition to "master" (https://github.com/heroku/hatchet/pull/86)
-- Allow concurrent one-off dyno runs with the `run_multi: true` flag on apps ()
+- Allow concurrent one-off dyno runs with the `run_multi: true` flag on apps (https://github.com/heroku/hatchet/pull/94)
 - Apps are now marked as being "finished" by enabling maintenance mode on them when `teardown!` is called. Finished apps can be reaped immediately (https://github.com/heroku/hatchet/pull/97)
 - Applications that are not marked as "finished" will be allowed to live for a HATCHET_ALIVE_TTL_MINUTES duration before they're deleted by the reaper to protect against deleting an app mid-deploy, default is seven minutes (https://github.com/heroku/hatchet/pull/97)
 - The HEROKU_APP_LIMIT env var no longer does anything, instead hatchet application reaping is manually executed if an app cannot be created (https://github.com/heroku/hatchet/pull/97)
