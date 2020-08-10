@@ -214,12 +214,12 @@ describe "AppTest" do
     end
 
     it "test one" do
-      @app.run_multi("ls") { |out| expect(out).to include("Gemfile") }
+      expect(@app.run("ls")).to include("Gemfile")
       expect(@app.platform_api.formation.list(@app.name).detect {|ps| ps["type"] == "web"}["size"].downcase).to_not eq("free")
     end
 
     it "test two" do
-      @app.run_multi("ruby -v") { |out| expect(out).to include("ruby") }
+      expect(@app.run("ruby -v")).to include("ruby")
       expect(@app.platform_api.formation.list(@app.name).detect {|ps| ps["type"] == "web"}["size"].downcase).to_not eq("free")
     end
   end
