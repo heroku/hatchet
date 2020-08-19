@@ -156,7 +156,7 @@ class HatchetCLI < Thor
   end
 
   def checkout_commit(directory, commit)
-    cmd("cd #{directory} && git reset --hard #{commit}")
+    cmd("cd #{directory} && git fetch origin #{commit} && git checkout #{commit} && git checkout - && git reset --hard #{commit}")
   end
 
   def commit_at_directory(directory)

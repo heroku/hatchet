@@ -1,5 +1,8 @@
 ## HEAD
 
+- Bugfix: Allow `hatchet lock` to be run against new projects (https://github.com/heroku/hatchet/pull/118)
+- Bugfix: Allow `hatchet.lock` file to lock a repo to a different branch than what is specified as default for GitHub (https://github.com/heroku/hatchet/pull/118)
+
 ## 7.0.0
 
 - ActiveSupport's Object#blank? and Object#present? are no longer provided by default (https://github.com/heroku/hatchet/pull/107)

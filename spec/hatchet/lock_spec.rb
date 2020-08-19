@@ -47,4 +47,35 @@ describe "isolated lock tests" do
       expect(lockfile_contents).to include("repos/foo/lock_fail_main_default_is_master")
     end
   end
+
+  it "works when a project is locked to main but the default branch is master" do
+    Dir.mktmpdir do |dir|
+      dir = Pathname.new(dir)
+
+      dir.join("hatchet.json").open("w+") do |f|
+        f.puts %Q{{ "foo": ["sharpstone/lock_fail_main_default_is_master"] }}
+      end
+
+      dir.join("hatchet.lock").open("w+") do |f|
+        f.puts <<~EOM
+        ---
+        - - "./repos/foo/lock_fail_main_default_is_master"
+          - main
+        EOM
+      end
+
+      output = `cd #{dir} && hatchet install 2>&1`
+
+      raise "Expected cmd `hatchet install` to succeed, but it did not:\n#{output}" unless $?.success?
+      expect(output).to include("Installing")
+
+      lockfile_contents = dir.join('hatchet.lock').read
+      contents = YAML.safe_load(lockfile_contents).to_h
+      expect(contents).to eq({"./repos/foo/lock_fail_main_default_is_master" => "main"})
+
+      contents.each do |repo_dir, commit_or_branch|
+        expect(`cd #{dir.join(repo_dir)} && git describe --contains --all HEAD`).to match("main")
+      end
+    end
+  end
 end
