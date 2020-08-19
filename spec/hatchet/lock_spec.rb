@@ -28,3 +28,23 @@ describe "LockTest" do
     expect(branch).to eq("main")
   end
 end
+
+describe "isolated lock tests" do
+  it "works when there's no hatchet.lock" do
+    Dir.mktmpdir do |dir|
+      dir = Pathname.new(dir)
+
+      dir.join("hatchet.json").open("w+") do |f|
+        f.puts %Q{{ "foo": ["sharpstone/lock_fail_main_default_is_master"] }}
+      end
+
+      output = `cd #{dir} && hatchet lock 2>&1`
+
+      raise "Expected cmd `hatchet lock` to succeed, but it did not: #{output}" unless $?.success?
+      expect(output).to include("locking")
+
+      lockfile_contents = dir.join('hatchet.lock').read
+      expect(lockfile_contents).to include("repos/foo/lock_fail_main_default_is_master")
+    end
+  end
+end

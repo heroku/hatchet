@@ -67,7 +67,7 @@ class HatchetCLI < Thor
   desc "locks to specific git commits", "updates hatchet.lock"
   def lock
     lock_hash = {}
-    lockfile_hash = load_lockfile
+    lockfile_hash = load_lockfile(create_if_does_not_exist: true)
     dirs.map do |directory, git_repo|
       Threaded.later do
         puts "== locking #{directory}"
@@ -118,10 +118,15 @@ class HatchetCLI < Thor
   end
 
   private
-  def load_lockfile
+  def load_lockfile(create_if_does_not_exist: false)
     return YAML.safe_load(File.read('hatchet.lock')).to_h
   rescue Errno::ENOENT
-    raise "No such file found `hatchet.lock` please run `$ bundle exec hatchet lock`"
+    if create_if_does_not_exist
+      FileUtils.touch('hatchet.lock')
+      {}
+    else
+      raise "No such file found `hatchet.lock` please run `$ bundle exec hatchet lock`"
+    end
   end
 
   def bad_repo?(url)
