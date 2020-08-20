@@ -1,5 +1,7 @@
 ## HEAD
 
+## 7.1.0
+
 - Initializing an `App` can now take a `retries` key to overload the global hatchet env var (https://github.com/heroku/hatchet/pull/119)
 - Calling `App#commit!` now adds an empty commit if there is no changes on disk (https://github.com/heroku/hatchet/pull/119)
 - Bugfix: Failed release phase in deploys can now be re-run (https://github.com/heroku/hatchet/pull/119)
