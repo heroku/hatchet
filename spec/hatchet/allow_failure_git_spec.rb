@@ -14,8 +14,11 @@ describe "AllowFailureGitTest" do
 
     it "is marked as a failure if the release fails" do
       expect {
-        Hatchet::GitApp.new("default_ruby", before_deploy: release_fail_proc).deploy {}
-      }.to(raise_error(Hatchet::App::FailedReleaseError))
+        Hatchet::GitApp.new("default_ruby", before_deploy: release_fail_proc, retries: 2).deploy {}
+      }.to raise_error { |error|
+        expect(error).to be_a(Hatchet::App::FailedReleaseError)
+        expect(error.message).to_not match("Everything up-to-date")
+      }
     end
 
     it "works when failure is allowed" do

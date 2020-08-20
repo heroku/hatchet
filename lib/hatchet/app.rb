@@ -9,7 +9,7 @@ module Hatchet
     HATCHET_BUILDPACK_BRANCH = -> { ENV['HATCHET_BUILDPACK_BRANCH'] || ENV['HEROKU_TEST_RUN_BRANCH'] || Hatchet.git_branch }
     BUILDPACK_URL = "https://github.com/heroku/heroku-buildpack-ruby.git"
 
-    attr_reader :name, :stack, :directory, :repo_name, :app_config, :buildpacks, :reaper
+    attr_reader :name, :stack, :directory, :repo_name, :app_config, :buildpacks, :reaper, :max_retries_count
 
     class FailedDeploy < StandardError; end
 
@@ -55,6 +55,7 @@ module Hatchet
                    buildpack_url: nil,
                    before_deploy: nil,
                    run_multi: ENV["HATCHET_RUN_MULTI"],
+                   retries: RETRIES,
                    config: {}
                   )
       @repo_name     = repo_name
@@ -68,6 +69,7 @@ module Hatchet
       @buildpacks    = Array(@buildpacks)
       @buildpacks.map! {|b| b == :default ? self.class.default_buildpack : b}
       @run_multi = run_multi
+      @max_retries_count = retries
 
       if run_multi && !ENV["HATCHET_EXPENSIVE_MODE"]
         raise "You're attempting to enable `run_multi: true` mode, but have not enabled `HATCHET_EXPENSIVE_MODE=1` env var to verify you understand the risks"
@@ -129,7 +131,7 @@ module Hatchet
     end
 
     def add_database(plan_name = 'heroku-postgresql:dev', match_val = "HEROKU_POSTGRESQL_[A-Z]+_URL")
-      Hatchet::RETRIES.times.retry do
+      max_retries_count.times.retry do
         # heroku.post_addon(name, plan_name)
         api_rate_limit.call.addon.create(name, plan: plan_name )
         _, value = get_config.detect {|k, v| k.match(/#{match_val}/) }
@@ -316,7 +318,7 @@ module Hatchet
     end
 
     def commit!
-      local_cmd_exec!('git add .; git commit -m next')
+      local_cmd_exec!('git add .; git commit --allow-empty -m next')
     end
 
     def push_without_retry!
@@ -386,12 +388,12 @@ module Hatchet
     end
 
     def push
-      max_retries = @allow_failure ? 1 : RETRIES
-      max_retries.times.retry do |attempt|
+      retry_count = allow_failure? ? 1 : max_retries_count
+      retry_count.times.retry do |attempt|
         begin
           @output = self.push_without_retry!
         rescue StandardError => error
-          puts retry_error_message(error, attempt, max_retries)
+          puts retry_error_message(error, attempt) unless retry_count == 1
           raise error
         end
       end
@@ -400,10 +402,10 @@ module Hatchet
     alias :push_with_retry  :push
     alias :push_with_retry! :push_with_retry
 
-    def retry_error_message(error, attempt, max_retries)
+    def retry_error_message(error, attempt)
       attempt += 1
-      return "" if attempt == max_retries
-      msg = "\nRetrying failed Attempt ##{attempt}/#{max_retries} to push for '#{name}' due to error: \n"<<
+      return "" if attempt == max_retries_count
+      msg = "\nRetrying failed Attempt ##{attempt}/#{max_retries_count} to push for '#{name}' due to error: \n"<<
             "#{error.class} #{error.message}\n  #{error.backtrace.join("\n  ")}"
       return msg
     end
@@ -422,7 +424,7 @@ module Hatchet
 
     def run_ci(timeout: 300, &block)
       in_directory do
-        Hatchet::RETRIES.times.retry do
+        max_retries_count.times.retry do
           result       = create_pipeline
           @pipeline_id = result["id"]
         end
@@ -433,7 +435,7 @@ module Hatchet
         # that's why we create an app explictly (or maybe it already exists), and then associate it with with the pipeline
         # the app will be auto cleaned up later
         self.setup!
-        Hatchet::RETRIES.times.retry do
+        max_retries_count.times.retry do
           couple_pipeline(@name, @pipeline_id)
         end
 
@@ -446,7 +448,7 @@ module Hatchet
           api_rate_limit: api_rate_limit
         )
 
-        Hatchet::RETRIES.times.retry do
+        max_retries_count.times.retry do
           test_run.create_test_run
         end
         test_run.wait!(&block)
