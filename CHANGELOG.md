@@ -1,5 +1,8 @@
 ## HEAD
 
+- Initializing an `App` can now take a `retries` key to overload the global hatchet env var (https://github.com/heroku/hatchet/pull/119)
+- Calling `App#commit!` now adds an empty commit if there is no changes on disk (https://github.com/heroku/hatchet/pull/119)
+- Bugfix: Failed release phase in deploys can now be re-run (https://github.com/heroku/hatchet/pull/119)
 - Bugfix: Allow `hatchet lock` to be run against new projects (https://github.com/heroku/hatchet/pull/118)
 - Bugfix: Allow `hatchet.lock` file to lock a repo to a different branch than what is specified as default for GitHub (https://github.com/heroku/hatchet/pull/118)
 

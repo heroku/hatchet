@@ -33,6 +33,7 @@ module Hatchet
 
       releases = platform_api.release.list(name)
       if releases.last["status"] == "failed"
+        commit! # An empty commit allows us to deploy again
         raise FailedReleaseError.new(self, "Buildpack: #{@buildpack.inspect}\nRepo: #{git_repo}", output: output)
       end
 

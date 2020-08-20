@@ -531,6 +531,8 @@ WARNING: Enabling `run_multi` setting on an app will charge your Heroku account 
 WARNING: Do not use `run_multi` if you're not using the `deploy` block syntax or manually call `teardown!` inside the text context [more info about how behavior does not work with the `after` block syntax in rspec](https://github.com/heroku/hatchet/issues/110).
 WARNING: To work, `run_multi` requires your application to have a `web` process associated with it.
 
+- `retries` (Integer): When passed in, this value will be used insead of the global `HATCHET_RETRIES` set via environment variable. When `allow_failures: true` is set as well as a retries value, then the application will not retry pushing to Heroku.
+
 ### App methods:
 
 - `app.set_config()`: Updates the configuration on your app taking in a hash
