@@ -80,7 +80,7 @@ module Hatchet
 
     # No guardrails, will delete all apps that match the hatchet namespace
     def destroy_all
-      get_apps
+      refresh_app_list
 
       (@finished_hatchet_apps + @unfinished_hatchet_apps).each do |app|
         begin
