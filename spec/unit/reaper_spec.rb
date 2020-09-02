@@ -1,6 +1,22 @@
 require "spec_helper"
 
 describe "Reaper" do
+  it "destroy all" do
+    reaper = Hatchet::Reaper.new(api_rate_limit: Object.new, hatchet_app_limit: 1, io: StringIO.new)
+
+    def reaper.get_heroku_apps
+      @mock_apps ||= [
+        {"name" => "hatchet-t-unfinished", "id" => 2, "maintenance" => false, "created_at" => Time.now.to_s},
+        {"name" => "hatchet-t-foo", "id" => 1, "maintenance" => true, "created_at" => Time.now.to_s}
+      ]
+    end
+    def reaper.destroy_with_log(*args); @destroy_with_log_count ||= 0; @destroy_with_log_count += 1; end
+
+    reaper.destroy_all
+
+    expect(reaper.instance_variable_get("@destroy_with_log_count")).to eq(1)
+  end
+
   describe "cycle" do
     it "does not delete anything if under the limit" do
       reaper = Hatchet::Reaper.new(api_rate_limit: Object.new, hatchet_app_limit: 1, io: StringIO.new)

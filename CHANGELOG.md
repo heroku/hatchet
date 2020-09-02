@@ -1,5 +1,9 @@
 ## HEAD
 
+## 7.1.1
+
+- Fix destroy_all functionality (https://github.com/heroku/hatchet/pull/121)
+
 ## 7.1.0
 
 - Initializing an `App` can now take a `retries` key to overload the global hatchet env var (https://github.com/heroku/hatchet/pull/119)
