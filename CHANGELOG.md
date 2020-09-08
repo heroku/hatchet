@@ -1,5 +1,7 @@
 ## HEAD
 
+## 7.1.2
+
 - Fix support for Hatchet deploying the 'main' branch (https://github.com/heroku/hatchet/pull/122)
 
 ## 7.1.1
