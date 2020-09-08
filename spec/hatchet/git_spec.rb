@@ -1,9 +1,9 @@
 require "spec_helper"
 
 describe "GitAppTest" do
-  it "can deploy git app" do
-    Hatchet::GitApp.new("rails5_ruby_schema_format").deploy do |app|
-      expect(app.run("ruby -v")).to match("2.6.6")
+  it "can deploy git app to the main branch" do
+    Hatchet::GitApp.new("lock_fail_main", allow_failure: true).deploy do |app|
+      expect(app.output).to match("INTENTIONAL ERROR")
     end
   end
 end

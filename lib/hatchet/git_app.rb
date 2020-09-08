@@ -25,7 +25,7 @@ module Hatchet
     end
 
     private def git_push_heroku_yall
-      output = `git push #{git_repo} master 2>&1`
+      output = `git push #{git_repo} HEAD:main 2>&1`
 
       if !$?.success?
         raise FailedDeployError.new(self, "Buildpack: #{@buildpack.inspect}\nRepo: #{git_repo}", output: output)

@@ -1,5 +1,7 @@
 ## HEAD
 
+- Fix support for Hatchet deploying the 'main' branch (https://github.com/heroku/hatchet/pull/122)
+
 ## 7.1.1
 
 - Fix destroy_all functionality (https://github.com/heroku/hatchet/pull/121)
