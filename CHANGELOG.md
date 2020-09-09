@@ -1,5 +1,7 @@
 ## HEAD
 
+## 7.1.3
+
 - Important!! Fix branch name detection on CircleCI (https://github.com/heroku/hatchet/pull/124)
 
 ## 7.1.2
