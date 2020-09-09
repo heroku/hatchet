@@ -18,6 +18,7 @@ require 'hatchet/anvil_app'
 require 'hatchet/git_app'
 require 'hatchet/config'
 require 'hatchet/api_rate_limit'
+require 'hatchet/init_project'
 
 module Hatchet
   RETRIES = Integer(ENV['HATCHET_RETRIES']   || 1)

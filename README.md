@@ -57,6 +57,8 @@ In addition to speed, Hatchet provides isolation. Suppose you're executing `bin/
 
 ## Quicklinks
 
+- Getting started
+  - [Add hatchet tests to a existing buildpack](#hatchet-init)
 - Concepts
   - [Tell Hatchet how to find your buildpack](#specify-buildpack)
   - [Give Hatchet some example apps to deploy](#example-apps)
@@ -78,6 +80,45 @@ In addition to speed, Hatchet provides isolation. Suppose you're executing `bin/
   - [Introduction to the Rspec testing framework for non-rubyists](#basic-rspec)
   - [Introduction to Ruby for non-rubyists](#basic-ruby)
 
+## Getting Started
+
+### Hatchet Init
+
+If you're working in a project that does not already have hatchet tests you can run this command to get started quickly:
+
+Make sure you're in directory that contains your buildpack and run:
+
+```
+$ gem install heroku_hatchet
+$ hatchet init
+```
+
+This will bootstrap your project with the necessarry files to test your buildpack. Including but not limited to:
+
+- Gemfile
+- hatchet.json
+- spec/spec_helper.rb
+- spec/hatchet/buildpack_spec.rb
+- .circleci/config.yml
+- .github/dependabot.yml
+- .gitignore
+
+Once this executes successfully then you can run your tests with:
+
+```
+$ bundle exec rspec
+```
+
+> Note: You'll need to update the `buildpack_spec.rb` file to remove the exception
+
+You can also focus a specific file or test by providing a path and line number:
+
+```
+$ bundle exec rspec spec/hatchet/buildpack_spec:5
+```
+
+Keep reading to find out more about how hatchet works.
+
 ## Concepts
 
 ### Specify buildpack
@@ -89,7 +130,7 @@ ENV["HATCHET_BUILDPACK_BASE"] = "https://github.com/path-to-your/buildpack"
 require 'hatchet'`
 ```
 
-If you do not specify `HATCHET_BUILDPACK_URL` the default Ruby buildpack will be used. If you do not specify a `HATCHET_BUILDPACK_BRANCH` the current branch you are on will be used. This is how the Ruby buildpack runs tests on branches on CI (by leaving `HATCHET_BUILDPACK_BRANCH` blank).
+If you do not specify `HATCHET_BUILDPACK_BASE` the default Ruby buildpack will be used. If you do not specify a `HATCHET_BUILDPACK_BRANCH` the current branch you are on will be used. This is how the Ruby buildpack runs tests on branches on CI (by leaving `HATCHET_BUILDPACK_BRANCH` blank).
 
 The workflow generally looks like this:
 
@@ -156,7 +197,7 @@ You can reference one of these applications in your test by using it's git name:
 Hatchet::Runner.new('no_lockfile')
 ```
 
-If you have conflicting names, use full paths like `Hatchet::RUnner.new("sharpstone/no_lockfile")`.
+If you have conflicting names, use full paths like `Hatchet::Runner.new("sharpstone/no_lockfile")`.
 
 When you run `hatchet install` it will lock all the Repos to a specific commit. This is done so that if a repo changes upstream that introduces an error the test suite won't automatically pick it up. For example in https://github.com/sharpstone/lock_fail/commit/e61ba47043fbae131abb74fd74added7e6e504df an error is added, but this will only cause a failure if your project intentionally locks to commit `e61ba47043fbae131abb74fd74added7e6e504df` or later.
 
