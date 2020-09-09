@@ -1,5 +1,7 @@
 ## HEAD
 
+- Important!! Fix branch name detection on CircleCI (https://github.com/heroku/hatchet/pull/124)
+
 ## 7.1.2
 
 - Fix support for Hatchet deploying the 'main' branch (https://github.com/heroku/hatchet/pull/122)

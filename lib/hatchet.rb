@@ -30,7 +30,7 @@ module Hatchet
     return ENV['TRAVIS_PULL_REQUEST_BRANCH'] if ENV['TRAVIS_PULL_REQUEST_BRANCH'] && !ENV['TRAVIS_PULL_REQUEST_BRANCH'].empty?
     return ENV['TRAVIS_BRANCH'] if ENV['TRAVIS_BRANCH']
 
-    out = `git describe --contains --all HEAD`.strip
+    out = `git rev-parse --abbrev-ref HEAD`.strip
     raise "Attempting to find current branch name. Error: Cannot describe git: #{out}" unless $?.success?
     out
   end
