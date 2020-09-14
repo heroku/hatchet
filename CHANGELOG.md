@@ -1,5 +1,6 @@
 ## HEAD
 
+- App#setup! no longer modifies files on disk. (https://github.com/heroku/hatchet/pull/125)
 - Add `$ hatchet init` command for bootstrapping new projects (https://github.com/heroku/hatchet/pull/123)
 
 ## 7.1.3

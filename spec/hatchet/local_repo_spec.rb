@@ -13,14 +13,15 @@ describe "LocalRepoTest" do
 
   it "repos checked into git" do
     begin
-      app = Hatchet::App.new("repo_fixtures/different-folder-for-checked-in-repos/default_ruby")
-      app.in_directory do
-        expect(Dir.exist?(".git")).to eq(false)
-        app.setup!
-        expect(Dir.exist?(".git")).to eq(true)
+      fixture_dir = "repo_fixtures/different-folder-for-checked-in-repos/default_ruby"
+      app = Hatchet::App.new(fixture_dir)
+      def app.push_with_retry!; end
+
+      expect(Dir.exist?("#{fixture_dir}/.git")).to be_falsey
+
+      app.deploy do
+        expect(Dir.exist?(".git")).to be_truthy
       end
-    ensure
-      app.teardown! if app
     end
   end
 end

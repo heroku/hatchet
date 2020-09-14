@@ -1,6 +1,28 @@
 require("spec_helper")
 
 describe "AppTest" do
+  it "does not modify local files by mistake" do
+    Dir.mktmpdir do |dir_1|
+      app = Hatchet::Runner.new(dir_1)
+      Dir.mktmpdir do |dir_2|
+        Dir.chdir(dir_2) do
+          FileUtils.touch("foo.txt")
+
+          app.setup!
+        end
+
+        entries_array = Dir.entries(dir_2)
+        entries_array -= ["..", ".", "foo.txt"]
+        expect(entries_array).to be_empty
+
+
+        entries_array = Dir.entries(dir_1)
+        entries_array -= ["..", ".", "foo.txt"]
+        expect(entries_array).to be_empty
+      end
+    end
+  end
+
   it "rate throttles `git push` " do
     app = Hatchet::GitApp.new("default_ruby")
     def app.git_push_heroku_yall
