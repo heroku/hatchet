@@ -1,5 +1,7 @@
 ## HEAD
 
+- Add `$ hatchet init` command for bootstrapping new projects (https://github.com/heroku/hatchet/pull/123)
+
 ## 7.1.3
 
 - Important!! Fix branch name detection on CircleCI (https://github.com/heroku/hatchet/pull/124)
