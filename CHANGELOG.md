@@ -1,5 +1,7 @@
 ## HEAD
 
+- Allow multiple `App#before_deploy` blocks to be set and called (https://github.com/heroku/hatchet/pull/126)
+- Deprecation: Calling `App#before_deploy` as a way to clear/replace the existing block should now be done with `App#before_deploy(:replace)` (https://github.com/heroku/hatchet/pull/126)
 - App#setup! no longer modifies files on disk. (https://github.com/heroku/hatchet/pull/125)
 - Add `$ hatchet init` command for bootstrapping new projects (https://github.com/heroku/hatchet/pull/123)
 

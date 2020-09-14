@@ -525,7 +525,7 @@ end
 
 In this example, the app would use the nodejs buildpack, and then `:default` gets replaced by your Git url and branch name.
 
-- before_deploy (Block): Instead of using the `tap` syntax you can provide a block directly to hatchet app initialization:
+- before_deploy (Block): Instead of using the `tap` syntax you can provide a block directly to hatchet app initialization. Example:
 
 ```ruby
 Hatchet::Runner.new("default_ruby", before_deploy: ->{ FileUtils.touch("foo.txt")}).deploy do
@@ -629,6 +629,23 @@ end
 Hatchet::Runner.new("default_ruby", before_deploy: before_deploy_proc).deploy do |app|
 end
 ```
+
+You can call multiple blocks by specifying (`:prepend` or `:append`):
+
+```ruby
+Hatchet::Runner.new("default_ruby").tap do |app|
+  app.before_deploy do
+    FileUtils.touch("foo.txt")
+  end
+
+  app.before_deploy(:append) do
+    FileUtils.touch("bar.txt")
+  end
+  app.deploy do
+  end
+end
+```
+
 
 - `app.commit!`: Will updates the contents of your local git dir if you've modified files on disk
 

@@ -102,22 +102,75 @@ describe "AppTest" do
     expect(app_update_info["maintenance"]).to be_truthy
   end
 
-  it "before deploy" do
-    @called = false
-    @dir = false
-    app = Hatchet::App.new("default_ruby")
-    def app.push_with_retry!
-      # do nothing
+  describe "before deploy" do
+    it "dir" do
+      @called = false
+      @dir = false
+      app = Hatchet::App.new("default_ruby")
+      def app.push_with_retry!
+        # do nothing
+      end
+      app.before_deploy do
+        @called = true
+        @dir = Dir.pwd
+      end
+      app.deploy do
+        expect(@called).to eq(true)
+        expect(@dir).to eq(Dir.pwd)
+      end
+      expect(@dir).to_not eq(Dir.pwd)
     end
-    app.before_deploy do
-      @called = true
-      @dir = Dir.pwd
+
+    it "prepend" do
+      @value = ""
+      app = Hatchet::App.new("default_ruby")
+      def app.push_with_retry!; end
+      app.before_deploy do
+        @value << "there"
+      end
+
+      app.before_deploy(:prepend) do
+        @value << "hello "
+      end
+      app.deploy do
+      end
+
+      expect(@value).to eq("hello there")
     end
-    app.deploy do
-      expect(@called).to eq(true)
-      expect(@dir).to eq(Dir.pwd)
+
+    it "append" do
+      @value = ""
+      app = Hatchet::App.new("default_ruby")
+      def app.push_with_retry!; end
+      app.before_deploy do
+        @value << "there"
+      end
+
+      app.before_deploy(:append) do
+        @value << " hello"
+      end
+      app.deploy do
+      end
+
+      expect(@value).to eq("there hello")
     end
-    expect(@dir).to_not eq(Dir.pwd)
+
+    it "replace" do
+      @value = ""
+      app = Hatchet::App.new("default_ruby")
+      def app.push_with_retry!; end
+      app.before_deploy do
+        @value << "there"
+      end
+
+      app.before_deploy(:replace) do
+        @value << "hello"
+      end
+      app.deploy do
+      end
+
+      expect(@value).to eq("hello")
+    end
   end
 
   it "auto commits code" do
