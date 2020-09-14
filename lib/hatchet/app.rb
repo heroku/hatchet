@@ -297,18 +297,26 @@ module Hatchet
     def setup!
       return self if @app_is_setup
       puts "Hatchet setup: #{name.inspect} for #{repo_name.inspect}"
-      create_git_repo! unless is_git_repo?
       create_app
       set_labs!
       buildpack_list = @buildpacks.map { |pack| { buildpack: pack } }
       api_rate_limit.call.buildpack_installation.update(name, updates: buildpack_list)
       set_config @app_config
 
-      call_before_deploy
       @app_is_setup = true
       self
     end
     alias :setup :setup!
+
+    private def in_dir_setup!
+      setup!
+      raise "Error you're in #{Dir.pwd} and might accidentally modify your disk contents" unless @already_in_dir
+      @in_dir_setup ||= begin
+        create_git_repo! unless is_git_repo?
+        call_before_deploy
+        true
+      end
+    end
 
     def before_deploy(&block)
       raise "block required" unless block
@@ -379,7 +387,7 @@ module Hatchet
 
     def deploy(&block)
       in_directory do
-        self.setup!
+        in_dir_setup!
         self.push_with_retry!
         block.call(self, api_rate_limit.call, output) if block_given?
       end
@@ -434,7 +442,7 @@ module Hatchet
         # that would, with bad timing, mean our test run info poll in wait! would 403, and/or the delete_pipeline at the end
         # that's why we create an app explictly (or maybe it already exists), and then associate it with with the pipeline
         # the app will be auto cleaned up later
-        self.setup!
+        in_dir_setup!
         max_retries_count.times.retry do
           couple_pipeline(@name, @pipeline_id)
         end
