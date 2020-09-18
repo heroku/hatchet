@@ -1,5 +1,8 @@
 ## HEAD
 
+- Performance improvement when running without an explicit HEROKU_API_KEY set (https://github.com/heroku/hatchet/pull/128)
+- Additional rate throttle cases handled (https://github.com/heroku/hatchet/pull/128)
+
 ## 7.1.4
 
 - App#setup! no longer modifies files on disk. (https://github.com/heroku/hatchet/pull/125)
