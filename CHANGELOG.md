@@ -1,5 +1,6 @@
 ## HEAD
 
+- Empty string returns from App#run now trigger retries (https://github.com/heroku/hatchet/pull/132)
 - Allow multiple `App#before_deploy` blocks to be set and called (https://github.com/heroku/hatchet/pull/126)
 - Deprecation: Calling `App#before_deploy` as a way to clear/replace the existing block should now be done with `App#before_deploy(:replace)` (https://github.com/heroku/hatchet/pull/126)
 - Rescue 403 on pipeline delete (https://github.com/heroku/hatchet/pull/130)

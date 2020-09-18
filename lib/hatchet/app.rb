@@ -158,32 +158,17 @@ module Hatchet
         command = command.to_s
       end
 
-      heroku_command = build_heroku_command(command, options)
-
       allow_run_multi! if @run_multi
 
-      output = ""
+      run_obj = Hatchet::HerokuRun.new(
+        command,
+        app: self,
+        retry_on_empty: options.fetch(:retry_on_empty, !ENV["HATCHET_DISABLE_EMPTY_RUN_RETRY"]),
+        heroku: options[:heroku],
+        raw: options[:raw]
+      ).call
 
-      ShellThrottle.new(platform_api: @platform_api).call do |throttle|
-        output = `#{heroku_command}`
-        throw(:throttle) if output.match?(/reached the API rate limit/)
-      end
-
-      return output
-    end
-
-    private def build_heroku_command(command, options = {})
-      command = command.shellescape unless options.delete(:raw)
-
-      default_options = { "app" => name, "exit-code" => nil }
-      heroku_options = (default_options.merge(options.delete(:heroku) || {})).map do |k,v|
-        next if v == Hatchet::App::SkipDefaultOption # for forcefully removing e.g. --exit-code, a user can pass this
-        arg = "--#{k.to_s.shellescape}"
-        arg << "=#{v.to_s.shellescape}" unless v.nil? # nil means we include the option without an argument
-        arg
-      end.join(" ")
-
-      "heroku run #{heroku_options} -- #{command}"
+      return run_obj.output
     end
 
     private def allow_run_multi!
@@ -191,7 +176,6 @@ module Hatchet
 
       @run_multi_is_setup ||= platform_api.formation.update(name, "web", {"size" => "Standard-1X"})
     end
-
 
     # Allows multiple commands to be run concurrently in the background.
     #
@@ -230,23 +214,15 @@ module Hatchet
       allow_run_multi!
 
       run_thread = Thread.new do
-        heroku_command = build_heroku_command(command, options)
+        run_obj = Hatchet::HerokuRun.new(
+          command,
+          app: self,
+          retry_on_empty: options.fetch(:retry_on_empty, !ENV["HATCHET_DISABLE_EMPTY_RUN_RETRY"]),
+          heroku: options[:heroku],
+          raw: options[:raw]
+        ).call
 
-        out = nil
-        status = nil
-        ShellThrottle.new(platform_api: @platform_api).call do |throttle|
-          out = `#{heroku_command}`
-          throw(:throttle) if output.match?(/reached the API rate limit/)
-          status = $?
-        end
-
-        yield out, status
-
-        # if block.arity == 1
-        #   block.call(out)
-        # else
-        #   block.call(out, status)
-        # end
+        yield run_obj.output, run_obj.status
       end
       run_thread.abort_on_exception = true
 
