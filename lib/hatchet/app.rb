@@ -423,7 +423,7 @@ module Hatchet
     end
 
     def api_key
-      @api_key ||= ENV['HEROKU_API_KEY'] || `heroku auth:token`.chomp
+      @api_key ||= ENV['HEROKU_API_KEY'] ||= `heroku auth:token`.chomp
     end
 
     def heroku
