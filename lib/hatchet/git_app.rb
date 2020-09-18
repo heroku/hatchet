@@ -5,19 +5,18 @@ module Hatchet
       "https://git.heroku.com/#{name}.git"
     end
 
-
     def push_without_retry!
       output = ""
 
       ShellThrottle.new(platform_api: @platform_api).call do
         output = git_push_heroku_yall
       rescue FailedDeploy => e
-        if e.output.match?(/reached the API rate limit/)
+        case e.output
+        when /reached the API rate limit/, /429 Too Many Requests/
           throw(:throttle)
-        elsif @allow_failure
-          output = e.output
         else
-          raise e
+          raise e unless @allow_failure
+          output = e.output
         end
       end
 
