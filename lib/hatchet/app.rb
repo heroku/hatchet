@@ -495,6 +495,9 @@ module Hatchet
 
     def delete_pipeline(pipeline_id)
       api_rate_limit.call.pipeline.delete(pipeline_id)
+    rescue Excon::Error::Forbidden
+      warn "Error deleting pipeline id: #{pipeline_id.inspect}, status: 403"
+      # Means the pipeline likely doesn't exist, not sure why though
     end
 
     def platform_api
