@@ -78,7 +78,8 @@ module Hatchet
       @already_in_dir = nil
       @app_is_setup = nil
 
-      @before_deploy = before_deploy
+      @before_deploy_array = []
+      @before_deploy_array << before_deploy if before_deploy
       @app_config    = config
       @reaper        = Reaper.new(api_rate_limit: api_rate_limit)
     end
@@ -318,9 +319,25 @@ module Hatchet
       end
     end
 
-    def before_deploy(&block)
+    def before_deploy(behavior = :default, &block)
       raise "block required" unless block
-      @before_deploy = block
+
+      case behavior
+      when :default, :replace
+        if @before_deploy_array.any? && behavior == :default
+          STDERR.puts "Calling App#before_deploy multiple times will overwrite the contents. If you intended this: use `App#before_deploy(:replace)`"
+          STDERR.puts "In the future, calling this method with no arguements will default to `App#before_deploy(:append)` behavior.\n#{caller.join("\n")}"
+        end
+
+        @before_deploy_array.clear
+        @before_deploy_array << block
+      when :prepend
+        @before_deploy_array = [block] + @before_deploy_array
+      when :append
+        @before_deploy_array << block
+      else
+        raise "Unrecognized behavior: #{behavior.inspect}, valid inputs are :append, :prepend, and :replace"
+      end
 
       self
     end
@@ -537,14 +554,17 @@ module Hatchet
     end
 
     private def call_before_deploy
-      return unless @before_deploy
-      raise "before_deploy: #{@before_deploy.inspect} must respond to :call"  unless @before_deploy.respond_to?(:call)
-      raise "before_deploy: #{@before_deploy.inspect} must respond to :arity" unless @before_deploy.respond_to?(:arity)
+      return unless @before_deploy_array.any?
 
-      if @before_deploy.arity == 1
-        @before_deploy.call(self)
-      else
-        @before_deploy.call
+      @before_deploy_array.each do |block|
+        raise "before_deploy: #{block.inspect} must respond to :call"  unless block.respond_to?(:call)
+        raise "before_deploy: #{block.inspect} must respond to :arity" unless block.respond_to?(:arity)
+
+        if block.arity == 1
+          block.call(self)
+        else
+          block.call
+        end
       end
 
       commit! if needs_commit?
