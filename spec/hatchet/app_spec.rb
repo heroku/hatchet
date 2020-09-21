@@ -1,6 +1,10 @@
 require("spec_helper")
 
 describe "AppTest" do
+  it "custom errors when no app passed in" do
+    expect { Hatchet::Runner.new }.to raise_error(/without source code/)
+  end
+
   it "does not modify local files by mistake" do
     Dir.mktmpdir do |dir_1|
       app = Hatchet::Runner.new(dir_1)

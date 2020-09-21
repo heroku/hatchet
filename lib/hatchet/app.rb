@@ -46,8 +46,9 @@ module Hatchet
     end
 
     SkipDefaultOption = Object.new
+    DEFAULT_REPO_NAME = Object.new
 
-    def initialize(repo_name,
+    def initialize(repo_name = DEFAULT_REPO_NAME,
                    stack: "",
                    name: default_name,
                    debug: nil,
@@ -62,6 +63,7 @@ module Hatchet
                    retries: RETRIES,
                    config: {}
                   )
+      raise "You tried creating a Hatchet::App instance without source code, pass in a path to an app to deploy or the name of an app in your hatchet.json" if repo_name == DEFAULT_REPO_NAME
       @repo_name     = repo_name
       @directory     = self.config.path_for_name(@repo_name)
       @name          = name
