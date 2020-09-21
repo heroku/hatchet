@@ -1,5 +1,6 @@
 ## HEAD
 
+- Hatchet#new raises a helpful error when no source code location is provided (https://github.com/heroku/hatchet/pull/134)
 - Lazy evaluation of HATCHET_BUILDPACK_BASE env var (https://github.com/heroku/hatchet/pull/133)
 - Deprecating HATCHET_BUILDPACK_BASE default (https://github.com/heroku/hatchet/pull/133)
 - Allow multiple `App#before_deploy` blocks to be set and called (https://github.com/heroku/hatchet/pull/126)
