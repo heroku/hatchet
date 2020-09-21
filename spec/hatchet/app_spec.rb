@@ -1,8 +1,18 @@
 require("spec_helper")
 
 describe "AppTest" do
-  it "custom errors when no app passed in" do
-    expect { Hatchet::Runner.new }.to raise_error(/without source code/)
+  it "annotates rspec expectation failures" do
+    app = Hatchet::Runner.new("default_ruby")
+    error = nil
+    begin
+      app.annotate_failures do
+        expect(true).to eq(false)
+      end
+    rescue RSpec::Expectations::ExpectationNotMetError => e
+      error = e
+    end
+
+    expect(error.message).to include(app.name)
   end
 
   it "does not modify local files by mistake" do
