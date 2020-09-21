@@ -5,9 +5,13 @@ require 'tmpdir'
 
 module Hatchet
   class App
-    HATCHET_BUILDPACK_BASE   = (ENV['HATCHET_BUILDPACK_BASE'] || "https://github.com/heroku/heroku-buildpack-ruby.git")
+    HATCHET_BUILDPACK_BASE = -> {
+      ENV.fetch('HATCHET_BUILDPACK_BASE') {
+        warn "ENV HATCHET_BUILDPACK_BASE is not set. It currently defaults to the ruby buildpack. In the future this env var will be required"
+        "https://github.com/heroku/heroku-buildpack-ruby.git"
+      }
+    }
     HATCHET_BUILDPACK_BRANCH = -> { ENV['HATCHET_BUILDPACK_BRANCH'] || ENV['HEROKU_TEST_RUN_BRANCH'] || Hatchet.git_branch }
-    BUILDPACK_URL = "https://github.com/heroku/heroku-buildpack-ruby.git"
 
     attr_reader :name, :stack, :directory, :repo_name, :app_config, :buildpacks, :reaper, :max_retries_count
 
@@ -85,7 +89,7 @@ module Hatchet
     end
 
     def self.default_buildpack
-      [HATCHET_BUILDPACK_BASE, HATCHET_BUILDPACK_BRANCH.call].join("#")
+      [HATCHET_BUILDPACK_BASE.call, HATCHET_BUILDPACK_BRANCH.call].join("#")
     end
 
     def allow_failure?
