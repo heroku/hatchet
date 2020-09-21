@@ -2,6 +2,9 @@
 
 - Allow multiple `App#before_deploy` blocks to be set and called (https://github.com/heroku/hatchet/pull/126)
 - Deprecation: Calling `App#before_deploy` as a way to clear/replace the existing block should now be done with `App#before_deploy(:replace)` (https://github.com/heroku/hatchet/pull/126)
+- Rescue 403 on pipeline delete (https://github.com/heroku/hatchet/pull/130)
+- Performance improvement when running without an explicit HEROKU_API_KEY set (https://github.com/heroku/hatchet/pull/128)
+- Additional rate throttle cases handled (https://github.com/heroku/hatchet/pull/128)
 
 ## 7.1.4
 
