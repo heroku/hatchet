@@ -1,6 +1,20 @@
 require("spec_helper")
 
 describe "AppTest" do
+  it "annotates rspec expectation failures" do
+    app = Hatchet::Runner.new("default_ruby")
+    error = nil
+    begin
+      app.annotate_failures do
+        expect(true).to eq(false)
+      end
+    rescue RSpec::Expectations::ExpectationNotMetError => e
+      error = e
+    end
+
+    expect(error.message).to include(app.name)
+  end
+
   it "does not modify local files by mistake" do
     Dir.mktmpdir do |dir_1|
       app = Hatchet::Runner.new(dir_1)

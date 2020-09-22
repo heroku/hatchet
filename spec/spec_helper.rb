@@ -14,7 +14,8 @@ RSpec.configure do |config|
   end
 end
 
-ENV['HATCHET_BUILDPACK_BRANCH'] = "master"
+ENV['HATCHET_BUILDPACK_BASE'] = "https://github.com/heroku/heroku-buildpack-ruby.git"
+ENV['HATCHET_BUILDPACK_BRANCH'] = "main"
 
 require 'parallel_tests/test/runtime_logger' if ENV['RECORD_RUNTIME']
 

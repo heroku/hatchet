@@ -5,9 +5,13 @@ require 'tmpdir'
 
 module Hatchet
   class App
-    HATCHET_BUILDPACK_BASE   = (ENV['HATCHET_BUILDPACK_BASE'] || "https://github.com/heroku/heroku-buildpack-ruby.git")
+    HATCHET_BUILDPACK_BASE = -> {
+      ENV.fetch('HATCHET_BUILDPACK_BASE') {
+        warn "ENV HATCHET_BUILDPACK_BASE is not set. It currently defaults to the ruby buildpack. In the future this env var will be required"
+        "https://github.com/heroku/heroku-buildpack-ruby.git"
+      }
+    }
     HATCHET_BUILDPACK_BRANCH = -> { ENV['HATCHET_BUILDPACK_BRANCH'] || ENV['HEROKU_TEST_RUN_BRANCH'] || Hatchet.git_branch }
-    BUILDPACK_URL = "https://github.com/heroku/heroku-buildpack-ruby.git"
 
     attr_reader :name, :stack, :directory, :repo_name, :app_config, :buildpacks, :reaper, :max_retries_count
 
@@ -42,8 +46,9 @@ module Hatchet
     end
 
     SkipDefaultOption = Object.new
+    DEFAULT_REPO_NAME = Object.new
 
-    def initialize(repo_name,
+    def initialize(repo_name = DEFAULT_REPO_NAME,
                    stack: "",
                    name: default_name,
                    debug: nil,
@@ -58,6 +63,7 @@ module Hatchet
                    retries: RETRIES,
                    config: {}
                   )
+      raise "You tried creating a Hatchet::App instance without source code, pass in a path to an app to deploy or the name of an app in your hatchet.json" if repo_name == DEFAULT_REPO_NAME
       @repo_name     = repo_name
       @directory     = self.config.path_for_name(@repo_name)
       @name          = name
@@ -84,8 +90,20 @@ module Hatchet
       @reaper        = Reaper.new(api_rate_limit: api_rate_limit)
     end
 
+    private def test_failure_classes
+      class_array = []
+      class_array << RSpec::Expectations::ExpectationNotMetError if defined?(RSpec::Expectations::ExpectationNotMetError)
+      class_array
+    end
+
+    def annotate_failures
+      yield
+    rescue *test_failure_classes => e
+      raise e, "App: #{name} (#{@repo_name})\n#{e.message}"
+    end
+
     def self.default_buildpack
-      [HATCHET_BUILDPACK_BASE, HATCHET_BUILDPACK_BRANCH.call].join("#")
+      [HATCHET_BUILDPACK_BASE.call, HATCHET_BUILDPACK_BRANCH.call].join("#")
     end
 
     def allow_failure?
@@ -380,9 +398,11 @@ module Hatchet
 
     def deploy(&block)
       in_directory do
-        in_dir_setup!
-        self.push_with_retry!
-        block.call(self, api_rate_limit.call, output) if block_given?
+        annotate_failures do
+          in_dir_setup!
+          self.push_with_retry!
+          block.call(self, api_rate_limit.call, output) if block_given?
+        end
       end
     ensure
       self.teardown! if block_given?

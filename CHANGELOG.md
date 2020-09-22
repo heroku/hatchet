@@ -1,6 +1,10 @@
 ## HEAD
 
 - Empty string returns from App#run now trigger retries (https://github.com/heroku/hatchet/pull/132)
+- Annotate rspec expectation failures inside of deploy blocks with hatchet debug information (https://github.com/heroku/hatchet/pull/136)
+- Hatchet#new raises a helpful error when no source code location is provided (https://github.com/heroku/hatchet/pull/134)
+- Lazy evaluation of HATCHET_BUILDPACK_BASE env var (https://github.com/heroku/hatchet/pull/133)
+- Deprecating HATCHET_BUILDPACK_BASE default (https://github.com/heroku/hatchet/pull/133)
 - Allow multiple `App#before_deploy` blocks to be set and called (https://github.com/heroku/hatchet/pull/126)
 - Deprecation: Calling `App#before_deploy` as a way to clear/replace the existing block should now be done with `App#before_deploy(:replace)` (https://github.com/heroku/hatchet/pull/126)
 - Rescue 403 on pipeline delete (https://github.com/heroku/hatchet/pull/130)
