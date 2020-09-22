@@ -1,19 +1,26 @@
 ## HEAD
 
-- Increase CI timeout limit to 900 seconds (15 minutes) (https://github.com/heroku/hatchet/pull/137)
-- App#directory is deprecated (https://github.com/heroku/hatchet/pull/135)
-- Empty string returns from App#run now trigger retries (https://github.com/heroku/hatchet/pull/132)
-- Annotate rspec expectation failures inside of deploy blocks with hatchet debug information (https://github.com/heroku/hatchet/pull/136)
-- Hatchet#new raises a helpful error when no source code location is provided (https://github.com/heroku/hatchet/pull/134)
-- Lazy evaluation of HATCHET_BUILDPACK_BASE env var (https://github.com/heroku/hatchet/pull/133)
-- Deprecating HATCHET_BUILDPACK_BASE default (https://github.com/heroku/hatchet/pull/133)
-- Allow multiple `App#before_deploy` blocks to be set and called (https://github.com/heroku/hatchet/pull/126)
-- Deprecation: Calling `App#before_deploy` as a way to clear/replace the existing block should now be done with `App#before_deploy(:replace)` (https://github.com/heroku/hatchet/pull/126)
-- Rescue 403 on pipeline delete (https://github.com/heroku/hatchet/pull/130)
-- Performance improvement when running without an explicit HEROKU_API_KEY set (https://github.com/heroku/hatchet/pull/128)
-- Additional rate throttle cases handled (https://github.com/heroku/hatchet/pull/128)
+## 7.3.0
 
-## 7.1.4
+- Deprecations
+  - Deprecation: Calling `App#before_deploy` as a way to clear/replace the existing block should now be done with `App#before_deploy(:replace)` (https://github.com/heroku/hatchet/pull/126)
+  - Deprecation: HATCHET_BUILDPACK_BASE default (https://github.com/heroku/hatchet/pull/133)
+  - Deprecation: App#directory (https://github.com/heroku/hatchet/pull/135)
+
+- Flappy test improvements
+  - Increase CI timeout limit to 900 seconds (15 minutes) (https://github.com/heroku/hatchet/pull/137)
+  - Empty string returns from App#run now trigger retries (https://github.com/heroku/hatchet/pull/132)
+  - Rescue 403 on pipeline delete (https://github.com/heroku/hatchet/pull/130)
+  - Additional rate throttle cases handled (https://github.com/heroku/hatchet/pull/128)
+
+- Usability
+  - Annotate rspec expectation failures inside of deploy blocks with hatchet debug information (https://github.com/heroku/hatchet/pull/136)
+  - Hatchet#new raises a helpful error when no source code location is provided (https://github.com/heroku/hatchet/pull/134)
+  - Lazy evaluation of HATCHET_BUILDPACK_BASE env var (https://github.com/heroku/hatchet/pull/133)
+  - Allow multiple `App#before_deploy` blocks to be set and called (https://github.com/heroku/hatchet/pull/126)
+  - Performance improvement when running without an explicit HEROKU_API_KEY set (https://github.com/heroku/hatchet/pull/128)
+
+## 7.2.0
 
 - App#setup! no longer modifies files on disk. (https://github.com/heroku/hatchet/pull/125)
 - Add `$ hatchet init` command for bootstrapping new projects (https://github.com/heroku/hatchet/pull/123)
