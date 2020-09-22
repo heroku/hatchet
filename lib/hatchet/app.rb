@@ -13,7 +13,7 @@ module Hatchet
     }
     HATCHET_BUILDPACK_BRANCH = -> { ENV['HATCHET_BUILDPACK_BRANCH'] || ENV['HEROKU_TEST_RUN_BRANCH'] || Hatchet.git_branch }
 
-    attr_reader :name, :stack, :directory, :repo_name, :app_config, :buildpacks, :reaper, :max_retries_count
+    attr_reader :name, :stack, :repo_name, :app_config, :buildpacks, :reaper, :max_retries_count
 
     class FailedDeploy < StandardError; end
 
@@ -22,7 +22,7 @@ module Hatchet
 
       def initialize(app, message, output: )
         @output = output
-        msg = "Could not deploy '#{app.name}' (#{app.repo_name}) using '#{app.class}' at path: '#{app.directory}'\n"
+        msg = "Could not deploy '#{app.name}' (#{app.repo_name}) using '#{app.class}' at path: '#{app.original_source_code_directory}'\n"
         msg << "if this was expected add `allow_failure: true` to your deploy hash.\n"
         msg << "#{message}\n"
         msg << "output:\n"
@@ -36,7 +36,7 @@ module Hatchet
 
       def initialize(app, message, output: )
         @output = output
-        msg = "Could not release '#{app.name}' (#{app.repo_name}) using '#{app.class}' at path: '#{app.directory}'\n"
+        msg = "Could not release '#{app.name}' (#{app.repo_name}) using '#{app.class}' at path: '#{app.original_source_code_directory}'\n"
         msg << "if this was expected add `allow_failure: true` to your deploy hash.\n"
         msg << "#{message}\n"
         msg << "output:\n"
@@ -100,6 +100,16 @@ module Hatchet
       yield
     rescue *test_failure_classes => e
       raise e, "App: #{name} (#{@repo_name})\n#{e.message}"
+    end
+
+    def directory
+      warn "Calling App#directory returns the original location of the app's source code that should not be modified, if this is really what you want use `original_source_code_directory` instead."
+      warn caller
+      @directory
+    end
+
+    def original_source_code_directory
+      @directory
     end
 
     def self.default_buildpack
@@ -357,14 +367,14 @@ module Hatchet
       @reaper.cycle if @app_is_setup
     end
 
-    def in_directory(directory = self.directory)
-      yield directory and return if @already_in_dir
+    def in_directory
+      yield and return if @already_in_dir
 
       Dir.mktmpdir do |tmpdir|
-        FileUtils.cp_r("#{directory}/.", "#{tmpdir}/.")
+        FileUtils.cp_r("#{original_source_code_directory}/.", "#{tmpdir}/.")
         Dir.chdir(tmpdir) do
           @already_in_dir = true
-          yield directory
+          yield
           @already_in_dir = false
         end
       end

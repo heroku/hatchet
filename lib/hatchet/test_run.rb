@@ -1,7 +1,7 @@
 module Hatchet
   class FailedTestError < StandardError
     def initialize(app, output)
-      msg = "Could not run tests on pipeline id: '#{app.pipeline_id}' (#{app.repo_name}) at path: '#{app.directory}'\n" <<
+      msg = "Could not run tests on pipeline id: '#{app.pipeline_id}' (#{app.repo_name}) at path: '#{app.original_source_code_directory}'\n" <<
             " if this was expected add `allow_failure: true` to your hatchet initialization hash.\n" <<
             "output:\n" <<
             "#{output}"

@@ -677,7 +677,7 @@ end
 > Note: If you want to execute tests in this temp directory, you likely want to use `in_directory_fork` otherwise, you might accidentally contaminate the current environment's variables if you modify them.
 
 - `app.in_directory_fork`: Runs the given block in a temp directory and inside of a forked process, an example given above.
-- `app.directory`: Returns the directory of the example application on disk, this is NOT the temp directory that you're currently executing against. It's probably not what you want.
+- `app.original_source_code_directory`: Returns the directory of the example application on disk, this is NOT the temp directory that you're currently executing against. It's probably not what you want.
 - `app.deploy`: Your main method takes a block to execute after the deploy is successful. If no block is provided, you must manually call `app.teardown!` (see below for an example).
 - `app.output`: The output contents of the deploy
 - `app.platform_api`: Returns an instance of the [platform-api Heroku client](https://github.com/heroku/platform-api). If Hatchet doesn't give you access to a part of Heroku that you need, you can likely do it with the platform-api client.
