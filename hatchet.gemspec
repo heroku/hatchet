@@ -21,7 +21,7 @@ Gem::Specification.new do |gem|
   gem.add_dependency "platform-api",  "~> 3"
   gem.add_dependency "rrrretry",      "~> 1"
   gem.add_dependency "excon",         "~> 0"
-  gem.add_dependency "thor",          "~> 0"
+  gem.add_dependency "thor",          "~> 1"
   gem.add_dependency "threaded",      "~> 0"
 
   gem.add_development_dependency "rspec"
