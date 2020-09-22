@@ -1,5 +1,6 @@
 ## HEAD
 
+- Empty string returns from App#run now trigger retries (https://github.com/heroku/hatchet/pull/132)
 - Annotate rspec expectation failures inside of deploy blocks with hatchet debug information (https://github.com/heroku/hatchet/pull/136)
 - Hatchet#new raises a helpful error when no source code location is provided (https://github.com/heroku/hatchet/pull/134)
 - Lazy evaluation of HATCHET_BUILDPACK_BASE env var (https://github.com/heroku/hatchet/pull/133)

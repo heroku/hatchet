@@ -23,6 +23,10 @@ module Hatchet
       return output
     end
 
+    def releases
+      platform_api.release.list(name)
+    end
+
     private def git_push_heroku_yall
       output = `git push #{git_repo} HEAD:main 2>&1`
 
@@ -30,7 +34,6 @@ module Hatchet
         raise FailedDeployError.new(self, "Buildpack: #{@buildpack.inspect}\nRepo: #{git_repo}", output: output)
       end
 
-      releases = platform_api.release.list(name)
       if releases.last["status"] == "failed"
         commit! # An empty commit allows us to deploy again
         raise FailedReleaseError.new(self, "Buildpack: #{@buildpack.inspect}\nRepo: #{git_repo}", output: output)
