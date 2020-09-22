@@ -140,8 +140,9 @@ module Hatchet
         end
       end
     rescue Timeout::Error
-      puts "Timed out status: #{@status}, timeout: #{@timeout}"
-      raise FailedTestError.new(self.app, self.output) unless app.allow_failure?
+      message = "Timed out status: #{@status}, timeout: #{@timeout}, app: #{app.name}"
+      puts message
+      raise FailedTestError.new(self.app, "#{message}, output:\n#{self.output}") unless app.allow_failure?
       yield self
       return self
     end

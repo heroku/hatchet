@@ -453,14 +453,14 @@ module Hatchet
       raise "Not supported, use `platform_api` instead."
     end
 
-    def run_ci(timeout: 300, &block)
+    def run_ci(timeout: 900, &block)
       in_directory do
         max_retries_count.times.retry do
           result       = create_pipeline
           @pipeline_id = result["id"]
         end
 
-        # when the CI run finishes, the associated ephemeral app created for the test run internally gets removed almost immediately
+        # When the CI run finishes, the associated ephemeral app created for the test run internally gets removed almost immediately
         # the system then sees a pipeline with no apps, and deletes it, also almost immediately
         # that would, with bad timing, mean our test run info poll in wait! would 403, and/or the delete_pipeline at the end
         # that's why we create an app explictly (or maybe it already exists), and then associate it with with the pipeline
