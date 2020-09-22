@@ -1,5 +1,6 @@
 ## HEAD
 
+- Increase CI timeout limit to 900 seconds (15 minutes) (https://github.com/heroku/hatchet/pull/137)
 - App#directory is deprecated (https://github.com/heroku/hatchet/pull/135)
 - Empty string returns from App#run now trigger retries (https://github.com/heroku/hatchet/pull/132)
 - Annotate rspec expectation failures inside of deploy blocks with hatchet debug information (https://github.com/heroku/hatchet/pull/136)
