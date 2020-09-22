@@ -90,6 +90,18 @@ module Hatchet
       @reaper        = Reaper.new(api_rate_limit: api_rate_limit)
     end
 
+    private def test_failure_classes
+      class_array = []
+      class_array << RSpec::Expectations::ExpectationNotMetError if defined?(RSpec::Expectations::ExpectationNotMetError)
+      class_array
+    end
+
+    def annotate_failures
+      yield
+    rescue *test_failure_classes => e
+      raise e, "App: #{name} (#{@repo_name})\n#{e.message}"
+    end
+
     def self.default_buildpack
       [HATCHET_BUILDPACK_BASE.call, HATCHET_BUILDPACK_BRANCH.call].join("#")
     end
@@ -410,9 +422,11 @@ module Hatchet
 
     def deploy(&block)
       in_directory do
-        in_dir_setup!
-        self.push_with_retry!
-        block.call(self, api_rate_limit.call, output) if block_given?
+        annotate_failures do
+          in_dir_setup!
+          self.push_with_retry!
+          block.call(self, api_rate_limit.call, output) if block_given?
+        end
       end
     ensure
       self.teardown! if block_given?
