@@ -8,7 +8,7 @@
 - - repo_fixtures/repos/default/default_ruby
   - 6e642963acec0ff64af51bd6fba8db3c4176ed6e
 - - repo_fixtures/repos/lock/lock_fail
-  - da748a59340be8b950e7bbbfb32077eb67d70c3c
+  - e61ba47043fbae131abb74fd74added7e6e504df
 - - repo_fixtures/repos/lock/lock_fail_main
   - main
 - - repo_fixtures/repos/lock/lock_fail_master
