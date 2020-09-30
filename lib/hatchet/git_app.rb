@@ -9,14 +9,16 @@ module Hatchet
       output = ""
 
       ShellThrottle.new(platform_api: @platform_api).call do
-        output = git_push_heroku_yall
-      rescue FailedDeploy => e
-        case e.output
-        when /reached the API rate limit/, /429 Too Many Requests/
-          throw(:throttle)
-        else
-          raise e unless @allow_failure
-          output = e.output
+        begin
+          output = git_push_heroku_yall
+        rescue FailedDeploy => e
+          case e.output
+          when /reached the API rate limit/, /429 Too Many Requests/
+            throw(:throttle)
+          else
+            raise e unless @allow_failure
+            output = e.output
+          end
         end
       end
 
