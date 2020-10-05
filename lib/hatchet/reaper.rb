@@ -55,7 +55,7 @@ module Hatchet
       # To be safe try to delete an app even if we're not over the limit
       # since the exception may have been caused by going over the maximum account limit
       if app_exception_message
-          io.puts <<~EOM
+          io.puts <<-EOM.strip_heredoc
             WARNING: Running reaper due to exception on app
                      #{stats_string}
                      Exception: #{app_exception_message}
@@ -122,7 +122,7 @@ module Hatchet
 
         # Sleep, try again later
         @reaper_throttle.call(max_sleep: age.sleep_for_ttl) do |sleep_for|
-          io.puts <<~EOM
+          io.puts <<-EOM.strip_heredoc
             WARNING: Attempting to destroy an app without maintenance mode on, but it is not old enough. app: #{app["name"]}, app_age: #{age.in_minutes} minutes
                      This can happen if App#teardown! is not called on an application, which will leave it in an 'unfinished' state
                      This can also happen if you're trying to run more tests concurrently than your currently set value for HATCHET_APP_COUNT
