@@ -5,7 +5,7 @@ describe "AllowFailureGitTest" do
     let(:release_fail_proc) {
       Proc.new do
         File.open("Procfile", "w+") do |f|
-          f.write <<~EOM
+          f.write <<-EOM.strip_heredoc
             release: echo "failing on release" && exit 1
           EOM
         end

@@ -46,3 +46,22 @@ module Hatchet
     end
   end
 end
+
+unless ::String.instance_methods.include?(:strip_heredoc)
+  # We can get rid of this when all rubies can support <<~ syntax
+  class ::String
+    def strip_heredoc
+      gsub(/^#{scan(/^[ \t]*(?=\S)/).min}/, "".freeze)
+    end
+  end
+end
+
+unless ::String.instance_methods.include?(:match?)
+  # We can get rid of this when all rubies can support String#match? method
+  class ::String
+    def match?(value)
+      self =~ value
+    end
+  end
+end
+

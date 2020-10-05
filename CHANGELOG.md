@@ -1,5 +1,11 @@
 ## HEAD
 
+## 7.3.1
+
+- Fix Ruby incompatibility introduced by using `&.` and `rescue` without
+  `begin`/`end` without a `required_ruby_version` in hatchet.gemspec.
+  (https://github.com/heroku/hatchet/pull/139)
+
 ## 7.3.0
 
 - Deprecations

@@ -57,7 +57,7 @@ describe "isolated lock tests" do
       end
 
       dir.join("hatchet.lock").open("w+") do |f|
-        f.puts <<~EOM
+        f.puts <<-EOM.strip_heredoc
         ---
         - - "./repos/foo/lock_fail_main_default_is_master"
           - main

@@ -29,9 +29,9 @@ references:
         bundle clean
 
 jobs:
-  "ruby-2.5":
+  "ruby-2.2":
     docker:
-      - image: circleci/ruby:2.5
+      - image: circleci/ruby:2.2
     steps:
       - checkout
       - <<: *restore
@@ -39,9 +39,9 @@ jobs:
       - <<: *hatchet_setup
       - <<: *unit
       - <<: *save
-  "ruby-2.6":
+  "ruby-2.5":
     docker:
-      - image: circleci/ruby:2.6
+      - image: circleci/ruby:2.5
     steps:
       - checkout
       - <<: *restore
@@ -64,6 +64,6 @@ workflows:
   version: 2
   build:
     jobs:
+      - "ruby-2.2"
       - "ruby-2.5"
-      - "ruby-2.6"
       - "ruby-2.7"
