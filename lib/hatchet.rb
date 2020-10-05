@@ -55,3 +55,13 @@ unless ::String.instance_methods.include?(:strip_heredoc)
     end
   end
 end
+
+unless ::String.instance_methods.include?(:match?)
+  # We can get rid of this when all rubies can support String#match? method
+  class ::String
+    def match?(value)
+      self =~ value
+    end
+  end
+end
+
