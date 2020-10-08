@@ -1,5 +1,7 @@
 ## HEAD
 
+- Do not create CI tarball inside cwd to prevent tar "file changed as we read it" warnings.
+
 ## 7.3.1
 
 - Fix Ruby incompatibility introduced by using `&.` and `rescue` without

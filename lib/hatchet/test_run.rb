@@ -1,3 +1,5 @@
+require "tempfile"
+
 module Hatchet
   class FailedTestError < StandardError
     def initialize(app, output)
@@ -177,15 +179,17 @@ module Hatchet
         app_json["stack"]                              ||= @app.stack if @app.stack && !@app.stack.empty?
         File.open("app.json", "w") {|f| f.write(JSON.generate(app_json)) }
 
-        out = `tar c . | gzip -9 > slug.tgz`
-        raise "Tar command failed: #{out}" unless $?.success?
+        Tempfile.create("slug.tgz") do |slug|
+          out = `tar c . | gzip -9 > #{slug.path}`
+          raise "Tar command failed: #{out}" unless $?.success?
 
-        source_put_url = @app.create_source
-        Hatchet::RETRIES.times.retry do
-          PlatformAPI.rate_throttle.call do
-            Excon.put(source_put_url,
-                      expects: [200],
-                      body:    File.read('slug.tgz'))
+          source_put_url = @app.create_source
+          Hatchet::RETRIES.times.retry do
+            PlatformAPI.rate_throttle.call do
+              Excon.put(source_put_url,
+                        expects: [200],
+                        body:    slug.read)
+            end
           end
         end
       end
