@@ -11,6 +11,15 @@ describe "LocalRepoTest" do
     expect(ENV[env_name]).to eq(env_name)
   end
 
+  it "in directory fork captures stdout even when there is an error" do
+    expect {
+      Hatchet::App.new("default_ruby").in_directory_fork do
+        puts "hello_there"
+        raise "error"
+      end
+    }.to raise_error(/hello_there/)
+  end
+
   it "repos checked into git" do
     begin
       fixture_dir = "repo_fixtures/different-folder-for-checked-in-repos/default_ruby"

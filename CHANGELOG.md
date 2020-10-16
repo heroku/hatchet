@@ -1,5 +1,6 @@
 ## HEAD
 
+- Fix App#in_directory_fork not receiving debugging output when an error is raised (https://github.com/heroku/hatchet/pull/146)
 - Do not create CI tarball inside cwd to prevent tar "file changed as we read it" warnings.
 
 ## 7.3.1

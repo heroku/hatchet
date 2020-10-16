@@ -387,8 +387,8 @@ module Hatchet
     def in_directory_fork(&block)
       Tempfile.create("stdout") do |tmp_file|
         pid = fork do
-          $stdout.reopen(tmp_file, "w")
-          $stderr.reopen(tmp_file, "w")
+          $stdout.reopen(tmp_file, "a")
+          $stderr.reopen(tmp_file, "a")
           $stdout.sync = true
           $stderr.sync = true
           in_directory do |dir|
