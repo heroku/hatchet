@@ -399,7 +399,7 @@ module Hatchet
         Process.waitpid(pid)
 
         if $?.success?
-          puts File.read(tmp_file)
+          print File.read(tmp_file)
         else
           raise File.read(tmp_file)
         end
