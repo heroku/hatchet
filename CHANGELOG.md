@@ -1,5 +1,7 @@
 ## HEAD
 
+## 7.3.3
+
 - Quiet personal tokens (https://github.com/heroku/hatchet/pull/148)
 
 ## 7.3.2
