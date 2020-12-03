@@ -1,3 +1,5 @@
+require "open3"
+
 module Hatchet
   # Used for running Heroku commands
   #
@@ -73,8 +75,30 @@ module Hatchet
     end
 
     private def run_shell!
-      @output = `#{@command}`
-      @status = $?
+      @output = ""
+      Open3.popen3(@command) do |stdin, stdout, stderr, wait_thread|
+        Thread.new do
+          begin
+            until stdout.eof? do
+              @output += stdout.gets
+            end
+          rescue IOError # eof? and gets race condition
+          end
+        end
+        Thread.new do
+          begin
+            until stderr.eof? do
+              @stderr.puts stderr.gets
+            end
+          rescue IOError # eof? and gets race condition
+          end
+        end
+        @status = wait_thread.value # wait for termination
+      end
+      # FIXME: usage of $? in tests is very likely not threadsafe, and does not allow a test to distinguish between a TERM of the 'heroku run' itself, or inside the dyno
+      # this should be part of a proper interface to the run result instead but that's a breaking change
+      # change app.run to return whole run object which has to_s and to_str for output?
+      `exit #{status}` # re-set $? for tests that rely on us previously having used backticks
     end
 
     private def build_heroku_command(command, options = {})
