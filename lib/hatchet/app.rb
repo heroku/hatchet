@@ -194,11 +194,13 @@ module Hatchet
         command,
         app: self,
         retry_on_empty: options.fetch(:retry_on_empty, !ENV["HATCHET_DISABLE_EMPTY_RUN_RETRY"]),
+        retry_delay: @run_multi ? 0 : (ENV["HATCHET_RUN_RETRY_DELAY"] || 1).to_i,
         heroku: options[:heroku],
-        raw: options[:raw]
+        raw: options[:raw],
+        timeout: options.fetch(:timeout, (ENV["HATCHET_DEFAULT_RUN_TIMEOUT"] || 60).to_i)
       ).call
 
-      return run_obj.output
+      return options[:return_obj] ? run_obj : run_obj.output
     end
 
     private def allow_run_multi!
@@ -248,8 +250,10 @@ module Hatchet
           command,
           app: self,
           retry_on_empty: options.fetch(:retry_on_empty, !ENV["HATCHET_DISABLE_EMPTY_RUN_RETRY"]),
+          retry_delay: @run_multi ? 0 : (ENV["HATCHET_RUN_RETRY_DELAY"] || 1).to_i,
           heroku: options[:heroku],
-          raw: options[:raw]
+          raw: options[:raw],
+          timeout: options.fetch(:timeout, (ENV["HATCHET_DEFAULT_RUN_TIMEOUT"] || 60).to_i)
         ).call
 
         yield run_obj.output, run_obj.status
