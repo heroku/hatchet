@@ -72,6 +72,7 @@ module Hatchet
       app: ,
       heroku: {},
       retry_on_empty: !ENV["HATCHET_DISABLE_EMPTY_RUN_RETRY"],
+      retry_delay: 0,
       raw: false,
       stderr: $stderr,
       timeout: 0)
@@ -81,6 +82,7 @@ module Hatchet
       @timeout = timeout
       @command = build_heroku_command(command, heroku || {})
       @retry_on_empty = retry_on_empty
+      @retry_delay = retry_delay
       @stderr = stderr
       @result = nil
       @dyno_id = nil
@@ -114,6 +116,7 @@ module Hatchet
           message << "\nreleases: #{@app.releases}"
           message << "\n#{caller.join("\n")}"
           @stderr.puts message
+          sleep(@retry_delay) # without run_multi, this will prevent occasional "can only run one free dyno" errors
           retry
         end
       rescue HerokuRunTimeoutError => e
@@ -127,6 +130,7 @@ module Hatchet
           message << "\nreleases: #{@app.releases}"
           message << "\n#{caller.join("\n")}"
           @stderr.puts message
+          sleep(@retry_delay) # without run_multi, this will prevent occasional "can only run one free dyno" errors
           retry
         end
       end
