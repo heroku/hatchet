@@ -3,6 +3,7 @@
 - Add support for GitHub Actions env vars (https://github.com/heroku/hatchet/pull/189)
 - Change HerokuRun#call to use exceptions for empty output retries in preparation of related work
 - Refactor run_shell! to use Open3.popen3 in preparation for timeout handling
+- Timeout support for 'heroku run' (in case of networking, hanging or "server boot" tests etc), defaults to 60 s, global override `$HATCHET_DEFAULT_RUN_TIMEOUT`, per-test option `:timeout`
 
 ## 7.4.0
 
