@@ -1,6 +1,7 @@
 ## HEAD
 
 - Add support for GitHub Actions env vars (https://github.com/heroku/hatchet/pull/189)
+- Change HerokuRun#call to use exceptions for empty output retries in preparation of related work
 
 ## 7.4.0
 

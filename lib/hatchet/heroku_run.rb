@@ -48,6 +48,8 @@ module Hatchet
   # the command to be empty.
   #
   class HerokuRun
+    class HerokuRunEmptyOutputError < RuntimeError; end
+
     attr_reader :command
 
     def initialize(
@@ -82,22 +84,19 @@ module Hatchet
     end
 
     def call
-      loop do
+      begin
         execute!
-
-        break unless output.empty?
-        break unless @retry_on_empty
-
-        @empty_fail_count += 1
-
-        break if @empty_fail_count >= 3
-
-        message = String.new("Empty output from command #{@command}, retrying the command.")
-        message << "\nTo disable pass in `retry_on_empty: false` or set HATCHET_DISABLE_EMPTY_RUN_RETRY=1 globally"
-        message << "\nfailed_count: #{@empty_fail_count}"
-        message << "\nreleases: #{@app.releases}"
-        message << "\n#{caller.join("\n")}"
-        @stderr.puts message
+      rescue HerokuRunEmptyOutputError => e
+        if @retry_on_empty and @empty_fail_count < 3
+          @empty_fail_count += 1
+          message = String.new("Empty output from command #{@command}, retrying the command.")
+          message << "\nTo disable pass in `retry_on_empty: false` or set HATCHET_DISABLE_EMPTY_RUN_RETRY=1 globally"
+          message << "\nfailed_count: #{@empty_fail_count}"
+          message << "\nreleases: #{@app.releases}"
+          message << "\n#{caller.join("\n")}"
+          @stderr.puts message
+          retry
+        end
       end
 
       self
@@ -107,6 +106,7 @@ module Hatchet
       ShellThrottle.new(platform_api: @app.platform_api).call do |throttle|
         run_shell!
         throw(:throttle) if @result.stderr.match?(/reached the API rate limit/)
+        raise HerokuRunEmptyOutputError if @result.stdout.empty?
       end
     end
 
