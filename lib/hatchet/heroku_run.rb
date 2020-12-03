@@ -122,7 +122,7 @@ module Hatchet
       rescue HerokuRunTimeoutError => e
         if @timeout_fail_count < 3
           @timeout_fail_count += 1
-          message = String.new("Run #{@dyno_id} with command #{@command} timed out after #{@timeout} seconds, retrying...")
+          message = String.new("Run #{@dyno_id} with command #{@command} timed out after #{@timeout} seconds, stopping dyno and retrying...")
           message << "\nstderr until moment of termination was: #{@result.stderr}"
           message << "\nstdout until moment of termination was: #{@result.stdout}"
           message << "\nTo disable pass in `timeout: 0` or set HATCHET_DEFAULT_RUN_TIMEOUT=0 globally"
@@ -130,6 +130,7 @@ module Hatchet
           message << "\nreleases: #{@app.releases}"
           message << "\n#{caller.join("\n")}"
           @stderr.puts message
+          @app.platform_api.dyno.stop(@app.name, @dyno_id) if @dyno_id
           sleep(@retry_delay) # without run_multi, this will prevent occasional "can only run one free dyno" errors
           retry
         end

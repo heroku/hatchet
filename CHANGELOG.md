@@ -6,6 +6,7 @@
 - Timeout support for 'heroku run' (in case of networking, hanging or "server boot" tests etc), defaults to 60 s, global override `$HATCHET_DEFAULT_RUN_TIMEOUT`, per-test option `:timeout`
 - Delay for empty/timeout retries if run_multi is off, defaults to 1 s, global override `$HATCHET_RUN_RETRY_DELAY`
 - Record and print dyno id ("run.1234") in event of empty output or timeout retry
+- Terminate dyno via API on timeout
 
 ## 7.4.0
 
