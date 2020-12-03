@@ -1,19 +1,33 @@
 require 'open3'
+require 'timeout'
 
 module Hatchet
   class BashResult
-    attr_reader :stdout, :stderr, :status
+    attr_reader :stdout, :stderr, :status, :status_obj
 
     def initialize(stdout:, stderr:, status:, set_global_status: false)
       @stdout = stdout
       @stderr = stderr
-      @status = status.respond_to?(:exitstatus) ? status.exitstatus : status.to_i
-      `exit #{@status}` if set_global_status
+      @status_obj = status
+      @status = @status_obj.exitstatus
+      return unless set_global_status
+      # we're now populating `$?` by hand for any callers that rely on that
+      if @status_obj.signaled?
+        # termination of 'heroku run' from our TERM signal
+        # a signaled program will not have an exit status
+        # the shell just represents that case as 128+$signal, so e.g. 128+15=143 for SIGTERM
+        # the correct behavior for a program is to terminate itself using the signal it received
+        # this will also produce the correct $? contents (signaled? again, termsig set, no exitstatus)
+        `kill -#{@status_obj.termsig} $$`
+      else
+        # the dyno exited and the CLI is reporting that back as an exit status
+        `exit #{@status}`
+      end
     end
 
     # @return [Boolean]
     def success?
-      @status == 0
+      @status_obj.success?
     end
 
     def failed?
@@ -48,6 +62,9 @@ module Hatchet
   # the command to be empty.
   #
   class HerokuRun
+    class HerokuRunEmptyOutputError < RuntimeError; end
+    class HerokuRunTimeoutError < RuntimeError; end
+
     attr_reader :command
 
     def initialize(
@@ -55,16 +72,22 @@ module Hatchet
       app: ,
       heroku: {},
       retry_on_empty: !ENV["HATCHET_DISABLE_EMPTY_RUN_RETRY"],
+      retry_delay: 0,
       raw: false,
-      stderr: $stderr)
+      stderr: $stderr,
+      timeout: 0)
 
       @raw = raw
       @app = app
+      @timeout = timeout
       @command = build_heroku_command(command, heroku || {})
       @retry_on_empty = retry_on_empty
+      @retry_delay = retry_delay
       @stderr = stderr
       @result = nil
+      @dyno_id = nil
       @empty_fail_count = 0
+      @timeout_fail_count = 0
     end
 
     def result
@@ -82,22 +105,35 @@ module Hatchet
     end
 
     def call
-      loop do
+      begin
         execute!
-
-        break unless output.empty?
-        break unless @retry_on_empty
-
-        @empty_fail_count += 1
-
-        break if @empty_fail_count >= 3
-
-        message = String.new("Empty output from command #{@command}, retrying the command.")
-        message << "\nTo disable pass in `retry_on_empty: false` or set HATCHET_DISABLE_EMPTY_RUN_RETRY=1 globally"
-        message << "\nfailed_count: #{@empty_fail_count}"
-        message << "\nreleases: #{@app.releases}"
-        message << "\n#{caller.join("\n")}"
-        @stderr.puts message
+      rescue HerokuRunEmptyOutputError => e
+        if @retry_on_empty and @empty_fail_count < 3
+          @empty_fail_count += 1
+          message = String.new("Empty output from run #{@dyno_id} with command #{@command}, retrying...")
+          message << "\nTo disable pass in `retry_on_empty: false` or set HATCHET_DISABLE_EMPTY_RUN_RETRY=1 globally"
+          message << "\nfailed_count: #{@empty_fail_count}"
+          message << "\nreleases: #{@app.releases}"
+          message << "\n#{caller.join("\n")}"
+          @stderr.puts message
+          sleep(@retry_delay) # without run_multi, this will prevent occasional "can only run one free dyno" errors
+          retry
+        end
+      rescue HerokuRunTimeoutError => e
+        if @timeout_fail_count < 3
+          @timeout_fail_count += 1
+          message = String.new("Run #{@dyno_id} with command #{@command} timed out after #{@timeout} seconds, stopping dyno and retrying...")
+          message << "\nstderr until moment of termination was: #{@result.stderr}"
+          message << "\nstdout until moment of termination was: #{@result.stdout}"
+          message << "\nTo disable pass in `timeout: 0` or set HATCHET_DEFAULT_RUN_TIMEOUT=0 globally"
+          message << "\nfailed_count: #{@timeout_fail_count}"
+          message << "\nreleases: #{@app.releases}"
+          message << "\n#{caller.join("\n")}"
+          @stderr.puts message
+          @app.platform_api.dyno.stop(@app.name, @dyno_id) if @dyno_id
+          sleep(@retry_delay) # without run_multi, this will prevent occasional "can only run one free dyno" errors
+          retry
+        end
       end
 
       self
@@ -107,12 +143,46 @@ module Hatchet
       ShellThrottle.new(platform_api: @app.platform_api).call do |throttle|
         run_shell!
         throw(:throttle) if @result.stderr.match?(/reached the API rate limit/)
+        raise HerokuRunTimeoutError if @result.status_obj.signaled? # program got terminated by our SIGTERM, raise
+        raise HerokuRunEmptyOutputError if @result.stdout.empty?
       end
     end
 
     private def run_shell!
-      stdout, stderr, status = Open3.capture3(@command)
-      @result = BashResult.new(stdout: stdout, stderr: stderr, status: status, set_global_status: true)
+      r_stdout = ""
+      r_stderr = ""
+      r_status = nil
+      @dyno_id = nil
+      Open3.popen3(@command) do |stdin, stdout, stderr, wait_thread|
+        begin
+          Timeout.timeout(@timeout) do
+            Thread.new do
+              begin
+                until stdout.eof? do
+                  r_stdout += stdout.gets
+                end
+              rescue IOError # eof? and gets race condition
+              end
+            end
+            Thread.new do
+              begin
+                until stderr.eof? do
+                  r_stderr += line = stderr.gets
+                  if !@dyno_id and run = line.match(/, (run\.\d+)/)
+                    @dyno_id = run.captures.first
+                  end
+                end
+              rescue IOError # eof? and gets race condition
+              end
+            end
+          end
+          r_status = wait_thread.value # wait for termination
+        rescue Timeout::Error
+          Process.kill("TERM", wait_thread.pid)
+          r_status = wait_thread.value # wait for termination
+        end
+      end
+      @result = BashResult.new(stdout: r_stdout, stderr: r_stderr, status: r_status, set_global_status: true)
       @status = $?
     end
 
