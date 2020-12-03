@@ -4,6 +4,7 @@
 
 - Change HerokuRun#call to use exceptions for empty output retries in preparation of related work
 - Thread safety for HerokuRun (https://github.com/heroku/hatchet/issues/157)
+- Timeout support for 'heroku run' (in case of networking, hanging or "server boot" tests etc), defaults to 60 s, global override `$HATCHET_DEFAULT_RUN_TIMEOUT`, per-test option `:timeout`
 
 ## 7.3.4
 

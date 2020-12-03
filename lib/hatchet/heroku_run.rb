@@ -1,4 +1,5 @@
 require "open3"
+require "timeout"
 
 module Hatchet
   # Used for running Heroku commands
@@ -16,6 +17,7 @@ module Hatchet
   #
   class HerokuRun
     class HerokuRunEmptyOutputError < RuntimeError; end
+    class HerokuRunTimeoutError < RuntimeError; end
 
     attr_reader :command
 
@@ -25,16 +27,20 @@ module Hatchet
       heroku: {},
       retry_on_empty: !ENV["HATCHET_DISABLE_EMPTY_RUN_RETRY"],
       raw: false,
-      stderr: $stderr)
+      stderr: $stderr,
+      timeout: 0)
 
       @raw = raw
       @app = app
+      @timeout = timeout
       @command = build_heroku_command(command, heroku || {})
       @retry_on_empty = retry_on_empty
       @stderr = stderr
       @output = ""
       @status = nil
+      @dyno_id = nil
       @empty_fail_count = 0
+      @timeout_fail_count = 0
     end
 
     def output
@@ -53,9 +59,21 @@ module Hatchet
       rescue HerokuRunEmptyOutputError => e
         if @retry_on_empty and @empty_fail_count < 3
           @empty_fail_count += 1
-          message = String.new("Empty output from command #{@command}, retrying the command.")
+          message = String.new("Empty output from run #{@dyno_id} with command #{@command}, retrying...")
           message << "\nTo disable pass in `retry_on_empty: false` or set HATCHET_DISABLE_EMPTY_RUN_RETRY=1 globally"
           message << "\nfailed_count: #{@empty_fail_count}"
+          message << "\nreleases: #{@app.releases}"
+          message << "\n#{caller.join("\n")}"
+          @stderr.puts message
+          retry
+        end
+      rescue HerokuRunTimeoutError => e
+        if @timeout_fail_count < 3
+          @timeout_fail_count += 1
+          message = String.new("Run #{@dyno_id} with command #{@command} timed out after #{@timeout} seconds, retrying...")
+          message << "\nOutput until moment of termination was: #{@output}"
+          message << "\nTo disable pass in `timeout: 0` or set HATCHET_DEFAULT_RUN_TIMEOUT=0 globally"
+          message << "\nfailed_count: #{@timeout_fail_count}"
           message << "\nreleases: #{@app.releases}"
           message << "\n#{caller.join("\n")}"
           @stderr.puts message
@@ -69,6 +87,7 @@ module Hatchet
     private def execute!
       ShellThrottle.new(platform_api: @app.platform_api).call do |throttle|
         run_shell!
+        raise HerokuRunTimeoutError if @status.signaled? # program got terminated by our SIGTERM, raise
         raise HerokuRunEmptyOutputError if @output.empty?
         throw(:throttle) if output.match?(/reached the API rate limit/)
       end
@@ -76,29 +95,51 @@ module Hatchet
 
     private def run_shell!
       @output = ""
+      @dyno_id = nil
       Open3.popen3(@command) do |stdin, stdout, stderr, wait_thread|
-        Thread.new do
-          begin
-            until stdout.eof? do
-              @output += stdout.gets
+        begin
+          Timeout.timeout(@timeout) do
+            Thread.new do
+              begin
+                until stdout.eof? do
+                  @output += stdout.gets
+                end
+              rescue IOError # eof? and gets race condition
+              end
             end
-          rescue IOError # eof? and gets race condition
-          end
-        end
-        Thread.new do
-          begin
-            until stderr.eof? do
-              @stderr.puts stderr.gets
+            Thread.new do
+              begin
+                until stderr.eof? do
+                  @stderr.puts line = stderr.gets
+                  if !@dyno_id and run = line.match(/, (run\.\d+)/)
+                    @dyno_id = run.captures.first
+                  end
+                end
+              rescue IOError # eof? and gets race condition
+              end
             end
-          rescue IOError # eof? and gets race condition
+            @status = wait_thread.value # wait for termination
           end
+        rescue Timeout::Error
+          Process.kill("TERM", wait_thread.pid)
+          @status = wait_thread.value # wait for termination
         end
-        @status = wait_thread.value # wait for termination
       end
-      # FIXME: usage of $? in tests is very likely not threadsafe, and does not allow a test to distinguish between a TERM of the 'heroku run' itself, or inside the dyno
+      # re-set $? for tests that rely on us previously having used backticks
+       # FIXME: usage of $? in tests is very likely not threadsafe, and does not allow a test to distinguish between a TERM of the 'heroku run' itself, or inside the dyno
       # this should be part of a proper interface to the run result instead but that's a breaking change
-      # change app.run to return whole run object which has to_s and to_str for output?
-      `exit #{status}` # re-set $? for tests that rely on us previously having used backticks
+      # remove this now that App#run has :return_obj => true?
+      if @status.signaled?
+        # termination of 'heroku run' from our TERM signal
+        # a signaled program will not have an exit status
+        # the shell just represents that case as 128+$signal, so e.g. 128+15=143 for SIGTERM
+        # the correct behavior for a program is to terminate itself using the signal it received
+        # this will also produce the correct $? contents (signaled? again, termsig set, no exitstatus)
+        `kill -#{status.termsig} $$`
+      else
+        # the dyno exited and the CLI is reporting that back as an exit status
+        `exit #{status.exitstatus}`
+      end
     end
 
     private def build_heroku_command(command, options = {})
