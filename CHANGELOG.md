@@ -2,6 +2,7 @@
 
 - Add support for GitHub Actions env vars (https://github.com/heroku/hatchet/pull/189)
 - Change HerokuRun#call to use exceptions for empty output retries in preparation of related work
+- Refactor run_shell! to use Open3.popen3 in preparation for timeout handling
 
 ## 7.4.0
 

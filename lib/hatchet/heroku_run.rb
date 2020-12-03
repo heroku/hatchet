@@ -111,8 +111,29 @@ module Hatchet
     end
 
     private def run_shell!
-      stdout, stderr, status = Open3.capture3(@command)
-      @result = BashResult.new(stdout: stdout, stderr: stderr, status: status, set_global_status: true)
+      r_stdout = ""
+      r_stderr = ""
+      Open3.popen3(@command) do |stdin, stdout, stderr, wait_thread|
+        Thread.new do
+          begin
+            until stdout.eof? do
+              r_stdout += stdout.gets
+            end
+          rescue IOError # eof? and gets race condition
+          end
+        end
+        Thread.new do
+          begin
+            until stderr.eof? do
+              r_stderr += stderr.gets
+            end
+          rescue IOError # eof? and gets race condition
+          end
+        end
+        r_status = wait_thread.value # wait for termination
+      end
+      @result = BashResult.new(stdout: r_stdout, stderr: r_stderr, status: r_status, set_global_status: true)
+      # FIXME: usage of $? does not allow a test to distinguish between a TERM of the 'heroku run' itself, or inside the dyno
       @status = $?
     end
 
