@@ -1,5 +1,9 @@
 ## HEAD
 
+## 7.?.?
+
+- Change HerokuRun#call to use exceptions for empty output retries in preparation of related work
+
 ## 7.3.4
 
 - Memoize `Hatchet::App.default_buildpack` (https://github.com/heroku/hatchet/pull/183)
