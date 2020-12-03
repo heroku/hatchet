@@ -199,7 +199,7 @@ module Hatchet
         timeout: options.fetch(:timeout, (ENV["HATCHET_DEFAULT_RUN_TIMEOUT"] || 60).to_i)
       ).call
 
-      return run_obj.output
+      return options[:return_obj] ? run_obj : run_obj.output
     end
 
     private def allow_run_multi!
