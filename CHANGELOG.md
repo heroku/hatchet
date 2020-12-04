@@ -1,6 +1,6 @@
 ## HEAD
 
-## 7.?.?
+## 7.4.0
 
 - Change HerokuRun#call to use exceptions for empty output retries in preparation of related work
 - Thread safety for HerokuRun (https://github.com/heroku/hatchet/issues/157)
