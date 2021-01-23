@@ -1,5 +1,7 @@
 ## HEAD
 
+- Switch `heroku ci:install_heroku` to the Heroku CLI standalone installer rather than the APT install method (https://github.com/heroku/hatchet/issues/171)
+
 ## 7.3.3
 
 - Quiet personal tokens (https://github.com/heroku/hatchet/pull/148)
