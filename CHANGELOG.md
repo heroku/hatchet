@@ -1,5 +1,7 @@
 ## HEAD
 
+- Set `init.defaultBranch` in ci:setup to suppress `git init` warning in Git 2.30+ (https://github.com/heroku/hatchet/issues/172)
+
 ## 7.3.3
 
 - Quiet personal tokens (https://github.com/heroku/hatchet/pull/148)

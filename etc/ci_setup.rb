@@ -30,6 +30,8 @@ run_cmd "bundle exec hatchet ci:install_heroku"
 run_cmd "bundle exec hatchet install"
 run_cmd "git config --get user.email > /dev/null || git config --global user.email #{ENV.fetch('HEROKU_API_USER').shellescape}"
 run_cmd "git config --get user.name > /dev/null || git config --global user.name 'BuildpackTester'"
+# Suppress the `git init` warning in Git 2.30+ when no default branch name is set.
+run_cmd "git config --global init.defaultBranch main"
 
 puts "== Done =="
 
