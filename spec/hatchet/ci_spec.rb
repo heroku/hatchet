@@ -28,7 +28,7 @@ describe "CIFourTest" do
 
   it "error with bad app" do
     expect {
-      Hatchet::GitApp.new("rails5_ci_fails_no_database").run_ci { }
+      Hatchet::GitApp.new("rails5_ci_fails_no_database", stack: "heroku-18").run_ci { }
     }.to raise_error(/PG::ConnectionBad: could not connect to server/)
   end
 
@@ -41,7 +41,7 @@ describe "CIFourTest" do
       @before_deploy_dir_pwd = Dir.pwd
     end
 
-    Hatchet::GitApp.new("rails5_ci_fails_no_database", allow_failure: true, before_deploy: before_deploy).run_ci do |test_run|
+    Hatchet::GitApp.new("rails5_ci_fails_no_database", stack: "heroku-18", allow_failure: true, before_deploy: before_deploy).run_ci do |test_run|
       expect(test_run.status).to eq(:errored)
       expect(@before_deploy_dir_pwd).to eq(Dir.pwd)
       expect(@before_deploy_called).to be_truthy
