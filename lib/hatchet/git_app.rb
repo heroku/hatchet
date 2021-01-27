@@ -13,7 +13,7 @@ module Hatchet
           output = git_push_heroku_yall
         rescue FailedDeploy => e
           case e.output
-          when /reached the API rate limit/, /429 Too Many Requests/
+          when /reached the API rate limit/, /429 Too Many Requests/, /HTTP 429/, /HTTP code = 429/
             throw(:throttle)
           else
             raise e unless @allow_failure
