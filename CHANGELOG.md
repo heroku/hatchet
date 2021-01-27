@@ -1,6 +1,6 @@
 ## HEAD
 
-
+- Memoize `Hatchet::App.default_buildpack` (https://github.com/heroku/hatchet/pull/183)
 - Fix repository path lookup when custom Hatchet directory set (https://github.com/heroku/hatchet/issues/181)
 - Handle additional variations of rate limit error messages (https://github.com/heroku/hatchet/pull/182)
 - Add `HATCHET_DEFAULT_STACK` for configuring the default stack (https://github.com/heroku/hatchet/pull/184)
