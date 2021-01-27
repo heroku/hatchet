@@ -44,7 +44,7 @@ module Hatchet
 
     # use this method to turn "codetriage" into repos/rails3/codetriage
     def path_for_name(name)
-      possible_paths = [repos[name.to_s], "repos/#{name}", name].compact
+      possible_paths = [repos[name.to_s], "#{repo_directory_path}/#{name}", name].compact
       path = possible_paths.detect do |path|
         !(Dir[path] && Dir[path].empty?)
       end

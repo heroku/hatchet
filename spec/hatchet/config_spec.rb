@@ -6,6 +6,10 @@ describe "ConfigTest" do
     expect(@config.path_for_name("rails3_mri_193")).to(eq("repo_fixtures/repos/rails3/rails3_mri_193"))
   end
 
+  it("config path for name with full repo name") do
+    expect(@config.path_for_name("rails3/rails3_mri_193")).to(eq("repo_fixtures/repos/rails3/rails3_mri_193"))
+  end
+
   it("config dirs") do
     { "repo_fixtures/repos/bundler/no_lockfile" => "https://github.com/sharpstone/no_lockfile.git", "repo_fixtures/repos/default/default_ruby" => "https://github.com/sharpstone/default_ruby.git", "repo_fixtures/repos/rails2/rails2blog" => "https://github.com/sharpstone/rails2blog.git", "repo_fixtures/repos/rails3/rails3_mri_193" => "https://github.com/sharpstone/rails3_mri_193.git" }.each do |key, value|
       assert_include(key, value, @config.dirs)
