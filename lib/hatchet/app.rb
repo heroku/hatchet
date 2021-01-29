@@ -112,8 +112,9 @@ module Hatchet
       @directory
     end
 
+    @default_buildpack = nil
     def self.default_buildpack
-      [HATCHET_BUILDPACK_BASE.call, HATCHET_BUILDPACK_BRANCH.call].join("#")
+      @default_buildpack ||= [HATCHET_BUILDPACK_BASE.call, HATCHET_BUILDPACK_BRANCH.call].join("#")
     end
 
     def allow_failure?

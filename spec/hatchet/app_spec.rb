@@ -58,6 +58,10 @@ describe "AppTest" do
     expect(app.buildpacks.first).to match("https://github.com/heroku/heroku-buildpack-ruby")
   end
 
+  it "default_buildpack is only computed once" do
+    expect(Hatchet::App.default_buildpack.object_id).to eq(Hatchet::App.default_buildpack.object_id)
+  end
+
   it "create app with stack" do
     stack = "heroku-16"
     app = Hatchet::App.new("default_ruby", stack: stack)
