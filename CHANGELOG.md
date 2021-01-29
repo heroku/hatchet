@@ -1,5 +1,7 @@
 ## HEAD
 
+
+- Fix repository path lookup when custom Hatchet directory set (https://github.com/heroku/hatchet/issues/181)
 - Handle additional variations of rate limit error messages (https://github.com/heroku/hatchet/pull/182)
 - Add `HATCHET_DEFAULT_STACK` for configuring the default stack (https://github.com/heroku/hatchet/pull/184)
 - Fix typo in the reaper `"Duplicate destroy attempted"` message (https://github.com/heroku/hatchet/pull/175)
