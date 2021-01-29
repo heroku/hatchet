@@ -504,7 +504,7 @@ The `Hatchet::Runner.new` takes several arguments.
 
 ### Init options
 
-- stack (String): The stack you want to deploy to on Heroku.
+- stack (String): The Heroku [stack](https://devcenter.heroku.com/articles/stack) to use for the app. If this is not set, the stack will be determined from `HATCHET_DEFAULT_STACK`, or else the Heroku platform's [default stack](https://devcenter.heroku.com/articles/stack#default-stack).
 
 ```ruby
 Hatchet::Runner.new("default_ruby", stack: "heroku-16").deploy do |app|
@@ -728,6 +728,7 @@ HATCHET_ALIVE_TTL_MINUTES=7
 - `HATCHET_APP_LIMIT`: The maximum number of **hatchet** apps that Hatchet will allow in the given account before running the reaper. For local execution, keep this low as you don't want your account dominated by hatchet apps. For CI, you want it to be much larger, 80-100 since it's not competing with non-hatchet apps. Your test runner account needs to be a dedicated account.
 - `HEROKU_API_KEY`: The API key of your test account user. If you run locally without this set, it will use your personal credentials.
 - `HEROKU_API_USER`: The email address of your user account. If you run locally without this set, it will use your personal credentials.
+- `HATCHET_DEFAULT_STACK`: The default Heroku stack to be used when an explicit `stack` is not passed to `App.new`. If this is not set, apps will instead use Heroku platform's [default stack](https://devcenter.heroku.com/articles/stack#default-stack).
 - `HATCHET_RUN_MULTI`: If enabled, this will scale up deployed apps to "standard-1x" once deployed instead of running on the free tier. This enables the `run_multi` method capability, however scaling up is not free. WARNING: Setting this env var will incur charges to your Heroku account. We recommended never to enable this setting unless you work for Heroku. To use this you must also set `HATCHET_EXPENSIVE_MODE=1`
 - `HATCHET_EXPENSIVE_MODE`: This is intended to be a "safety" environment variable. If it is not set, Hatchet will prevent you from using the `run_multi: true` setting or the `HATCHET_RUN_MULTI` environment variables. There are still ways to incur charges without this feature, but unless you're absolutely confident your test setup will not leave "orphan" apps that are billing you, do not enable this setting. Even then, only set this value if you work for Heroku. To recap WARNING: setting this is expensive.
 
