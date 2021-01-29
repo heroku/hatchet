@@ -49,7 +49,7 @@ module Hatchet
     DEFAULT_REPO_NAME = Object.new
 
     def initialize(repo_name = DEFAULT_REPO_NAME,
-                   stack: "",
+                   stack: ENV["HATCHET_DEFAULT_STACK"],
                    name: default_name,
                    debug: nil,
                    debugging: nil,
