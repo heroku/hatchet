@@ -1,6 +1,7 @@
 ## HEAD
 
 - Handle additional variations of rate limit error messages (https://github.com/heroku/hatchet/pull/182)
+- Add `HATCHET_DEFAULT_STACK` for configuring the default stack (https://github.com/heroku/hatchet/pull/184)
 - Fix typo in the reaper `"Duplicate destroy attempted"` message (https://github.com/heroku/hatchet/pull/175)
 - Set `init.defaultBranch` in ci:setup to suppress `git init` warning in Git 2.30+ (https://github.com/heroku/hatchet/issues/172)
 - Switch `heroku ci:install_heroku` to the Heroku CLI standalone installer rather than the APT install method (https://github.com/heroku/hatchet/issues/171)
