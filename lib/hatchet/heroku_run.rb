@@ -119,6 +119,7 @@ module Hatchet
           sleep(@retry_delay) # without run_multi, this will prevent occasional "can only run one free dyno" errors
           retry
         end
+        raise # we are out of retries
       rescue HerokuRunTimeoutError => e
         if @timeout_fail_count < 3
           @timeout_fail_count += 1
@@ -134,6 +135,7 @@ module Hatchet
           sleep(@retry_delay) # without run_multi, this will prevent occasional "can only run one free dyno" errors
           retry
         end
+        raise # we are out of retries
       end
 
       self
