@@ -61,31 +61,30 @@ module Hatchet
       rescue HerokuRunEmptyOutputError => e
         if @retry_on_empty and @empty_fail_count < 3
           @empty_fail_count += 1
-          message = String.new("Empty output from run #{@dyno_id} with command #{@command}, retrying...")
-          message << "\nTo disable pass in `retry_on_empty: false` or set HATCHET_DISABLE_EMPTY_RUN_RETRY=1 globally"
-          message << "\nfailed_count: #{@empty_fail_count}"
-          message << "\nreleases: #{@app.releases}"
+          message = e.message
           message << "\n#{caller.join("\n")}"
+          message << "\nThis was failed attempt ##{@empty_fail_count}, now retrying execution."
+          message << "\nTo disable retries, pass in `retry_on_empty: false` or set HATCHET_DISABLE_EMPTY_RUN_RETRY=1 globally."
           @stderr.puts message
           sleep(@retry_delay) # without run_multi, this will prevent occasional "can only run one free dyno" errors
           retry
+        else
+          raise # we are out of retries
         end
-        raise # we are out of retries
       rescue HerokuRunTimeoutError => e
+        @app.platform_api.dyno.stop(@app.name, @dyno_id) if @dyno_id
         if @timeout_fail_count < 3
           @timeout_fail_count += 1
-          message = String.new("Run #{@dyno_id} with command #{@command} timed out after #{@timeout} seconds, stopping dyno and retrying...")
-          message << "\nOutput until moment of termination was: #{@output}"
-          message << "\nTo disable pass in `timeout: 0` or set HATCHET_DEFAULT_RUN_TIMEOUT=0 globally"
-          message << "\nfailed_count: #{@timeout_fail_count}"
-          message << "\nreleases: #{@app.releases}"
+          message = e.message
           message << "\n#{caller.join("\n")}"
+          message << "\nThis was failed attempt ##{@timeout_fail_count}, now retrying execution."
+          message << "\nTo disable retries, pass in `timeout: 0` or set HATCHET_DEFAULT_RUN_TIMEOUT=0 globally."
           @stderr.puts message
-          @app.platform_api.dyno.stop(@app.name, @dyno_id) if @dyno_id
           sleep(@retry_delay) # without run_multi, this will prevent occasional "can only run one free dyno" errors
           retry
+        else
+          raise # we are out of retries
         end
-        raise # we are out of retries
       end
 
       self
@@ -94,8 +93,8 @@ module Hatchet
     private def execute!
       ShellThrottle.new(platform_api: @app.platform_api).call do |throttle|
         run_shell!
-        raise HerokuRunTimeoutError if @status.signaled? # program got terminated by our SIGTERM, raise
-        raise HerokuRunEmptyOutputError if @output.empty?
+        raise HerokuRunTimeoutError.new "Run #{@dyno_id} with command #{@command} timed out after #{@timeout} seconds, stopping dyno.\nOutput until moment of termination was:\n#{@output}\nReleases: #{@app.releases}" if @status.signaled? # program got terminated by our SIGTERM, raise
+        raise HerokuRunEmptyOutputError.new "Empty output from run #{@dyno_id} with command #{@command}.\nReleases: #{@app.releases}" if @output.empty?
         throw(:throttle) if output.match?(/reached the API rate limit/)
       end
     end

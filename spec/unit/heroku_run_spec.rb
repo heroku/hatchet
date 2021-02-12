@@ -58,7 +58,7 @@ describe "HerokuRun" do
       run_obj.call
 
       expect(run_obj.instance_variable_get(:@empty_fail_count)).to eq(3)
-      expect(stderr.string).to include("retrying...")
+      expect(stderr.string).to include("now retrying execution")
     end
 
     it "retries 0 times on NON empty result" do
@@ -90,7 +90,7 @@ describe "HerokuRun" do
       run_obj.call
 
       expect(run_obj.instance_variable_get(:@empty_fail_count)).to eq(0)
-      expect(stderr.string).to_not include("retrying...")
+      expect(stderr.string).to_not include("now retrying execution")
     end
 
     it "retries 0 times on empty result when disabled via ENV var" do
@@ -109,7 +109,7 @@ describe "HerokuRun" do
         run_obj.call
 
         expect(run_obj.instance_variable_get(:@empty_fail_count)).to eq(0)
-        expect(stderr.string).to_not include("retrying...")
+        expect(stderr.string).to_not include("now retrying execution")
       ensure
         ENV["HATCHET_DISABLE_EMPTY_RUN_RETRY"] = original_env
       end
