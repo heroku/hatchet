@@ -56,8 +56,7 @@ describe "HerokuRun" do
         @status = $?
       end
 
-      run_obj.call
-
+      expect { run_obj.call }.to raise_error(Hatchet::HerokuRun::HerokuRunEmptyOutputError)
       expect(run_obj.instance_variable_get(:@empty_fail_count)).to eq(3)
       expect(stderr.string).to include("now retrying execution")
     end
@@ -73,8 +72,7 @@ describe "HerokuRun" do
         @status = $?
       end
 
-      run_obj.call
-
+      expect { run_obj.call }.not_to raise_error(Hatchet::HerokuRun::HerokuRunEmptyOutputError)
       expect(run_obj.instance_variable_get(:@empty_fail_count)).to eq(0)
       expect(run_obj.output).to eq("not empty")
     end
@@ -90,8 +88,7 @@ describe "HerokuRun" do
         @status = $?
       end
 
-      run_obj.call
-
+      expect { run_obj.call }.to raise_error(Hatchet::HerokuRun::HerokuRunEmptyOutputError)
       expect(run_obj.instance_variable_get(:@empty_fail_count)).to eq(0)
       expect(stderr.string).to_not include("now retrying execution")
     end
@@ -128,8 +125,7 @@ describe "HerokuRun" do
           @status = $?
         end
 
-        run_obj.call
-
+        expect { run_obj.call }.to raise_error(Hatchet::HerokuRun::HerokuRunEmptyOutputError)
         expect(run_obj.instance_variable_get(:@empty_fail_count)).to eq(0)
         expect(stderr.string).to_not include("now retrying execution")
       ensure
