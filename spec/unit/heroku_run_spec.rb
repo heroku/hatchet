@@ -51,13 +51,13 @@ describe "HerokuRun" do
 
       def run_obj.run_shell!
         @output = ""
-        @status = Object.new
+        `exit 1` # for $? on the next line
+        @status = $?
       end
 
-      run_obj.call
-
+      expect { run_obj.call }.to raise_error(Hatchet::HerokuRun::HerokuRunEmptyOutputError)
       expect(run_obj.instance_variable_get(:@empty_fail_count)).to eq(3)
-      expect(stderr.string).to include("retrying the command.")
+      expect(stderr.string).to include("now retrying execution")
     end
 
     it "retries 0 times on NON empty result" do
@@ -66,11 +66,11 @@ describe "HerokuRun" do
 
       def run_obj.run_shell!
         @output = "not empty"
-        @status = Object.new
+        `exit 0` # for $? on the next line
+        @status = $?
       end
 
-      run_obj.call
-
+      expect { run_obj.call }.not_to raise_error(Hatchet::HerokuRun::HerokuRunEmptyOutputError)
       expect(run_obj.instance_variable_get(:@empty_fail_count)).to eq(0)
       expect(run_obj.output).to eq("not empty")
     end
@@ -81,13 +81,13 @@ describe "HerokuRun" do
 
       def run_obj.run_shell!
         @output = ""
-        @status = Object.new
+        `exit 1` # for $? on the next line
+        @status = $?
       end
 
-      run_obj.call
-
+      expect { run_obj.call }.to raise_error(Hatchet::HerokuRun::HerokuRunEmptyOutputError)
       expect(run_obj.instance_variable_get(:@empty_fail_count)).to eq(0)
-      expect(stderr.string).to_not include("retrying the command.")
+      expect(stderr.string).to_not include("now retrying execution")
     end
 
     it "retries 0 times on empty result when disabled via ENV var" do
@@ -99,13 +99,13 @@ describe "HerokuRun" do
 
         def run_obj.run_shell!
           @output = ""
-          @status = Object.new
+          `exit 1` # for $? on the next line
+          @status = $?
         end
 
-        run_obj.call
-
+        expect { run_obj.call }.to raise_error(Hatchet::HerokuRun::HerokuRunEmptyOutputError)
         expect(run_obj.instance_variable_get(:@empty_fail_count)).to eq(0)
-        expect(stderr.string).to_not include("retrying the command.")
+        expect(stderr.string).to_not include("now retrying execution")
       ensure
         ENV["HATCHET_DISABLE_EMPTY_RUN_RETRY"] = original_env
       end
