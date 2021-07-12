@@ -1,5 +1,7 @@
 ## HEAD
 
+- Bugfix: `heroku run` calls are now properly rate throttled and retried https://github.com/heroku/hatchet/pull/187
+
 ## 7.3.4
 
 - Memoize `Hatchet::App.default_buildpack` (https://github.com/heroku/hatchet/pull/183)

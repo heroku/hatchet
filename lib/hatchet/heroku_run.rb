@@ -1,4 +1,39 @@
+require 'open3'
+
 module Hatchet
+  class BashResult
+    attr_reader :stdout, :stderr, :status
+
+    def initialize(stdout:, stderr:, status:, set_global_status: false)
+      @stdout = stdout
+      @stderr = stderr
+      @status = status.respond_to?(:exitstatus) ? status.exitstatus : status.to_i
+      `exit #{@status}` if set_global_status
+    end
+
+    # @return [Boolean]
+    def success?
+      @status == 0
+    end
+
+    def failed?
+      !success?
+    end
+
+    # Testing helper methods
+    def include?(value)
+      stdout.include?(value)
+    end
+
+    def match?(value)
+      stdout.match?(value)
+    end
+
+    def match(value)
+      stdout.match(value)
+    end
+  end
+
   # Used for running Heroku commands
   #
   # Example:
@@ -28,18 +63,21 @@ module Hatchet
       @command = build_heroku_command(command, heroku || {})
       @retry_on_empty = retry_on_empty
       @stderr = stderr
-      @output = ""
-      @status = nil
+      @result = nil
       @empty_fail_count = 0
     end
 
+    def result
+      raise "You must run `call` on this object first" unless @result
+      @result
+    end
+
     def output
-      raise "You must run `call` on this object first" unless @status
-      @output
+      result.stdout
     end
 
     def status
-      raise "You must run `call` on this object first" unless @status
+      result
       @status
     end
 
@@ -68,12 +106,13 @@ module Hatchet
     private def execute!
       ShellThrottle.new(platform_api: @app.platform_api).call do |throttle|
         run_shell!
-        throw(:throttle) if output.match?(/reached the API rate limit/)
+        throw(:throttle) if @result.stderr.match?(/reached the API rate limit/)
       end
     end
 
     private def run_shell!
-      @output = `#{@command}`
+      stdout, stderr, status = Open3.capture3(@command)
+      @result = BashResult.new(stdout: stdout, stderr: stderr, status: status, set_global_status: true)
       @status = $?
     end
 

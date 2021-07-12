@@ -50,7 +50,7 @@ describe "HerokuRun" do
       run_obj = Hatchet::HerokuRun.new("ruby -v", app: @app, stderr: stderr)
 
       def run_obj.run_shell!
-        @output = ""
+        @result = Hatchet::BashResult.new(stdout: "", stderr: "", status: 1)
         @status = Object.new
       end
 
@@ -65,7 +65,7 @@ describe "HerokuRun" do
       run_obj = Hatchet::HerokuRun.new("ruby -v", app: @app, stderr: stderr)
 
       def run_obj.run_shell!
-        @output = "not empty"
+        @result = Hatchet::BashResult.new(stdout: "not empty", stderr: "", status: 1)
         @status = Object.new
       end
 
@@ -80,7 +80,7 @@ describe "HerokuRun" do
       run_obj = Hatchet::HerokuRun.new("ruby -v", app: @app, stderr: stderr, retry_on_empty: false)
 
       def run_obj.run_shell!
-        @output = ""
+        @result = Hatchet::BashResult.new(stdout: "", stderr: "", status: 1)
         @status = Object.new
       end
 
@@ -88,6 +88,24 @@ describe "HerokuRun" do
 
       expect(run_obj.instance_variable_get(:@empty_fail_count)).to eq(0)
       expect(stderr.string).to_not include("retrying the command.")
+    end
+
+    it "retries work when message is delivered via stderr" do
+      stderr = StringIO.new
+      run_obj = Hatchet::HerokuRun.new("ruby -v", app: @app, stderr: stderr, retry_on_empty: false)
+
+      def run_obj.run_shell!
+        @throttle_retry_count ||= 0
+        @throttle_retry_count += 1
+        @command = "echo 'lol'" if @throttle_retry_count > 1
+
+        super
+      end
+
+      run_obj.instance_variable_set(:@command, "ruby -e 'STDERR.puts %Q{reached the API rate limit}'")
+      run_obj.call
+
+      expect(run_obj.instance_variable_get(:@throttle_retry_count)).to eq(2)
     end
 
     it "retries 0 times on empty result when disabled via ENV var" do
@@ -98,7 +116,7 @@ describe "HerokuRun" do
         run_obj = Hatchet::HerokuRun.new("ruby -v", app: @app, stderr: stderr)
 
         def run_obj.run_shell!
-          @output = ""
+          @result = Hatchet::BashResult.new(stdout: "", stderr: "", status: 1)
           @status = Object.new
         end
 
