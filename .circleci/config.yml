@@ -31,7 +31,7 @@ references:
 jobs:
   "ruby-2.2":
     docker:
-      - image: cimg/ruby:2.2
+      - image: circleci/ruby:2.2
     steps:
       - checkout
       - <<: *restore
