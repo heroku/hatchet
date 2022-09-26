@@ -26,6 +26,12 @@ module Hatchet
   Runner  = Hatchet::GitApp
 
   def self.git_branch
+    # https://circleci.com/docs/variables
+    return ENV['CIRCLE_BRANCH'] if ENV['CIRCLE_BRANCH']
+    # https://docs.github.com/en/actions/learn-github-actions/environment-variables
+    return ENV['GITHUB_REF_NAME'] if ENV['GITHUB_REF_NAME']
+    # https://devcenter.heroku.com/articles/heroku-ci#immutable-environment-variables
+    return ENV['HEROKU_TEST_RUN_BRANCH'] if ENV['HEROKU_TEST_RUN_BRANCH']
     # TRAVIS_BRANCH works fine unless the build is a pull-request. In that case, it will contain the target branch
     # not the actual pull-request branch! TRAVIS_PULL_REQUEST_BRANCH contains the correct branch but will be empty
     # for push builds. See: https://docs.travis-ci.com/user/environment-variables/
