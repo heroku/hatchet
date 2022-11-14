@@ -10,62 +10,6 @@ permissions:
   contents: read
 
 jobs:
-  ruby-2-2:
-    runs-on: ubuntu-22.04
-    env:
-      HATCHET_APP_LIMIT: 100
-      HATCHET_RETRIES: 3
-      HEROKU_API_KEY: ${{ secrets.HEROKU_API_KEY }}
-      HEROKU_API_USER: ${{ secrets.HEROKU_API_USER }}
-      IS_RUNNING_ON_CI: 1
-      HATCHET_EXPENSIVE_MODE: 1
-    container:
-      image: ruby:2.3
-    steps:
-    - uses: actions/checkout@v2
-    - name: restore_cache
-      uses: actions/cache@v2
-      with:
-        key: v1_bundler_deps-{{ .Environment.${{ github.job }} }}
-        restore-keys: v1_bundler_deps-{{ .Environment.${{ github.job }} }}
-        path: "./vendor/bundle"
-    - name: install dependencies
-      run: |-
-        bundle install --jobs=4 --retry=3 --path vendor/bundle
-        bundle update
-        bundle clean
-    - name: Hatchet setup
-      run: bundle exec hatchet ci:setup
-    - name: Run test suite
-      run: PARALLEL_SPLIT_TEST_PROCESSES=25 bundle exec parallel_split_test spec/
-  ruby-2-5:
-    runs-on: ubuntu-22.04
-    env:
-      HATCHET_APP_LIMIT: 100
-      HATCHET_RETRIES: 3
-      HEROKU_API_KEY: ${{ secrets.HEROKU_API_KEY }}
-      HEROKU_API_USER: ${{ secrets.HEROKU_API_USER }}
-      IS_RUNNING_ON_CI: 1
-      HATCHET_EXPENSIVE_MODE: 1
-    container:
-      image: ruby:2.5
-    steps:
-    - uses: actions/checkout@v2
-    - name: restore_cache
-      uses: actions/cache@v2
-      with:
-        key: v1_bundler_deps-{{ .Environment.${{ github.job }} }}
-        restore-keys: v1_bundler_deps-{{ .Environment.${{ github.job }} }}
-        path: "./vendor/bundle"
-    - name: install dependencies
-      run: |-
-        bundle install --jobs=4 --retry=3 --path vendor/bundle
-        bundle update
-        bundle clean
-    - name: Hatchet setup
-      run: bundle exec hatchet ci:setup
-    - name: Run test suite
-      run: PARALLEL_SPLIT_TEST_PROCESSES=25 bundle exec parallel_split_test spec/
   ruby-2-7:
     runs-on: ubuntu-22.04
     env:
@@ -77,6 +21,62 @@ jobs:
       HATCHET_EXPENSIVE_MODE: 1
     container:
       image: ruby:2.7
+    steps:
+    - uses: actions/checkout@v2
+    - name: restore_cache
+      uses: actions/cache@v2
+      with:
+        key: v1_bundler_deps-{{ .Environment.${{ github.job }} }}
+        restore-keys: v1_bundler_deps-{{ .Environment.${{ github.job }} }}
+        path: "./vendor/bundle"
+    - name: install dependencies
+      run: |-
+        bundle install --jobs=4 --retry=3 --path vendor/bundle
+        bundle update
+        bundle clean
+    - name: Hatchet setup
+      run: bundle exec hatchet ci:setup
+    - name: Run test suite
+      run: PARALLEL_SPLIT_TEST_PROCESSES=25 bundle exec parallel_split_test spec/
+  ruby-3-0:
+    runs-on: ubuntu-22.04
+    env:
+      HATCHET_APP_LIMIT: 100
+      HATCHET_RETRIES: 3
+      HEROKU_API_KEY: ${{ secrets.HEROKU_API_KEY }}
+      HEROKU_API_USER: ${{ secrets.HEROKU_API_USER }}
+      IS_RUNNING_ON_CI: 1
+      HATCHET_EXPENSIVE_MODE: 1
+    container:
+      image: ruby:3.0
+    steps:
+    - uses: actions/checkout@v2
+    - name: restore_cache
+      uses: actions/cache@v2
+      with:
+        key: v1_bundler_deps-{{ .Environment.${{ github.job }} }}
+        restore-keys: v1_bundler_deps-{{ .Environment.${{ github.job }} }}
+        path: "./vendor/bundle"
+    - name: install dependencies
+      run: |-
+        bundle install --jobs=4 --retry=3 --path vendor/bundle
+        bundle update
+        bundle clean
+    - name: Hatchet setup
+      run: bundle exec hatchet ci:setup
+    - name: Run test suite
+      run: PARALLEL_SPLIT_TEST_PROCESSES=25 bundle exec parallel_split_test spec/
+  ruby-3-1:
+    runs-on: ubuntu-22.04
+    env:
+      HATCHET_APP_LIMIT: 100
+      HATCHET_RETRIES: 3
+      HEROKU_API_KEY: ${{ secrets.HEROKU_API_KEY }}
+      HEROKU_API_USER: ${{ secrets.HEROKU_API_USER }}
+      IS_RUNNING_ON_CI: 1
+      HATCHET_EXPENSIVE_MODE: 1
+    container:
+      image: ruby:3.1
     steps:
     - uses: actions/checkout@v2
     - name: restore_cache
