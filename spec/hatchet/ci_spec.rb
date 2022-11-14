@@ -27,6 +27,8 @@ describe "CIFourTest" do
   end
 
   it "error with bad app" do
+    pending("upgrade rails 5 app to newer")
+
     expect {
       Hatchet::GitApp.new("rails5_ci_fails_no_database", stack: "heroku-18").run_ci { }
     }.to raise_error(/PG::ConnectionBad: could not connect to server/)
@@ -51,6 +53,8 @@ describe "CIFourTest" do
   end
 
   it "ci create app with stack" do
+    pending("upgrade rails 5 app to newer")
+
     app = Hatchet::GitApp.new("rails5_ruby_schema_format")
     app.run_ci do |test_run|
       expect(test_run.output).to match("Ruby buildpack tests completed successfully")
