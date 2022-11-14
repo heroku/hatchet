@@ -9,16 +9,16 @@ on:
 permissions:
   contents: read
 
-env:
-  HATCHET_APP_LIMIT: 100
-  HATCHET_RETRIES: 3
-  HEROKU_API_KEY: ${{ env.HEROKU_API_KEY }}
-  HEROKU_API_USER: ${{ env.HEROKU_API_USER }}
-  IS_RUNNING_ON_CI: 1
-  HATCHET_EXPENSIVE_MODE: 1
 jobs:
-  ruby-2.2:
+  ruby-2-2:
     runs-on: ubuntu-22.04
+    env:
+      HATCHET_APP_LIMIT: 100
+      HATCHET_RETRIES: 3
+      HEROKU_API_KEY: ${{ secrets.HEROKU_API_KEY }}
+      HEROKU_API_USER: ${{ secrets.HEROKU_API_USER }}
+      IS_RUNNING_ON_CI: 1
+      HATCHET_EXPENSIVE_MODE: 1
     container:
       image: ruby:2.3
     steps:
@@ -38,8 +38,15 @@ jobs:
       run: bundle exec hatchet ci:setup
     - name: Run test suite
       run: PARALLEL_SPLIT_TEST_PROCESSES=25 bundle exec parallel_split_test spec/
-  ruby-2.5:
+  ruby-2-5:
     runs-on: ubuntu-22.04
+    env:
+      HATCHET_APP_LIMIT: 100
+      HATCHET_RETRIES: 3
+      HEROKU_API_KEY: ${{ secrets.HEROKU_API_KEY }}
+      HEROKU_API_USER: ${{ secrets.HEROKU_API_USER }}
+      IS_RUNNING_ON_CI: 1
+      HATCHET_EXPENSIVE_MODE: 1
     container:
       image: ruby:2.5
     steps:
@@ -59,8 +66,15 @@ jobs:
       run: bundle exec hatchet ci:setup
     - name: Run test suite
       run: PARALLEL_SPLIT_TEST_PROCESSES=25 bundle exec parallel_split_test spec/
-  ruby-2.7:
+  ruby-2-7:
     runs-on: ubuntu-22.04
+    env:
+      HATCHET_APP_LIMIT: 100
+      HATCHET_RETRIES: 3
+      HEROKU_API_KEY: ${{ secrets.HEROKU_API_KEY }}
+      HEROKU_API_USER: ${{ secrets.HEROKU_API_USER }}
+      IS_RUNNING_ON_CI: 1
+      HATCHET_EXPENSIVE_MODE: 1
     container:
       image: ruby:2.7
     steps:
