@@ -1,0 +1,38 @@
+name: CI
+on:
+  push:
+    # Avoid duplicate builds on PRs.
+    branches:
+      - main
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    strategy:
+      fail-fast: false
+      matrix:
+        ruby-version: ["2.7", "3.0", "3.1"]
+    runs-on: ubuntu-22.04
+    env:
+      HATCHET_APP_LIMIT: 100
+      HATCHET_RETRIES: 3
+      HEROKU_API_KEY: ${{ secrets.HEROKU_API_KEY }}
+      HEROKU_API_USER: ${{ secrets.HEROKU_API_USER }}
+      IS_RUNNING_ON_CI: 1
+      HATCHET_EXPENSIVE_MODE: 1
+      PARALLEL_SPLIT_TEST_PROCESSES: 25
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+      - name: Set up Ruby ${{ matrix.ruby-version }} and dependencies
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: ${{ matrix.ruby-version }}
+          bundler-cache: true
+      - name: Hatchet setup
+        run: bundle exec hatchet ci:setup
+      - name: Run test suite
+        run: bundle exec parallel_split_test spec/
