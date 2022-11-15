@@ -1,5 +1,6 @@
 ## HEAD
 
+- Add support for GitHub Actions env vars (https://github.com/heroku/hatchet/pull/189)
 - Breaking: Support for Ruby 2.2 is soft removed going forward only Ruby versions on the currently relased stack will be supported
 - Bugfix: `heroku run` calls are now properly rate throttled and retried https://github.com/heroku/hatchet/pull/187
 
