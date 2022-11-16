@@ -29,6 +29,9 @@ module Hatchet
     # https://circleci.com/docs/variables
     return ENV['CIRCLE_BRANCH'] if ENV['CIRCLE_BRANCH']
     # https://docs.github.com/en/actions/learn-github-actions/environment-variables
+    # GITHUB_HEAD_REF is provided for PRs, but blank for branch actions.
+    return ENV['GITHUB_HEAD_REF'] if !ENV['GITHUB_HEAD_REF'].empty?
+    # GITHUB_REF_NAME is incorrect on PRs (`1371/merge`), but correct for branch actions.
     return ENV['GITHUB_REF_NAME'] if ENV['GITHUB_REF_NAME']
     # https://devcenter.heroku.com/articles/heroku-ci#immutable-environment-variables
     return ENV['HEROKU_TEST_RUN_BRANCH'] if ENV['HEROKU_TEST_RUN_BRANCH']
