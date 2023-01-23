@@ -11,7 +11,7 @@ module Hatchet
         "https://github.com/heroku/heroku-buildpack-ruby.git"
       }
     }
-    HATCHET_BUILDPACK_BRANCH = -> { ENV['HATCHET_BUILDPACK_BRANCH'] || ENV['HEROKU_TEST_RUN_BRANCH'] || Hatchet.git_branch }
+    HATCHET_BUILDPACK_BRANCH = -> { ENV['HATCHET_BUILDPACK_BRANCH'] || Hatchet.git_branch }
 
     attr_reader :name, :stack, :repo_name, :app_config, :buildpacks, :reaper, :max_retries_count
 

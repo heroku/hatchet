@@ -1,5 +1,7 @@
 ## HEAD
 
+- Add support for GitHub Actions env vars (https://github.com/heroku/hatchet/pull/189)
+
 ## 7.4.0
 
 - Supports "basic" scaledown (https://github.com/heroku/hatchet/pull/193)
