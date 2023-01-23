@@ -1,7 +1,11 @@
 ## HEAD
 
 - Add support for GitHub Actions env vars (https://github.com/heroku/hatchet/pull/189)
-- Breaking: Support for Ruby 2.2 is soft removed going forward only Ruby versions on the currently relased stack will be supported
+
+## 7.4.0
+
+- Supports "basic" scaledown (https://github.com/heroku/hatchet/pull/193)
+- Breaking: Support for Ruby 2.2 is soft removed going forward only Ruby versions on the currently released stack will be supported
 - Bugfix: `heroku run` calls are now properly rate throttled and retried https://github.com/heroku/hatchet/pull/187
 
 ## 7.3.4

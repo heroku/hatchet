@@ -360,7 +360,7 @@ module Hatchet
 
       if @run_multi_is_setup
         @run_multi_array.map(&:join)
-        platform_api.formation.update(name, "web", {"size" => "free"})
+        platform_api.formation.update(name, "web", {"size" => "basic"})
       end
 
     ensure
