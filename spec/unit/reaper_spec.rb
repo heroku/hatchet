@@ -29,44 +29,9 @@ describe "Reaper" do
       def reaper.check_get_heroku_apps_called; @called_get_heroku_apps ; end
       def reaper.reap_once; raise "should not be called"; end
 
-      reaper.cycle
+      reaper.clean_old_or_sleep
 
       expect(reaper.check_get_heroku_apps_called).to be_truthy
-    end
-
-    it "deletes a maintenance mode app on error" do
-      reaper = Hatchet::Reaper.new(api_rate_limit: Object.new, hatchet_app_limit: 1, io: StringIO.new)
-
-      def reaper.get_heroku_apps
-        @mock_apps ||= [
-          {"name" => "hatchet-t-unfinished", "id" => 2, "maintenance" => false, "created_at" => Time.now.to_s},
-          {"name" => "hatchet-t-foo", "id" => 1, "maintenance" => true, "created_at" => Time.now.to_s}
-        ]
-      end
-      def reaper.destroy_with_log(name: , id: )
-        @reaper_destroy_called_with = {"name" => name, "id" => id}
-      end
-      def reaper.destroy_called_with; @reaper_destroy_called_with; end
-
-      reaper.cycle(app_exception_message: true)
-
-      expect(reaper.destroy_called_with).to eq({"name" => "hatchet-t-foo", "id" => 1})
-    end
-
-    it "deletes maintenance mode app when over limit" do
-      reaper = Hatchet::Reaper.new(api_rate_limit: Object.new, hatchet_app_limit: 0, io: StringIO.new)
-
-      def reaper.get_heroku_apps
-        @mock_apps ||= [{"name" => "hatchet-t-foo", "id" => 1, "maintenance" => true, "created_at" => Time.now.to_s}]
-      end
-      def reaper.destroy_with_log(name: , id: )
-        @reaper_destroy_called_with = {"name" => name, "id" => id}
-      end
-      def reaper.destroy_called_with; @reaper_destroy_called_with; end
-
-      reaper.cycle
-
-      expect(reaper.destroy_called_with).to eq({"name" => "hatchet-t-foo", "id" => 1})
     end
 
     it "deletes an old app that is past TLL" do
@@ -76,25 +41,30 @@ describe "Reaper" do
         two_days_ago = DateTime.now.new_offset(0) - 2
         @mock_apps ||= [{"name" => "hatchet-t-foo", "id" => 1, "maintenance" => false, "created_at" => two_days_ago.to_s }]
       end
-      def reaper.destroy_with_log(name: , id: )
+      def reaper.destroy_with_log(name: , id: , reason: )
         @reaper_destroy_called_with = {"name" => name, "id" => id}
       end
       def reaper.destroy_called_with; @reaper_destroy_called_with; end
 
-      reaper.cycle
+      reaper.clean_old_or_sleep
 
       expect(reaper.destroy_called_with).to eq({"name" => "hatchet-t-foo", "id" => 1})
     end
 
     it "sleeps, refreshes app list, and tries again when an old app is not past TTL" do
       warning = StringIO.new
-      reaper = Hatchet::Reaper.new(api_rate_limit: Object.new, hatchet_app_limit: 1, initial_sleep: 0, io: warning)
+      reaper = Hatchet::Reaper.new(
+        api_rate_limit: Object.new,
+        hatchet_app_limit: 0,
+        initial_sleep: 0,
+        io: warning
+      )
 
       def reaper.get_heroku_apps
         now = DateTime.now.new_offset(0)
         @mock_apps ||= [{"name" => "hatchet-t-foo", "id" => 1, "maintenance" => false, "created_at" => now.to_s }]
       end
-      def reaper.destroy_with_log(name: , id: )
+      def reaper.destroy_with_log(name: , id: , reason: )
         @reaper_destroy_called_with = {"name" => name, "id" => id}
       end
       def reaper.destroy_called_with; @reaper_destroy_called_with; end
@@ -104,13 +74,12 @@ describe "Reaper" do
 
       def reaper.get_slept_for_val; @_slept_for; end
 
-      reaper.cycle(app_exception_message: true)
+      reaper.clean_old_or_sleep
 
       expect(reaper.get_slept_for_val).to eq(0)
       expect(reaper.destroy_called_with).to eq(nil)
 
-      expect(warning.string).to match("WARNING")
-      expect(warning.string).to match("total_app_count: 1, hatchet_app_count: 1/#{Hatchet::Reaper::HATCHET_APP_LIMIT}, finished: 0, unfinished: 1")
+      expect(warning.string).to include("WARNING: Hatchet app limit reached (1/0)")
     end
   end
 
@@ -153,17 +122,5 @@ describe "Reaper" do
         expect(sleep_for).to eq(2)
       end
     end
-  end
-
-  it "over limit" do
-    reaper = Hatchet::Reaper.new(api_rate_limit: -> (){}, io: StringIO.new)
-    def reaper.hatchet_app_count; Hatchet::Reaper::HATCHET_APP_LIMIT + 1; end
-
-    expect(reaper.over_limit?).to be_truthy
-
-    reaper = Hatchet::Reaper.new(api_rate_limit: -> (){}, io: StringIO.new)
-    def reaper.hatchet_app_count; Hatchet::Reaper::HATCHET_APP_LIMIT - 1; end
-
-    expect(reaper.over_limit?).to be_falsey
   end
 end

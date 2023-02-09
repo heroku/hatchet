@@ -106,20 +106,27 @@ class HatchetCLI < Thor
     end
   end
 
-  desc "destroy [NAME]", "Deletes applications"
-  option :all, :type => :boolean
-  def destroy(name=nil)
+  desc "destroy", "Deletes application(s)"
+  option :all, type: :boolean, desc: "Delete ALL hatchet apps"
+  option :older_than, type: :numeric, desc: "Delete all hatchet apps older than N minutes"
+  def destroy
     api_key      = ENV['HEROKU_API_KEY'] || `heroku auth:token`.chomp
     platform_api = PlatformAPI.connect_oauth(api_key, cache: Moneta.new(:Null))
     api_rate_limit = ApiRateLimit.new(platform_api)
     reaper       = Hatchet::Reaper.new(api_rate_limit: api_rate_limit)
 
-    if options[:all]
+    case
+    when options[:all]
+      puts "Destroying ALL apps"
       reaper.destroy_all
-    elsif !name.nil?
-      reaper.destroy_by_name(name)
+      puts "Done"
+    when options[:older_than]
+      minutes = options[:older_than].to_i
+      puts "Destroying apps older than #{minutes}m"
+      reaper.destroy_older_apps(minutes: minutes)
+      puts "Done"
     else
-      raise "Must provide an app name or --all"
+      raise "No flags given run `hatchet help destroy` for options"
     end
   end
 

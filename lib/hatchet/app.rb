@@ -67,6 +67,7 @@ module Hatchet
       @repo_name     = repo_name
       @directory     = self.config.path_for_name(@repo_name)
       @name          = name
+      @heroku_id     = nil
       @stack         = stack
       @debug         = debug || debugging
       @allow_failure = allow_failure
@@ -82,7 +83,6 @@ module Hatchet
       end
       @run_multi_array = []
       @already_in_dir = nil
-      @app_is_setup = nil
 
       @before_deploy_array = []
       @before_deploy_array << before_deploy if before_deploy
@@ -280,11 +280,14 @@ module Hatchet
     def create_app
       3.times.retry do
         begin
+          @reaper.destroy_older_apps
           hash = { name: name, stack: stack }
           hash.delete_if { |k,v| v.nil? }
-          heroku_api_create_app(hash)
+          result = heroku_api_create_app(hash)
+          @heroku_id = result["id"]
         rescue => e
-          @reaper.cycle(app_exception_message: e.message)
+          puts "Warning: Could not create app #{e.message}"
+          @reaper.clean_old_or_sleep
           raise e
         end
       end
@@ -301,7 +304,7 @@ module Hatchet
 
     # creates a new heroku app via the API
     def setup!
-      return self if @app_is_setup
+      return self if @heroku_id
       puts "Hatchet setup: #{name.inspect} for #{repo_name.inspect}"
       create_app
       set_labs!
@@ -309,7 +312,6 @@ module Hatchet
       api_rate_limit.call.buildpack_installation.update(name, updates: buildpack_list)
       set_config @app_config
 
-      @app_is_setup = true
       self
     end
     alias :setup :setup!
@@ -356,16 +358,11 @@ module Hatchet
     end
 
     def teardown!
-      return false unless @app_is_setup
-
-      if @run_multi_is_setup
         @run_multi_array.map(&:join)
-        platform_api.formation.update(name, "web", {"size" => "basic"})
-      end
-
     ensure
-      @app_update_info = platform_api.app.update(name, { maintenance: true }) if @app_is_setup
-      @reaper.cycle if @app_is_setup
+      if @heroku_id && !ENV["HEROKU_DEBUG_EXPENSIVE"]
+        @reaper.destroy_with_log(name: @name, id: @heroku_id, reason: "teardown")
+      end
     end
 
     def in_directory

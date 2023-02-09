@@ -1,5 +1,10 @@
 ## HEAD
 
+- Breaking change: Delete apps on teardown. Previously hatchet would delete apps lazily to help with debugging. This behavior allowed developers to inspect logs and `heroku run bash` in the event of an unexpected failure. In practice, it is rarely needed and causes accounts to retain apps indefinitely. Previously there was no cost to retaining applications, but now `basic` applications incur a charge. Change details:
+  - The application teardown process now deletes applications directly.
+  - To skip destroying applications on teardown, set `HEROKU_DEBUG_EXPENSIVE=1`. This env var will cause `App#teardown!` to skip deletion so you can introspect why one failed.
+  - When hatchet needs a new application, it will first delete all applications that are created at least `HATCHET_ALIVE_TTL_MINUTES` ago. If it cannot delete any applications and the account is already at `HATCHET_APP_LIMIT`, it will sleep and try again later.
+  - Introduce `--older-than` flag to `hatchet destroy` CLI command. For example, the command `hatchet destroy --older-than=7`will remove any apps older than the provided value (in minutes).
 - Add support for GitHub Actions env vars (https://github.com/heroku/hatchet/pull/189)
 
 ## 7.4.0
