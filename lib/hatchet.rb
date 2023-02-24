@@ -21,29 +21,43 @@ require 'hatchet/api_rate_limit'
 require 'hatchet/init_project'
 require 'hatchet/heroku_run'
 
+class DefaultCIBranch
+  def initialize(env: ENV)
+    @env = env
+  end
+
+  def call
+    # https://circleci.com/docs/variables
+    return @env['CIRCLE_BRANCH'] if @env['CIRCLE_BRANCH']
+    # https://docs.github.com/en/actions/learn-github-actions/environment-variables
+    # GITHUB_HEAD_REF is provided for PRs, but blank for branch actions.
+    return @env['GITHUB_HEAD_REF'] if @env['GITHUB_HEAD_REF'] && !@env['GITHUB_HEAD_REF']&.empty?
+    # GITHUB_REF_NAME is incorrect on PRs (`1371/merge`), but correct for branch actions.
+    return @env['GITHUB_REF_NAME'] if @env['GITHUB_REF_NAME']
+    # https://devcenter.heroku.com/articles/heroku-ci#immutable-environment-variables
+    return @env['HEROKU_TEST_RUN_BRANCH'] if @env['HEROKU_TEST_RUN_BRANCH']
+    # TRAVIS_BRANCH works fine unless the build is a pull-request. In that case, it will contain the target branch
+    # not the actual pull-request branch! TRAVIS_PULL_REQUEST_BRANCH contains the correct branch but will be empty
+    # for push builds. See: https://docs.travis-ci.com/user/environment-variables/
+    return @env['TRAVIS_PULL_REQUEST_BRANCH'] if @env['TRAVIS_PULL_REQUEST_BRANCH'] && !@env['TRAVIS_PULL_REQUEST_BRANCH']&.empty?
+    return @env['TRAVIS_BRANCH'] if @env['TRAVIS_BRANCH']
+  end
+end
+
 module Hatchet
   RETRIES = Integer(ENV['HATCHET_RETRIES']   || 1)
   Runner  = Hatchet::GitApp
 
   def self.git_branch
-    # https://circleci.com/docs/variables
-    return ENV['CIRCLE_BRANCH'] if ENV['CIRCLE_BRANCH']
-    # https://docs.github.com/en/actions/learn-github-actions/environment-variables
-    # GITHUB_HEAD_REF is provided for PRs, but blank for branch actions.
-    return ENV['GITHUB_HEAD_REF'] if !ENV['GITHUB_HEAD_REF'].empty?
-    # GITHUB_REF_NAME is incorrect on PRs (`1371/merge`), but correct for branch actions.
-    return ENV['GITHUB_REF_NAME'] if ENV['GITHUB_REF_NAME']
-    # https://devcenter.heroku.com/articles/heroku-ci#immutable-environment-variables
-    return ENV['HEROKU_TEST_RUN_BRANCH'] if ENV['HEROKU_TEST_RUN_BRANCH']
-    # TRAVIS_BRANCH works fine unless the build is a pull-request. In that case, it will contain the target branch
-    # not the actual pull-request branch! TRAVIS_PULL_REQUEST_BRANCH contains the correct branch but will be empty
-    # for push builds. See: https://docs.travis-ci.com/user/environment-variables/
-    return ENV['TRAVIS_PULL_REQUEST_BRANCH'] if ENV['TRAVIS_PULL_REQUEST_BRANCH'] && !ENV['TRAVIS_PULL_REQUEST_BRANCH'].empty?
-    return ENV['TRAVIS_BRANCH'] if ENV['TRAVIS_BRANCH']
+    branch = DefaultCIBranch.new.call
 
-    out = `git rev-parse --abbrev-ref HEAD`.strip
-    raise "Attempting to find current branch name. Error: Cannot describe git: #{out}" unless $?.success?
-    out
+    if branch
+      branch
+    else
+      out = `git rev-parse --abbrev-ref HEAD`.strip
+      raise "Attempting to find current branch name. Error: Cannot describe git: #{out}" unless $?.success?
+      out
+    end
   end
 
   if ENV["HATCHET_DEBUG_DEADLOCK"]
