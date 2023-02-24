@@ -43,14 +43,14 @@ describe "AppTest" do
 
     reaper = app.reaper
 
-    def reaper.cycle(app_exception_message: ); @app_exception_message = app_exception_message; end
-    def reaper.recorded_app_exception_message; @app_exception_message; end
+    def reaper.clean_old_or_sleep; @app_exception_message = true; end
+    def reaper.clean_old_was_called?; @app_exception_message; end
 
     expect {
       app.create_app
     }.to raise_error("made you look")
 
-    expect(reaper.recorded_app_exception_message).to match("made you look")
+    expect(reaper.clean_old_was_called?).to be_truthy
   end
 
   it "app with default" do
@@ -80,37 +80,6 @@ describe "AppTest" do
     ensure
       ENV["HATCHET_DEFAULT_STACK"] = original_default_stack
     end
-  end
-
-  it "marks itself 'finished' when done in block mode" do
-    app = Hatchet::Runner.new("default_ruby")
-
-    def app.push_with_retry!; nil; end
-    app.deploy do |app|
-      expect(app.platform_api.app.info(app.name)["maintenance"]).to be_falsey
-    end
-
-    # After the app is updated, there's no guarantee it will still exist
-    # so we cannot rely on an api call to determine maintenance mode
-    app_update_info = app.instance_variable_get(:"@app_update_info")
-    expect(app_update_info["name"]).to eq(app.name)
-    expect(app_update_info["maintenance"]).to be_truthy
-  end
-
-  it "marks itself 'finished' when done in non-block mode" do
-    app = Hatchet::Runner.new("default_ruby")
-
-    def app.push_with_retry!; nil; end
-    app.deploy
-    expect(app.platform_api.app.info(app.name)["maintenance"]).to be_falsey
-
-    app.teardown!
-
-    # After the app is updated, there's no guarantee it will still exist
-    # so we cannot rely on an api call to determine maintenance mode
-    app_update_info = app.instance_variable_get(:"@app_update_info")
-    expect(app_update_info["name"]).to eq(app.name)
-    expect(app_update_info["maintenance"]).to be_truthy
   end
 
   describe "before deploy" do
@@ -263,16 +232,14 @@ describe "AppTest" do
     @run_count = AtomicCount.new(0)
     app = Hatchet::GitApp.new("default_ruby", run_multi: true)
     app.deploy do
-      app.run_multi("ls") { |out| expect(out).to include("Gemfile"); @run_count.add(1) }
-      app.run_multi("blerg -v") { |_, status| expect(status.success?).to be_falsey; @run_count.add(1) }
+      app.run_multi("ls") { |out| expect(out).to include("Gemfile"); @run_count.add(1); }
+      app.run_multi("blerg -v") { |_, status| expect(status.success?).to be_falsey; @run_count.add(1); }
       app.run_multi("ruby -v") do |out, status|
         expect(out).to include("ruby")
         expect(status.success?).to be_truthy
 
         @run_count.add(1)
       end
-
-      expect(app.platform_api.formation.list(app.name).detect {|ps| ps["type"] == "web"}["size"].downcase).to_not eq("free")
     end
 
     # After the deploy block exits `teardown!` is called

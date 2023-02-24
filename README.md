@@ -266,16 +266,17 @@ Hatchet::Runner.new("minimal_webpacker", buildpacks: buildpacks).deploy do |app,
   expect($?.exitstatus).to eq(0)
   expect($?.success?).to be_truthy
 
-  # In Ruby all objects except `nil` and `false` are "truthy" in this case it could also be tested using `be_true` but
-  # it's best practice to use this test helper in rspec
+  # In Ruby all objects except `nil` and `false` are "truthy"
+  # in this case it could also be tested using `be_true` but
+  # it's best practice to use this `be_truthy` test helper instead
 end
 ```
 
-You can disable this behavior [see how to do it in the reference tests](https://github.com/heroku/hatchet/blob/master/spec/hatchet/app_spec.rb)
+You can disable error on exit status behavior, [see how to do it in the reference tests](https://github.com/heroku/hatchet/blob/master/spec/hatchet/app_spec.rb)
 
 - **Escaping and raw mode:**
 
-By default `app.run()` will escape the input so you can safely call `app.run("cmd && cmd")` and it works as expected. But if you want to do something custom, you can enable raw mode by passing in `raw: true` [see how to do it in the reference tests](https://github.com/heroku/hatchet/blob/master/spec/hatchet/app_spec.rb)
+By default `app.run()` will escape the input so you can safely call `app.run("cmd && cmd")` and it works as expected. But if you want to do something custom, you can enable raw mode by passing in `raw: true` [see how to do it in the reference tests](https://github.com/heroku/hatchet/blob/master/spec/hatchet/app_spec.rb). If you do that, you'll need to ensure your inputs are propperly shell escaped.
 
 - **Heroku options:**
 
@@ -358,21 +359,9 @@ And later:
 Destroying "hatchet-t-fd25e3626b". Hatchet app limit: 80
 ```
 
-By default, Hatchet does not destroy your app at the end of the test run, that way if your test failed unexpectedly if it's not destroyed yet, you can:
+If an app is not deleted for some reason, it will be deleted by a future test run. Applications not deleted by calling `teardown` will be allowed to live for `HATCHET_ALIVE_TTL_MINUTES`. This behavior allows multiple test runs on the same hatchet account without one test run deleting apps that another one still needs.
 
-```
-$ heroku run bash -a hatchet-t-bed73940a6
-```
-
-And use that to debug. Hatchet deletes old apps on demand. You tell it what your limits are and it will stay within those limits:
-
-```
-HATCHET_APP_LIMIT=20
-```
-
-With these env vars, Hatchet will "reap" older hatchet apps when it sees there are 20 or more hatchet apps. For CI, it's recommended that you increase the `HATCHET_APP_LIMIT` to 80-100. Hatchet will mark apps as safe for deletion once they've finished, and the `teardown!` method has been called on them (it tracks this by enabling maintenance mode on apps). Hatchet only tracks its apps. Hatchet uses a regex pattern on the name of apps to see which ones it can manage. If your account has reached the maximum number of global Heroku apps, you'll need to remove some manually.
-
-If an app is not marked as being in maintenance mode for some reason, it can be deleted, but only after it has been allowed to live for some time. This behavior is configured by the `HATCHET_ALIVE_TTL_MINUTES` env var. For example, if you set it for `7`, Hatchet will ensure that any apps that are not marked as being in maintenance mode are allowed to live for at least seven minutes. This should give the app time to finish the test's execution, so it is not deleted mid-deploy. When this deletion happens, you'll see a warning in your output. It could indicate you're not properly cleaning up and calling `teardown!` on some of your apps, or it could mean that you're attempting to execute more tests concurrently than your `HATCHET_APP_LIMIT` allows. This deletion-mid-test behavior might otherwise be triggered if you have multiple CI runs executing at the same time.
+For example, if you set `HATCHET_ALIVE_TTL_MINUTES=7`, Hatchet will ensure that any apps that are older than 7 minutes will be deleted. If all of your tests finish in under 7 minutes then apps won't be deleted mid-deploy. When apps are deleted, you'll see a warning in your output. It could indicate you're not properly cleaning up and calling `teardown!` on some of your apps, or it could mean that you're attempting to execute more tests concurrently than your `HATCHET_APP_LIMIT` allows. Or that something else prevented apps from getting deleted on teardown, such as a Heroku API outage.
 
 It's recommended you don't use your personal Heroku API key for running tests on a CI server since the hatchet apps count against your account maximum limits. Running tests using your account locally is fine for debugging one or two tests.
 
@@ -684,7 +673,9 @@ end
 - `app.platform_api`: Returns an instance of the [platform-api Heroku client](https://github.com/heroku/platform-api). If Hatchet doesn't give you access to a part of Heroku that you need, you can likely do it with the platform-api client.
 - `app.push!`: Push code to your Heroku app. It can be used inside of a `deploy` block to re-deploy.
 - `app.run_ci`: Runs Heroku CI against the app returns a TestRun object in the block
-- `app.teardown!`: This method is called automatically when using `app.deploy` in block mode after the deploy block finishes. When called it will clean up resources, mark the app as being finished (by setting `{"maintenance" => true}` on the app) so that the reaper knows it is safe to delete later. Here is an example of a test that creates and deploys an app manually, then later tears it down manually. If you deploy an application without calling `teardown!` then Hatchet will not know it is safe to delete and may keep it around for much longer than required for the test to finish.
+- `app.teardown!`: This method is called automatically when using `app.deploy` in block mode after the deploy block finishes. When called it will delete the application.
+
+Here is an example of a test that creates and deploys an app manually (without a block), then later tears it down manually. If you deploy an application without calling `teardown!` then hatchet will leak apps.
 
 ```ruby
 before(:each) do
@@ -693,7 +684,7 @@ before(:each) do
 end
 
 after(:each) do
-  @app.teardown! if @app
+  @app&.teardown!
 end
 
 it "uses ruby" do
@@ -718,6 +709,7 @@ HATCHET_ALIVE_TTL_MINUTES=7
 
 # HATCHET_RUN_MULTI=1      # WARNING: Setting this env var will incur charges against your account. To use this env var you must also enable `HATCHET_EXPENSIVE_MODE`
 # HATCHET_EXPENSIVE_MODE=1 # WARNING: Do not set this environment variable unless you're okay with possibly large bills
+# HEROKU_DEBUG_EXPENSIVE=1 # WARNING: This will prevent apps from being cleaned up automatically and you will be billed for any apps left running
 ```
 
 > The syntax to set an env var in Ruby is `ENV["HATCHET_RETRIES"] = "2"` all env vars are strings.
@@ -725,12 +717,13 @@ HATCHET_ALIVE_TTL_MINUTES=7
 - `HATCHET_BUILDPACK_BASE`: This is the URL where Hatchet can find your buildpack. It must be public for Heroku to be able to use your buildpack.
 - `HATCHET_BUILDPACK_BRANCH`: By default, Hatchet will use your current git branch name. If, for some reason, git is not available or you want to manually specify it like `ENV["HATCHET_BUILDPACK_BRANCH'] = ENV[`MY_CI_BRANCH`]` then you can.
 - `HATCHET_RETRIES` If the `ENV['HATCHET_RETRIES']` is set to a number, deploys are expected to work and automatically retry that number of times. Due to testing using a network and random failures, setting this value to `3` retries seems to work well. If an app cannot be deployed within its allotted number of retries, an error will be raised. The downside of a larger number is that your suite will keep running for much longer when there are legitimate failures.
-- `HATCHET_APP_LIMIT`: The maximum number of **hatchet** apps that Hatchet will allow in the given account before running the reaper. For local execution, keep this low as you don't want your account dominated by hatchet apps. For CI, you want it to be much larger, 80-100 since it's not competing with non-hatchet apps. Your test runner account needs to be a dedicated account.
+- `HATCHET_APP_LIMIT`: The maximum number of applications that hatchet is allowed to utilize on your account. If you hit this limit mid-test then Hatchet will need to wait until other tests finish and delete their apps. Keep in mind that you may have several concurrent CI executions on the same account competing for the same limited number of apps.
 - `HEROKU_API_KEY`: The API key of your test account user. If you run locally without this set, it will use your personal credentials.
 - `HEROKU_API_USER`: The email address of your user account. If you run locally without this set, it will use your personal credentials.
 - `HATCHET_DEFAULT_STACK`: The default Heroku stack to be used when an explicit `stack` is not passed to `App.new`. If this is not set, apps will instead use Heroku platform's [default stack](https://devcenter.heroku.com/articles/stack#default-stack).
 - `HATCHET_RUN_MULTI`: If enabled, this will scale up deployed apps to "standard-1x" once deployed instead of running on the free tier. This enables the `run_multi` method capability, however scaling up is not free. WARNING: Setting this env var will incur charges to your Heroku account. We recommended never to enable this setting unless you work for Heroku. To use this you must also set `HATCHET_EXPENSIVE_MODE=1`
 - `HATCHET_EXPENSIVE_MODE`: This is intended to be a "safety" environment variable. If it is not set, Hatchet will prevent you from using the `run_multi: true` setting or the `HATCHET_RUN_MULTI` environment variables. There are still ways to incur charges without this feature, but unless you're absolutely confident your test setup will not leave "orphan" apps that are billing you, do not enable this setting. Even then, only set this value if you work for Heroku. To recap WARNING: setting this is expensive.
+- `HEROKU_DEBUG_EXPENSIVE`: If set, hatchet will not delete applications on teardown. This can be used to introspect build logs or run `heroku run bash` on the application created for the failed test. Note that if another hatchet process runs after `HATCHET_ALIVE_TTL_MINUTES` then it will delete your applications.
 
 ## Basic
 
@@ -1037,7 +1030,7 @@ Ruby is full of multitudes, this isn't even close to being exhaustive, just enou
 Hatchet has a CLI for installing and maintaining external repos you're
 using to test against. If you have Hatchet installed as a gem run
 
-    $ Hatchet --help
+    $ hatchet --help
 
 For more info on commands. If you're using the source code you can run
 the command by going to the source code directory and running:
