@@ -1,5 +1,7 @@
 ## HEAD
 
+## 8.0.0
+
 - Breaking change: Delete apps on teardown. Previously hatchet would delete apps lazily to help with debugging. This behavior allowed developers to inspect logs and `heroku run bash` in the event of an unexpected failure. In practice, it is rarely needed and causes accounts to retain apps indefinitely. Previously there was no cost to retaining applications, but now `basic` applications incur a charge. Change details:
   - The application teardown process now deletes applications directly.
   - To skip destroying applications on teardown, set `HEROKU_DEBUG_EXPENSIVE=1`. This env var will cause `App#teardown!` to skip deletion so you can introspect why one failed.
