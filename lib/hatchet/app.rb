@@ -280,14 +280,31 @@ module Hatchet
     def create_app
       3.times.retry do
         begin
-          @reaper.destroy_older_apps
+          # Remove any obviously old apps first
+          # Try to use existing cache of apps to
+          # minimize API calls
+          @reaper.destroy_older_apps(
+            force_refresh: false,
+            on_conflict: :stop_if_under_limit,
+          )
           hash = { name: name, stack: stack }
           hash.delete_if { |k,v| v.nil? }
           result = heroku_api_create_app(hash)
           @heroku_id = result["id"]
         rescue => e
-          puts "Warning: Could not create app #{e.message}"
-          @reaper.clean_old_or_sleep
+          # If we can't create an app assume
+          # it might be due to resource constraints
+          #
+          # Try to delete existing apps
+          @reaper.destroy_older_apps(
+            force_refresh: true,
+            on_conflict: :stop_if_under_limit,
+          )
+          # If we're still not under the limit, sleep a bit
+          # retry later.
+          @reaper.sleep_if_over_limit(
+            reason: "Could not create app #{e.message}"
+          )
           raise e
         end
       end

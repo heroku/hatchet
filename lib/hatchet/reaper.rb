@@ -46,23 +46,16 @@ module Hatchet
       @reaper_throttle = ReaperThrottle.new(initial_sleep: initial_sleep)
     end
 
-    # Called when we need an app, but are over limit or
-    # if an exception has occured that was possibly triggered
-    # by apps being over limit
-    def clean_old_or_sleep
-      # Locking happens inside the function
-      destroy_older_apps(force_refresh: true)
-
-      # If we didn't clean enough, then sleep a bit and return control
-      # to the user, they can decide what to do next.
-      if @apps.length > @limit
+    def sleep_if_over_limit(reason: )
+      if @apps.length >= @limit
         age = AppAge.new(created_at: @apps.last["created_at"], ttl_minutes: TTL_MINUTES)
         @reaper_throttle.call(max_sleep: age.sleep_for_ttl) do |sleep_for|
           io.puts <<-EOM.strip_heredoc
             WARNING: Hatchet app limit reached (#{@apps.length}/#{@limit})
-                     All known apps are younger than #{TTL_MINUTES} minutes.
+            All known apps are younger than #{TTL_MINUTES} minutes.
+            Sleeping (#{sleep_for}s)
 
-                     sleeping (#{sleep_for}s)
+            Reason: #{reason}
           EOM
 
           sleep(sleep_for)
@@ -74,40 +67,42 @@ module Hatchet
     #
     # This method might be running concurrently on multiple processes or multiple
     # machines.
-    def destroy_older_apps(minutes: TTL_MINUTES, force_refresh: @apps.empty?)
+
+    #
+    # When a duplicate destroy is detected we can move forward with a conflict strategy:
+    #
+    # - `:sleep_and_continue`: Sleep to see if another process will clean up everything for
+    #   us and then re-populate apps from the API.
+    # - `:stop_if_under_limit`: If apps list is under the limit, assume someone else is
+    #   already cleaning up for us and that we're good to move ahead to try to create
+    #   an app. Sleep and return. Otherwise if we're at or over the limit sleep, refresh
+    #   the app list, and continue attempting to delete apps.
+    def destroy_older_apps(minutes: TTL_MINUTES, force_refresh: @apps.empty?, on_conflict: :sleep_and_continue)
       MUTEX_FILE.flock(File::LOCK_EX)
 
       refresh_app_list if force_refresh
 
       while app = @apps.pop
         age = AppAge.new(created_at: app["created_at"], ttl_minutes: minutes)
-        if age.can_delete?
-          destroy_with_log(
-            id: app["id"],
-            name: app["name"],
-            reason: "app age (#{age.in_minutes}m) is older than #{minutes}m"
-          )
-        else
+        if !age.can_delete?
           @apps.push(app)
           break
+        else
+          begin
+            destroy_with_log(
+              id: app["id"],
+              name: app["name"],
+              reason: "app age (#{age.in_minutes}m) is older than #{minutes}m"
+            )
+          rescue AlreadyDeletedError => e
+            if handle_conflict(
+              strategy: on_conflict,
+              conflict_message: e.message,
+            ) == :stop
+              break
+            end
+          end
         end
-      end
-    rescue AlreadyDeletedError => e
-      # Indicates either outdated information or a race condition
-      #
-      # Sleep to see if another process will clean up everything for
-      # us and then re-populate apps from the API
-      @reaper_throttle.call(max_sleep: TTL_MINUTES) do |sleep_for|
-        io.puts <<-EOM.strip_heredoc
-          WARNING: Possible race condition detected
-                   sleeping (#{sleep_for}s) and refreshing app list from API.
-
-                   #{e}
-        EOM
-
-        sleep(sleep_for)
-
-        refresh_app_list
       end
     ensure
       MUTEX_FILE.flock(File::LOCK_UN)
@@ -119,15 +114,60 @@ module Hatchet
 
       refresh_app_list if force_refresh
 
-      @apps.each do |app|
+      while app = @apps.pop
         begin
           destroy_with_log(name: app["name"], id: app["id"], reason: "destroy all")
-        rescue AlreadyDeletedError
-          # Ignore, keep going
+        rescue AlreadyDeletedError => e
+          handle_conflict(
+            conflict_message: e.message,
+            strategy: :sleep_and_continue
+          )
         end
       end
     ensure
       MUTEX_FILE.flock(File::LOCK_UN)
+    end
+
+    # Will sleep with backoff and emit a warning message
+    # returns :continue or :stop symbols
+    # :stop indicates execution should stop
+    private def handle_conflict(conflict_message:, strategy:)
+      message = String.new(<<-EOM.strip_heredoc)
+        WARNING: Possible race condition detected: #{conflict_message}
+        Hatchet app limit (#{@apps.length}/#{@limit}), using strategy #{strategy}
+      EOM
+
+      conflict_state = if :sleep_and_continue ==  strategy
+        message << "\nSleeping, refreshing app list, and continuing."
+        :continue
+      elsif :stop_if_under_limit == strategy && @apps.length >= @limit
+        message << "\nSleeping, refreshing app list, and continuing. Not under limit."
+        :continue
+      elsif :stop_if_under_limit == strategy
+        message << "\nHalting deletion of older apps. Under limit."
+        :stop
+      else
+        raise "No such strategy: #{strategy}, plese use :stop_if_under_limit or :sleep_and_continue"
+      end
+
+      @reaper_throttle.call(max_sleep: TTL_MINUTES) do |sleep_for|
+        io.puts <<-EOM.strip_heredoc
+          #{message}
+          Sleeping (#{sleep_for}s)
+        EOM
+
+        sleep(sleep_for)
+      end
+
+      case conflict_state
+      when :continue
+        refresh_app_list
+      when :stop
+      else
+        raise "Unknown state #{conflict_state}"
+      end
+
+      conflict_state
     end
 
     private def get_heroku_apps

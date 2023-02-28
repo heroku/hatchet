@@ -18,7 +18,7 @@ describe "Reaper" do
   end
 
   describe "cycle" do
-    it "does not delete anything if under the limit" do
+    it "does not delete anything if no old apps" do
       reaper = Hatchet::Reaper.new(api_rate_limit: Object.new, hatchet_app_limit: 1, io: StringIO.new)
 
       def reaper.get_heroku_apps
@@ -29,7 +29,7 @@ describe "Reaper" do
       def reaper.check_get_heroku_apps_called; @called_get_heroku_apps ; end
       def reaper.reap_once; raise "should not be called"; end
 
-      reaper.clean_old_or_sleep
+      reaper.destroy_older_apps
 
       expect(reaper.check_get_heroku_apps_called).to be_truthy
     end
@@ -46,7 +46,7 @@ describe "Reaper" do
       end
       def reaper.destroy_called_with; @reaper_destroy_called_with; end
 
-      reaper.clean_old_or_sleep
+      reaper.destroy_older_apps
 
       expect(reaper.destroy_called_with).to eq({"name" => "hatchet-t-foo", "id" => 1})
     end
@@ -54,10 +54,10 @@ describe "Reaper" do
     it "sleeps, refreshes app list, and tries again when an old app is not past TTL" do
       warning = StringIO.new
       reaper = Hatchet::Reaper.new(
+        io: warning,
+        initial_sleep: 0,
         api_rate_limit: Object.new,
         hatchet_app_limit: 0,
-        initial_sleep: 0,
-        io: warning
       )
 
       def reaper.get_heroku_apps
@@ -74,7 +74,8 @@ describe "Reaper" do
 
       def reaper.get_slept_for_val; @_slept_for; end
 
-      reaper.clean_old_or_sleep
+      reaper.destroy_older_apps
+      reaper.sleep_if_over_limit(reason: "test")
 
       expect(reaper.get_slept_for_val).to eq(0)
       expect(reaper.destroy_called_with).to eq(nil)

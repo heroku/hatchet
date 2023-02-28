@@ -43,7 +43,7 @@ describe "AppTest" do
 
     reaper = app.reaper
 
-    def reaper.clean_old_or_sleep; @app_exception_message = true; end
+    def reaper.destroy_older_apps(*args, **kwargs, &block); @app_exception_message = true; end
     def reaper.clean_old_was_called?; @app_exception_message; end
 
     expect {
