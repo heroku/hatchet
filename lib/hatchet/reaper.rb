@@ -67,17 +67,16 @@ module Hatchet
     #
     # This method might be running concurrently on multiple processes or multiple
     # machines.
-
     #
     # When a duplicate destroy is detected we can move forward with a conflict strategy:
     #
-    # - `:sleep_and_continue`: Sleep to see if another process will clean up everything for
-    #   us and then re-populate apps from the API.
-    # - `:stop_if_under_limit`: If apps list is under the limit, assume someone else is
-    #   already cleaning up for us and that we're good to move ahead to try to create
-    #   an app. Sleep and return. Otherwise if we're at or over the limit sleep, refresh
-    #   the app list, and continue attempting to delete apps.
-    def destroy_older_apps(minutes: TTL_MINUTES, force_refresh: @apps.empty?, on_conflict: :sleep_and_continue)
+    # - `:refresh_api_and_continue`: Sleep to see if another process will clean up everything for
+    #   us and then re-populate apps from the API and continue.
+    # - `:stop_if_under_limit`: Sleep to allow other processes to continue. Then if apps list
+    #   is under the limit, assume someone else is already cleaning up for us and that we're
+    #   good to move ahead to try to create an app. Otherwise if we're at or
+    #   over the limit sleep, refresh the app list, and continue attempting to delete apps.
+    def destroy_older_apps(minutes: TTL_MINUTES, force_refresh: @apps.empty?, on_conflict: :refresh_api_and_continue)
       MUTEX_FILE.flock(File::LOCK_EX)
 
       refresh_app_list if force_refresh
@@ -120,7 +119,7 @@ module Hatchet
         rescue AlreadyDeletedError => e
           handle_conflict(
             conflict_message: e.message,
-            strategy: :sleep_and_continue
+            strategy: :refresh_api_and_continue
           )
         end
       end
@@ -137,7 +136,7 @@ module Hatchet
         Hatchet app limit (#{@apps.length}/#{@limit}), using strategy #{strategy}
       EOM
 
-      conflict_state = if :sleep_and_continue ==  strategy
+      conflict_state = if :refresh_api_and_continue ==  strategy
         message << "\nSleeping, refreshing app list, and continuing."
         :continue
       elsif :stop_if_under_limit == strategy && @apps.length >= @limit
@@ -147,7 +146,7 @@ module Hatchet
         message << "\nHalting deletion of older apps. Under limit."
         :stop
       else
-        raise "No such strategy: #{strategy}, plese use :stop_if_under_limit or :sleep_and_continue"
+        raise "No such strategy: #{strategy}, plese use :stop_if_under_limit or :refresh_api_and_continue"
       end
 
       @reaper_throttle.call(max_sleep: TTL_MINUTES) do |sleep_for|
