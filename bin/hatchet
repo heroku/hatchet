@@ -123,7 +123,11 @@ class HatchetCLI < Thor
     when options[:older_than]
       minutes = options[:older_than].to_i
       puts "Destroying apps older than #{minutes}m"
-      reaper.destroy_older_apps(minutes: minutes)
+      reaper.destroy_older_apps(
+        minutes: minutes,
+        force_refresh: true,
+        on_conflict: :refresh_api_and_continue
+      )
       puts "Done"
     else
       raise "No flags given run `hatchet help destroy` for options"
