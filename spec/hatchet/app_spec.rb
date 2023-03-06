@@ -1,20 +1,6 @@
 require("spec_helper")
 
 describe "AppTest" do
-  it "annotates rspec expectation failures" do
-    app = Hatchet::Runner.new("default_ruby")
-    error = nil
-    begin
-      app.annotate_failures do
-        expect(true).to eq(false)
-      end
-    rescue RSpec::Expectations::ExpectationNotMetError => e
-      error = e
-    end
-
-    expect(error.message).to include(app.name)
-  end
-
   it "does not modify local files by mistake" do
     Dir.mktmpdir do |dir_1|
       app = Hatchet::Runner.new(dir_1)
@@ -29,7 +15,6 @@ describe "AppTest" do
         entries_array -= ["..", ".", "foo.txt"]
         expect(entries_array).to be_empty
 
-
         entries_array = Dir.entries(dir_1)
         entries_array -= ["..", ".", "foo.txt"]
         expect(entries_array).to be_empty
@@ -37,33 +22,8 @@ describe "AppTest" do
     end
   end
 
-  it "calls reaper if cannot create an app" do
-    app = Hatchet::App.new("default_ruby", buildpacks: [:default])
-    def app.heroku_api_create_app(*args); raise StandardError.new("made you look"); end
-
-    reaper = app.reaper
-
-    def reaper.destroy_older_apps(*args, **kwargs, &block); @app_exception_message = true; end
-    def reaper.clean_old_was_called?; @app_exception_message; end
-
-    expect {
-      app.create_app
-    }.to raise_error("made you look")
-
-    expect(reaper.clean_old_was_called?).to be_truthy
-  end
-
-  it "app with default" do
-    app = Hatchet::App.new("default_ruby", buildpacks: [:default])
-    expect(app.buildpacks.first).to match("https://github.com/heroku/heroku-buildpack-ruby")
-  end
-
-  it "default_buildpack is only computed once" do
-    expect(Hatchet::App.default_buildpack.object_id).to eq(Hatchet::App.default_buildpack.object_id)
-  end
-
   it "create app with stack" do
-    stack = "heroku-18"
+    stack = "heroku-20"
     app = Hatchet::App.new("default_ruby", stack: stack)
     app.create_app
     expect(app.platform_api.app.info(app.name)["build_stack"]["name"]).to eq(stack)

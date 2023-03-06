@@ -77,6 +77,7 @@ module Hatchet
       @buildpacks.map! {|b| b == :default ? self.class.default_buildpack : b}
       @run_multi = run_multi
       @max_retries_count = retries
+      @outer_deploy_block = nil
 
       if run_multi && !ENV["HATCHET_EXPENSIVE_MODE"]
         raise "You're attempting to enable `run_multi: true` mode, but have not enabled `HATCHET_EXPENSIVE_MODE=1` env var to verify you understand the risks"
@@ -424,13 +425,14 @@ module Hatchet
     def deploy(&block)
       in_directory do
         annotate_failures do
+          @outer_deploy_block ||= block # deploy! can be called multiple times. Only teardown once
           in_dir_setup!
-          self.push_with_retry!
+          push_with_retry!
           block.call(self, api_rate_limit.call, output) if block_given?
         end
       end
     ensure
-      self.teardown! if block_given?
+      self.teardown! if block_given? && @outer_deploy_block == block
     end
 
     def push
