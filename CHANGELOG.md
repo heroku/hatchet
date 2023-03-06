@@ -1,5 +1,9 @@
 ## HEAD
 
+## 8.0.2
+
+- Bugfix: Allow nested deploy blocks with new teardown logic (https://github.com/heroku/hatchet/pull/201)
+
 ## 8.0.1
 
 - Bugfix: Lock and sleep and refresh API when duplicate app deletion detected (https://github.com/heroku/hatchet/pull/198)
