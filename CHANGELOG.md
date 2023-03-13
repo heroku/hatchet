@@ -1,5 +1,7 @@
 ## HEAD
 
+- Add support for Ruby 3.2 (https://github.com/heroku/hatchet/pull/203)
+
 ## 8.0.2
 
 - Bugfix: Allow nested deploy blocks with new teardown logic (https://github.com/heroku/hatchet/pull/201)

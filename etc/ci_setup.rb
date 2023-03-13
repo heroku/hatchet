@@ -12,7 +12,7 @@ end
 puts "== Setting Up CI =="
 
 netrc_file = "#{ENV['HOME']}/.netrc"
-unless File.exists?(netrc_file)
+unless File.exist?(netrc_file)
   File.open(netrc_file, 'w') do |file|
     file.write <<-EOF
 machine git.heroku.com
