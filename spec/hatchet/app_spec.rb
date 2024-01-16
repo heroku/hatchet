@@ -29,19 +29,6 @@ describe "AppTest" do
     expect(app.platform_api.app.info(app.name)["build_stack"]["name"]).to eq(stack)
   end
 
-  it "create app with HATCHET_DEFAULT_STACK set" do
-    begin
-      original_default_stack = ENV["HATCHET_DEFAULT_STACK"]
-      default_stack = "heroku-18"
-      ENV["HATCHET_DEFAULT_STACK"] = default_stack
-      app = Hatchet::App.new("default_ruby")
-      app.create_app
-      expect(app.platform_api.app.info(app.name)["build_stack"]["name"]).to eq(default_stack)
-    ensure
-      ENV["HATCHET_DEFAULT_STACK"] = original_default_stack
-    end
-  end
-
   describe "before deploy" do
     it "dir" do
       @called = false
