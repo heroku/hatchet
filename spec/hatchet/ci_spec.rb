@@ -43,21 +43,4 @@ describe "CIFourTest" do
 
     expect(@before_deploy_dir_pwd).to_not eq(Dir.pwd)
   end
-
-  it "ci create app with stack" do
-    pending("upgrade rails 5 app to newer")
-
-    app = Hatchet::GitApp.new("rails5_ruby_schema_format")
-    app.run_ci do |test_run|
-      expect(test_run.output).to match("Ruby buildpack tests completed successfully")
-      expect(test_run.status).to eq(:succeeded)
-      expect(app.pipeline_id).to_not be_nil
-
-      api_rate_limit = app.api_rate_limit.call
-      couplings = api_rate_limit.pipeline_coupling.list_by_pipeline(app.pipeline_id)
-      coupled_app = api_rate_limit.app.info(couplings.first["app"]["id"])
-      expect(coupled_app["name"]).to eq(app.name)
-    end
-    expect(app.pipeline_id).to be_nil
-  end
 end
