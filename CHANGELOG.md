@@ -1,6 +1,6 @@
 ## HEAD
 
-- Add support for Ruby 3.2 (https://github.com/heroku/hatchet/pull/203)
+- Add support for Ruby 3.2 and 3.3 (https://github.com/heroku/hatchet/pull/203 and https://github.com/heroku/hatchet/pull/208)
 
 ## 8.0.2
 
