@@ -187,18 +187,10 @@ module Hatchet
       @api_rate_limit.call.app.delete(id)
 
       io.puts message
-    rescue Excon::Error::NotFound => e
-      body = e.response.body
+    rescue Excon::Error::NotFound, Excon::Error::Forbidden => e
+      status = e.response.status
       request_id = e.response.headers["Request-Id"]
-      if body =~ /Couldn\'t find that app./
-        message = "Duplicate destroy attempted #{name.inspect}: #{id}, status: 404, request_id: #{request_id}"
-        raise AlreadyDeletedError.new(message)
-      else
-        raise e
-      end
-    rescue Excon::Error::Forbidden => e
-      request_id = e.response.headers["Request-Id"]
-      message = "Duplicate destroy attempted #{name.inspect}: #{id}, status: 403, request_id: #{request_id}"
+      message = "Possible duplicate destroy attempted #{name.inspect}: #{id}, status: #{status}, request_id: #{request_id}"
       raise AlreadyDeletedError.new(message)
     end
   end
