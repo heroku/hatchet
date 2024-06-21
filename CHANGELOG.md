@@ -1,5 +1,7 @@
 ## HEAD
 
+- Any 404 when trying to delete an application will be considered duplicate (https://github.com/heroku/hatchet/pull/210)
+
 ## 8.0.3
 
 - Add support for Ruby 3.2 and 3.3 (https://github.com/heroku/hatchet/pull/203 and https://github.com/heroku/hatchet/pull/208)
