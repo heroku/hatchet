@@ -1,5 +1,7 @@
 ## HEAD
 
+## 8.0.4
+
 - Any 404 when trying to delete an application will be considered duplicate (https://github.com/heroku/hatchet/pull/210)
 
 ## 8.0.3
