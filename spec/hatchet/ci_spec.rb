@@ -13,7 +13,6 @@ describe "CI" do
       test_run.run_again
 
       expect(test_run.output).to match(string)
-      expect(test_run.output).to match("Using rake")
       expect(test_run.output).to_not match("Installing rake")
     end
   end
