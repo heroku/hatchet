@@ -153,7 +153,8 @@ module Hatchet
       r_stderr = ""
       r_status = nil
       @dyno_id = nil
-      Open3.popen3(@command) do |stdin, stdout, stderr, wait_thread|
+      # start process in new pgroup so we can SIGTERM the whole group (see Timeout rescue)
+      Open3.popen3(@command, :pgroup => true) do |stdin, stdout, stderr, wait_thread|
         begin
           Timeout.timeout(@timeout) do
             Thread.new do
@@ -178,7 +179,7 @@ module Hatchet
             r_status = wait_thread.value # wait for termination
           end
         rescue Timeout::Error
-          Process.kill("TERM", wait_thread.pid)
+          Process.kill("TERM", -wait_thread.pid) # kill entire process group in case some bash wrapper etc does not forward signals
           r_status = wait_thread.value # wait for termination
         end
       end
