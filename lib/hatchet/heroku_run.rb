@@ -175,8 +175,8 @@ module Hatchet
               rescue IOError # eof? and gets race condition
               end
             end
+            r_status = wait_thread.value # wait for termination
           end
-          r_status = wait_thread.value # wait for termination
         rescue Timeout::Error
           Process.kill("TERM", wait_thread.pid)
           r_status = wait_thread.value # wait for termination
