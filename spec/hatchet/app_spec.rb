@@ -156,6 +156,17 @@ describe "AppTest" do
     end
   end
 
+  it "run supports timeout" do
+    app = Hatchet::GitApp.new("default_ruby")
+    app.deploy do
+      expect(app.run("echo 'hi'; sleep 30", :timeout => 10)).to raise_error { |te|
+        expect(te).to be_a(Hatchet::HerokuRun::HerokuRunTimeoutError)
+        expect(te).to match(/timed out after 10 seconds, stopping dyno/)
+        expect(te).to match(/stdout until moment of termination was: hi/)
+      }
+    end
+  end
+
   class AtomicCount
     attr_reader :value
 
