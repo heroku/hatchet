@@ -5,6 +5,12 @@ require 'tmpdir'
 
 module Hatchet
   class App
+    HATCHET_BUILDPACK_URL = -> {
+      ENV['HATCHET_BUILDPACK_URL'] || Hatchet.git_url {
+        warn "Could not determine tarball URL for buildpack, falling back to HATCHET_BUILDPACK_BASE and branch detection. Refer to README.md to learn how to set HATCHET_BUILDPACK_URL to ensure the correct codebase is used"
+        [HATCHET_BUILDPACK_BASE.call, HATCHET_BUILDPACK_BRANCH.call].join("#")
+      }
+    }
     HATCHET_BUILDPACK_BASE = -> {
       ENV.fetch('HATCHET_BUILDPACK_BASE') {
         warn "ENV HATCHET_BUILDPACK_BASE is not set. It currently defaults to the ruby buildpack. In the future this env var will be required"
@@ -115,7 +121,7 @@ module Hatchet
 
     @default_buildpack = nil
     def self.default_buildpack
-      @default_buildpack ||= [HATCHET_BUILDPACK_BASE.call, HATCHET_BUILDPACK_BRANCH.call].join("#")
+      @default_buildpack ||= HATCHET_BUILDPACK_URL.call
     end
 
     def allow_failure?

@@ -32,7 +32,7 @@ class DefaultCIBranch
     # https://docs.github.com/en/actions/learn-github-actions/environment-variables
     # GITHUB_HEAD_REF is provided for PRs, but blank for branch actions.
     return @env['GITHUB_HEAD_REF'] if @env['GITHUB_HEAD_REF'] && !@env['GITHUB_HEAD_REF']&.empty?
-    # GITHUB_REF_NAME is incorrect on PRs (`1371/merge`), but correct for branch actions.
+    # GITHUB_REF_NAME is unusable for PRs (`1371/merge`), but works for branch actions.
     return @env['GITHUB_REF_NAME'] if @env['GITHUB_REF_NAME']
     # https://devcenter.heroku.com/articles/heroku-ci#immutable-environment-variables
     return @env['HEROKU_TEST_RUN_BRANCH'] if @env['HEROKU_TEST_RUN_BRANCH']
@@ -44,9 +44,51 @@ class DefaultCIBranch
   end
 end
 
+class DefaultCIUrl
+	def initialize(env: ENV)
+    @env = env
+  end
+
+  def call
+    begin
+      if @env['GITLAB_CI']
+        if @env['CI_MERGE_REQUEST_EVENT_TYPE']
+          # https://gitlab.com/gitlab-org/gitlab/-/issues/370164#note_2381838383
+          case @env['CI_MERGE_REQUEST_EVENT_TYPE']
+          when 'merge_train'
+            gitlab_sha = "refs/merge-requests/#{@env.fetch('CI_MERGE_REQUEST_IID')}/train"
+          when 'merged_result'
+            gitlab_sha = "refs/merge-requests/#{@env.fetch('CI_MERGE_REQUEST_IID')}/merge"
+          else
+            gitlab_sha = @env.fetch('CI_MERGE_REQUEST_REF_PATH')
+          end
+        else
+          gitlab_sha = @env.fetch('CI_COMMIT_REF_NAME')
+        end
+        "#{@env.fetch('CI_API_V4_URL', 'https://gitlab.com/api/v4')}/projects/#{@env.fetch('CI_PROJECT_ID')}/repository/archive.tar.gz?sha=#{gitlab_sha}"
+      elsif !@env.fetch('GITHUB_SHA', '').empty?
+        "#{@env.fetch('GITHUB_SERVER_URL', 'https://github.com')}/#{@env.fetch('GITHUB_REPOSITORY')}/archive/#{@env.fetch('GITHUB_SHA')}.tar.gz"
+      elsif !@env.fetch('GITHUB_REF', '').empty?
+        "#{@env.fetch('GITHUB_SERVER_URL', 'https://github.com')}/#{@env.fetch('GITHUB_REPOSITORY')}/archive/#{@env.fetch('GITHUB_REF')}.tar.gz"
+      end
+    rescue KeyError
+    end
+  end
+end
+
 module Hatchet
   RETRIES = Integer(ENV['HATCHET_RETRIES']   || 1)
   Runner  = Hatchet::GitApp
+
+  def self.git_url
+    url = DefaultCIUrl.new.call
+    
+    if url
+      url
+    else
+      yield if block_given?
+    end
+  end
 
   def self.git_branch
     branch = DefaultCIBranch.new.call

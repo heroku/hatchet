@@ -123,6 +123,65 @@ Keep reading to find out more about how hatchet works.
 
 ### Specify buildpack
 
+Hatchet needs to tell Heroku where to find the buildpack to be tested. In addition to a shorthand like `heroku/ruby` for stable releases in the [Buildpack Registry](https://devcenter.heroku.com/articles/buildpack-registry), Heroku can [either download a tarball or clone a Git repository](https://devcenter.heroku.com/articles/managing-buildpacks#classic-buildpacks-references) to fetch a buildpack. For a Git repository, a branch or commit-ish can be specified using the fragment identifier of the URL as described in the documentation.
+
+Tarball downloads are the default behavior in Hatchet, controlled using the `HATCHET_BUILDPACK_URL` environment variable, and the default behavior for the reasons described in the following paragraphs.
+
+If no `HATCHET_BUILDPACK_URL` is specified, Hatchet will fall back to constructing a buildpack URL from `HATCHET_BUILDPACK_BASE` and `HATCHET_BUILDPACK_BRANCH`; the branch is automatically detected from the local Git repository, if possible.
+
+Even when the buildpack source is hosted on e.g. GitHub, the tarball download method and the Git repository clone method are not completely equivalent for two reasons:
+1. tarballs are subject to `export-ignore` and `export-subst` filtering as specified in a repository's `.gitattributes` file;
+1. the "merge result" for a Pull Request, which by default is the code that gets checked out in a GitHub Actions workflow run for a PR, cannot be fetched from a Git repository by the Heroku build system (because it is stored in the repository under `refs/pull/123/merge`, but a standard `git clone` like Heroku's build system performs only fetches `refs/heads/*`). Such a standard fetch also does not pull in unreachable commits, so it is not possible to reference commit SHAs that have been replaced by e.g. a force push.
+
+Furthermore, pulling in the exact Git commit (`GITHUB_SHA`) for a branch push, or the exact merge commit with the base branch for a Pull Request, instead of the respective reference (`GITHUB_REF`, e.g. `refs/heads/mybranch` or `refs/pull/123/merge`), ensures that an in-progress test run continues to use the same commit from beginning to end of a test run, even if new commits are pushed to a branch or a Pull Request branch.
+
+Finally, because publishing a buildpack from GitHub to the Buildpack Registry also uses a tarball source (which uses the `git archive` method that applies `export-ignore` rules from `.gitattributes`), it is recommended that you only use tarball URLs to specify the buildpack to run your test against for parity.
+
+The same considerations apply to e.g. GitLab Merge Requests.
+
+#### GitHub
+
+Hatchet automatically determines the correct buildpack URL to use when tests are run in a GitHub Actions workflow by referencing the commit SHA (in env var `GITHUB_REF`) that [triggered the event](https://docs.github.com/en/actions/reference/workflows-and-actions/events-that-trigger-workflows). In particular, this means the merge commit of a PR branch for a [`pull_request`](https://docs.github.com/en/actions/reference/workflows-and-actions/events-that-trigger-workflows#pull_request) event instead of the the latest commit on the PR branch; for a regular branch [`push`](https://docs.github.com/en/actions/reference/workflows-and-actions/events-that-trigger-workflows#push), the commit SHA is used instead of the branch reference.
+
+If your workflow uses `actions/checkout` to check out a non-default branch, e.g. [the `HEAD` commit instead of the merge commit for a PR](https://github.com/actions/checkout?tab=readme-ov-file#Checkout-pull-request-HEAD-commit-instead-of-merge-commit), it is necessary to tell Hatchet what Git ref and SHA to use instead.
+
+You can use the `ref` and `sha` outputs of `actions/checkout` to overwrite the `GITHUB_REF` and `GITHUB_SHA` environment variables for the invocation of Hatchet, for example if you're checking out the PR `HEAD` for your CI run instead of the PR merge:
+
+```yaml
+steps:
+  - name: Checkout
+    id: checkout
+    uses: actions/checkout@v4
+    with:
+      ref: ${{ github.event.pull_request.head.ref }}
+  - name: Execute tests
+    run: GITHUB_REF='${{ steps.checkout.outputs.ref }}' GITHUB_SHA='${{ steps.checkout.outputs.sha }}' bundle exec rspec test/spec/
+```
+
+> [!IMPORTANT]
+> It is not possible to override default variables like `GITHUB_REF` or `GITHUB_SHA` for later workflow steps by writing a new value to `GITHUB_ENV`!
+
+You can also construct and pass `HATCHET_BUILDPACK_URL` yourself, especially if you want to re-use the URL in several workflow steps:
+
+```yaml
+steps:
+  - name: Checkout
+    id: checkout
+    uses: actions/checkout@v4
+    with:
+      ref: ${{ github.event.pull_request.head.ref }}
+  - name: Set HATCHET_BUILDPACK_URL
+    run: echo "HATCHET_BUILDPACK_URL='${{ github.server_url }}/${{ github.repository }}/archive/${{ steps.checkout.outputs.sha }}.tar.gz'" >> "$GITHUB_ENV"
+  - name: Execute tests
+    run: bundle exec rspec test/spec/
+```
+
+#### GitLab
+
+Hatchet automatically determines the correct buildpack URL to use when tests are run in a GitLab Pipeline. It will auto-determine the correct Git ref to use; in particular, it will use the same codebase as the local Git checkout in the workflow run for a [Merge Train](https://docs.gitlab.com/ci/pipelines/merge_trains/) or [Merged Results]](https://docs.gitlab.com/ci/pipelines/merged_results_pipelines/) pipeline.
+
+#### Elsewhere
+
 Tell Hatchet what buildpack you want to use by default by setting environment variables, this is commonly done in the `spec_helper.rb` file:
 
 ```ruby
@@ -131,6 +190,10 @@ require 'hatchet'`
 ```
 
 If you do not specify `HATCHET_BUILDPACK_BASE` the default Ruby buildpack will be used. If you do not specify a `HATCHET_BUILDPACK_BRANCH` the current branch you are on will be used. This is how the Ruby buildpack runs tests on branches on CI (by leaving `HATCHET_BUILDPACK_BRANCH` blank).
+
+Alternatively, you can supply a URL using the `HATCHET_BUILDPACK_URL` environment variable, which takes precedence over `HATCHET_BUILDPACK_BASE` and `HATCHET_BUILDPACK_BRANCH`. This URL should either end in `.tar.gz` for a tarball, or be a Git URL in the form `https://${host}/repo.git#${commit-ish}` [as accepted by Heroku](https://devcenter.heroku.com/articles/managing-buildpacks#classic-buildpacks-references).
+
+### Running tests
 
 The workflow generally looks like this:
 
@@ -714,7 +777,8 @@ HATCHET_ALIVE_TTL_MINUTES=7
 
 > The syntax to set an env var in Ruby is `ENV["HATCHET_RETRIES"] = "2"` all env vars are strings.
 
-- `HATCHET_BUILDPACK_BASE`: This is the URL where Hatchet can find your buildpack. It must be public for Heroku to be able to use your buildpack.
+- `HATCHET_BUILDPACK_URL`: A full tarball URL for Hatchet to use; this is now preferred over the next two variables, and auto-determined for GitHub Actions runs.
+- `HATCHET_BUILDPACK_BASE`: This is the base URL where Hatchet can find your buildpack. It must be public for Heroku to be able to use your buildpack.
 - `HATCHET_BUILDPACK_BRANCH`: By default, Hatchet will use your current git branch name. If, for some reason, git is not available or you want to manually specify it like `ENV["HATCHET_BUILDPACK_BRANCH'] = ENV[`MY_CI_BRANCH`]` then you can.
 - `HATCHET_RETRIES` If the `ENV['HATCHET_RETRIES']` is set to a number, deploys are expected to work and automatically retry that number of times. Due to testing using a network and random failures, setting this value to `3` retries seems to work well. If an app cannot be deployed within its allotted number of retries, an error will be raised. The downside of a larger number is that your suite will keep running for much longer when there are legitimate failures.
 - `HATCHET_APP_LIMIT`: The maximum number of applications that hatchet is allowed to utilize on your account. If you hit this limit mid-test then Hatchet will need to wait until other tests finish and delete their apps. Keep in mind that you may have several concurrent CI executions on the same account competing for the same limited number of apps.
