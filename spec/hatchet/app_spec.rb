@@ -23,7 +23,7 @@ describe "AppTest" do
   end
 
   it "create app with stack" do
-    stack = "heroku-20"
+    stack = "heroku-24"
     app = Hatchet::App.new("default_ruby", stack: stack)
     app.create_app
     expect(app.platform_api.app.info(app.name)["build_stack"]["name"]).to eq(stack)
