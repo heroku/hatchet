@@ -1,5 +1,7 @@
 ## HEAD
 
+- Fix `hatchet:setup_ci` not printing output (https://github.com/heroku/hatchet/pull/220)
+
 ## 8.0.5
 
 - Updated excon version requirements (https://github.com/heroku/hatchet/pull/215)
