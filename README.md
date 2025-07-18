@@ -587,7 +587,7 @@ app.get_config("DEPLOY_TASKS") # => "run:bloop"
 
 - `app.set_lab()`: Enables the specified lab/feature on the app
 - `app.add_database()`: adds a database to the app, defaults to the "dev" database
-- `app.update_stack()`: Change the app's stack to that specified (for example `"heroku-20"`). Will take effect on the next build.
+- `app.update_stack()`: Change the app's stack to that specified (for example `"heroku-24"`). Will take effect on the next build.
 - `app.run()`: Runs a `heroku run bash` session with the arguments, covered above.
 - `app.run_multi()`: Runs a `heroku run bash` session in the background and yields the results. This requires the `run_multi` flag of the app to be set to `true`, which will charge your application (the `HATCHET_EXPENSIVE_MODE` env var must also be set to use this feature). Example above.
 - `app.create_app`: Can be used to manually create the app without deploying it (You probably want `setup!` though)
