@@ -6,7 +6,7 @@ namespace :hatchet do
     puts "Done"
     puts "Output:\n"
     puts out
-    raise "Command #{script.inspect} failed\n#{out}" unless $?.success?
+    raise "Command #{script.inspect} failed" unless $?.success?
   end
 
   task :setup_travis do
