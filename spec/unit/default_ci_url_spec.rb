@@ -5,8 +5,6 @@ describe "DefaultCIUrl" do
   it "doesn't error on missing vars" do
     out = DefaultCIUrl.new(env: {"GITHUB_REPOSITORY" => "foo/bar"}).call
     expect(out).to be_nil
-    out = DefaultCIUrl.new(env: {"GITLAB_CI" => "1"}).call
-    expect(out).to be_nil
   end
 
   it "GitHub PRs" do
@@ -47,35 +45,5 @@ describe "DefaultCIUrl" do
   it "with only a GITHUB_SHA and empty GITHUB_REF" do
     out = DefaultCIUrl.new(env: {"GITHUB_REPOSITORY" => "foo/bar", "GITHUB_REF" => "refs/heads/somebranch"}).call
     expect(out).to eq("https://github.com/foo/bar/archive/refs/heads/somebranch.tar.gz")
-  end
-
-  describe "GitLab MRs" do
-    it "regular" do
-      out = DefaultCIUrl.new(env: {"GITLAB_CI" => "1", "CI_PROJECT_ID" => "12345", "CI_COMMIT_REF_NAME" => "main", "CI_MERGE_REQUEST_IID" => "123", "CI_MERGE_REQUEST_REF_PATH" => "refs/merge-requests/123/head", "CI_MERGE_REQUEST_EVENT_TYPE" => "detached"}).call
-      expect(out).to eq("https://gitlab.com/api/v4/projects/12345/repository/archive.tar.gz?sha=refs/merge-requests/123/head")
-    end
-    it "merge train" do
-      out = DefaultCIUrl.new(env: {"GITLAB_CI" => "1", "CI_PROJECT_ID" => "12345", "CI_COMMIT_REF_NAME" => "main", "CI_MERGE_REQUEST_IID" => "123", "CI_MERGE_REQUEST_REF_PATH" => "refs/merge-requests/123/head", "CI_MERGE_REQUEST_EVENT_TYPE" => "merge_train"}).call
-      expect(out).to eq("https://gitlab.com/api/v4/projects/12345/repository/archive.tar.gz?sha=refs/merge-requests/123/train")
-    end
-    it "merged result" do
-      out = DefaultCIUrl.new(env: {"GITLAB_CI" => "1", "CI_PROJECT_ID" => "12345", "CI_COMMIT_REF_NAME" => "main", "CI_MERGE_REQUEST_IID" => "123", "CI_MERGE_REQUEST_REF_PATH" => "refs/merge-requests/123/head", "CI_MERGE_REQUEST_EVENT_TYPE" => "merged_result"}).call
-      expect(out).to eq("https://gitlab.com/api/v4/projects/12345/repository/archive.tar.gz?sha=refs/merge-requests/123/merge")
-    end
-  end
-
-  it "GitLab branches" do
-    out = DefaultCIUrl.new(env: {"GITLAB_CI" => "1", "CI_PROJECT_ID" => "12345", "CI_COMMIT_REF_NAME" => "main"}).call
-    expect(out).to eq("https://gitlab.com/api/v4/projects/12345/repository/archive.tar.gz?sha=main")
-  end
-
-  it "GitLab tags" do
-    out = DefaultCIUrl.new(env: {"GITLAB_CI" => "1", "CI_PROJECT_ID" => "12345", "CI_COMMIT_REF_NAME" => "main"}).call
-    expect(out).to eq("https://gitlab.com/api/v4/projects/12345/repository/archive.tar.gz?sha=main")
-  end
-
-  it "custom GitLab installs" do
-    out = DefaultCIUrl.new(env: {"CI_API_V4_URL" => "https://gitlab.example.org/api/v4", "GITLAB_CI" => "1", "CI_PROJECT_ID" => "12345", "CI_COMMIT_REF_NAME" => "main"}).call
-    expect(out).to eq("https://gitlab.example.org/api/v4/projects/12345/repository/archive.tar.gz?sha=main")
   end
 end

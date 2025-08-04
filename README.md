@@ -176,10 +176,6 @@ steps:
     run: bundle exec rspec test/spec/
 ```
 
-#### GitLab
-
-Hatchet automatically determines the correct buildpack URL to use when tests are run in a GitLab Pipeline. It will auto-determine the correct Git ref to use; in particular, it will use the same codebase as the local Git checkout in the workflow run for a [Merge Train](https://docs.gitlab.com/ci/pipelines/merge_trains/) or [Merged Results]](https://docs.gitlab.com/ci/pipelines/merged_results_pipelines/) pipeline.
-
 #### Elsewhere
 
 Tell Hatchet what buildpack you want to use by default by setting environment variables, this is commonly done in the `spec_helper.rb` file:
