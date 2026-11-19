@@ -58,7 +58,7 @@ class HatchetCLI < Thor
     self.lock if missing_commit
   end
 
-  desc "locks to specific git commits", "updates hatchet.lock"
+  desc "lock", "locks repos to specific git commits in hatchet.lock"
   def lock
     lock_hash = {}
     lockfile_hash = load_lockfile(create_if_does_not_exist: true)
