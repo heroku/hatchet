@@ -1,3 +1,3 @@
 module Hatchet
-  VERSION = "8.0.6"
+  VERSION = "9.0.0"
 end
