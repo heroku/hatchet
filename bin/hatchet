@@ -13,11 +13,6 @@ class HatchetCLI < Thor
   # Limits how many git clone/pull operations run concurrently.
   MAX_THREADS = 16
 
-  desc "init", "bootstraps a project with minimal files required to add hatchet tests"
-  define_method("init") do
-    Hatchet::InitProject.new.call
-  end
-
   desc "ci:install_heroku", "installs the `heroku` cli"
   define_method("ci:install_heroku") do
     if `which heroku` && $?.success?

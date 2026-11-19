@@ -57,8 +57,6 @@ In addition to speed, Hatchet provides isolation. Suppose you're executing `bin/
 
 ## Quicklinks
 
-- Getting started
-  - [Add hatchet tests to a existing buildpack](#hatchet-init)
 - Concepts
   - [Tell Hatchet how to find your buildpack](#specify-buildpack)
   - [Give Hatchet some example apps to deploy](#example-apps)
@@ -79,45 +77,6 @@ In addition to speed, Hatchet provides isolation. Suppose you're executing `bin/
 - Ruby language and ecosystem basics
   - [Introduction to the Rspec testing framework for non-rubyists](#basic-rspec)
   - [Introduction to Ruby for non-rubyists](#basic-ruby)
-
-## Getting Started
-
-### Hatchet Init
-
-If you're working in a project that does not already have hatchet tests you can run this command to get started quickly:
-
-Make sure you're in directory that contains your buildpack and run:
-
-```
-$ gem install heroku_hatchet
-$ hatchet init
-```
-
-This will bootstrap your project with the necessarry files to test your buildpack. Including but not limited to:
-
-- Gemfile
-- hatchet.json
-- spec/spec_helper.rb
-- spec/hatchet/buildpack_spec.rb
-- .circleci/config.yml
-- .github/dependabot.yml
-- .gitignore
-
-Once this executes successfully then you can run your tests with:
-
-```
-$ bundle exec rspec
-```
-
-> Note: You'll need to update the `buildpack_spec.rb` file to remove the exception
-
-You can also focus a specific file or test by providing a path and line number:
-
-```
-$ bundle exec rspec spec/hatchet/buildpack_spec:5
-```
-
-Keep reading to find out more about how hatchet works.
 
 ## Concepts
 
@@ -466,7 +425,7 @@ end
 
 ## Running your buildpack tests on a CI service
 
-Once you've got your tests working locally, you'll likely want to get them running on CI. For reference, see the [Circle CI config from this repo](https://github.com/heroku/hatchet/blob/master/.circleci/config.yml) and the [Heroku CI config from the ruby buildpack](https://github.com/heroku/heroku-buildpack-ruby/blob/master/app.json).
+Once you've got your tests working locally, you'll likely want to get them running on CI. For reference, see the [GitHub Actions config from this repo](https://github.com/heroku/hatchet/blob/main/.github/workflows/ci.yml) and the [GitHub Actions config from the Ruby buildpack](https://github.com/heroku/heroku-buildpack-ruby/blob/main/.github/workflows/ci.yml).
 
 To make running on CI easier, there is a setup script in Hatchet that can be run on your CI server each time before your tests are executed:
 
