@@ -4,9 +4,9 @@
 - - repo_fixtures/repos/ci/rails5_ci_fails_no_database
   - 3044f05febdfbbe656f0f5113cf5968ca07e34fd
 - - repo_fixtures/repos/ci/rails5_ruby_schema_format
-  - d76be86c66ae8f45ec611fb2c4d8eb3adac0ad4b
+  - 8b8a3a7850bdba29bdefc70c0f80f35a9e6c96ae
 - - repo_fixtures/repos/default/default_ruby
-  - 6e642963acec0ff64af51bd6fba8db3c4176ed6e
+  - aba4eba3b479b55e716c4b0ff13b25af95d0791d
 - - repo_fixtures/repos/lock/lock_fail
   - da748a59340be8b950e7bbbfb32077eb67d70c3c
 - - repo_fixtures/repos/lock/lock_fail_main

@@ -1,5 +1,8 @@
 ## HEAD
 
+- Added support for Ruby 3.4 and 4.0, and removed support for EOL Ruby versions. ([#228](https://github.com/heroku/hatchet/pull/228))
+- Fixed the `hatchet` CLI failing on Ruby 4.0 due to a transitive dependency missing its `logger` dependency. ([#228](https://github.com/heroku/hatchet/pull/228))
+
 ## 8.0.6
 
 - Fix `hatchet:setup_ci` not printing output (https://github.com/heroku/hatchet/pull/220)
