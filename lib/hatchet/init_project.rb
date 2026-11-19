@@ -48,7 +48,7 @@ module Hatchet
     end
 
     private def stream(command)
-      output = ""
+      output = String.new
       IO.popen(command) do |io|
         until io.eof?
           buffer = io.gets

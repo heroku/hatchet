@@ -1,23 +1,18 @@
 #!/usr/bin/env ruby
 
-unless File.respond_to? :realpath
-  class File #:nodoc:
-    def self.realpath path
-      return realpath(File.readlink(path)) if symlink?(path)
-      path
-    end
-  end
-end
 $: << File.expand_path(File.dirname(File.realpath(__FILE__)) + '/../lib')
 
 require 'hatchet'
 require 'thor'
-require 'threaded'
+require 'parallel'
 require 'date'
 require 'yaml'
 require 'pathname'
 
 class HatchetCLI < Thor
+  # Limits how many git clone/pull operations run concurrently.
+  MAX_THREADS = 16
+
   desc "init", "bootstraps a project with minimal files required to add hatchet tests"
   define_method("init") do
     Hatchet::InitProject.new.call
@@ -48,24 +43,22 @@ class HatchetCLI < Thor
     puts "Installing repos for hatchet"
 
     missing_commit = false
-    dirs.map do |directory, git_repo|
-      Threaded.later do
-        commit = lock_hash[directory]
-        directory = File.expand_path(directory)
-        if !(Dir[directory] && Dir[directory].empty?)
-          puts "== pulling '#{git_repo}' into '#{directory}'\n"
-          pull(directory, git_repo)
-        else
-          puts "== cloning '#{git_repo}' into '#{directory}'\n"
-          clone(directory, git_repo)
-        end
-        if commit
-          checkout_commit(directory, commit)
-        else
-          missing_commit = true
-        end
+    Parallel.each(dirs, in_threads: MAX_THREADS) do |directory, git_repo|
+      commit = lock_hash[directory]
+      directory = File.expand_path(directory)
+      if !(Dir[directory] && Dir[directory].empty?)
+        puts "== pulling '#{git_repo}' into '#{directory}'\n"
+        pull(directory, git_repo)
+      else
+        puts "== cloning '#{git_repo}' into '#{directory}'\n"
+        clone(directory, git_repo)
       end
-    end.map(&:join)
+      if commit
+        checkout_commit(directory, commit)
+      else
+        missing_commit = true
+      end
+    end
 
     self.lock if missing_commit
   end
@@ -74,24 +67,22 @@ class HatchetCLI < Thor
   def lock
     lock_hash = {}
     lockfile_hash = load_lockfile(create_if_does_not_exist: true)
-    dirs.map do |directory, git_repo|
-      Threaded.later do
-        puts "== locking #{directory}"
-        unless Dir.exist?(directory)
-          raise "Bad git repo #{git_repo.inspect}" if bad_repo?(git_repo)
-          clone(directory, git_repo, quiet: false)
-        end
-
-        if lockfile_hash[directory] == "master"
-          lock_hash[directory] = "master"
-        elsif lockfile_hash[directory] == "main"
-          lock_hash[directory] = "main"
-        else
-          commit = commit_at_directory(directory)
-          lock_hash[directory] = commit
-        end
+    Parallel.each(dirs, in_threads: MAX_THREADS) do |directory, git_repo|
+      puts "== locking #{directory}"
+      unless Dir.exist?(directory)
+        raise "Bad git repo #{git_repo.inspect}" if bad_repo?(git_repo)
+        clone(directory, git_repo, quiet: false)
       end
-    end.map(&:join)
+
+      if lockfile_hash[directory] == "master"
+        lock_hash[directory] = "master"
+      elsif lockfile_hash[directory] == "main"
+        lock_hash[directory] = "main"
+      else
+        commit = commit_at_directory(directory)
+        lock_hash[directory] = commit
+      end
+    end
 
     lock_hash = lock_hash.sort
     File.open('hatchet.lock', 'w') {|f| f << lock_hash.to_yaml }
